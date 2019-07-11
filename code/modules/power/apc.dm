@@ -1531,7 +1531,7 @@ obj/machinery/power/apc/proc/autoset(var/cur_state, var/on)
 	if (alarm_alert)
 		audible_message("** BEEP ** BEEP **** BEEP ** BEEP **", "..b...e..", 4)
 
-/obj/machinery/power/apc/proc/update_sound(var/playing)
+/obj/machinery/power/apc/update_sound(var/playing)
 	if(playing && !snd_alarm)
 		snd_alarm = GLOB.sound_player.PlayLoopingSound(src, alarm_sndid, "sound/machines/apc_alarm.ogg", volume = 80, range = 15, falloff = 10)
 	else if(!playing && snd_alarm)

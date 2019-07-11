@@ -221,7 +221,7 @@ Class Procs:
 	// 	return PROCESS_KILL
 
 //update sound effects for this machine
-/obj/machinery/update_sound()
+/obj/machinery/proc/update_sound()
 	return
 
 //-----------------------------------------

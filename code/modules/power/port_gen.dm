@@ -32,7 +32,7 @@
 /obj/machinery/power/port_gen/proc/handleInactive()
 	return
 
-/obj/machinery/power/port_gen/proc/update_sound()
+/obj/machinery/power/port_gen/update_sound()
 	if(!working_sound)
 		return
 	if(!sound_id)
