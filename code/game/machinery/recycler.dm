@@ -12,21 +12,6 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 	anchored = 1
 	density = 1
 	circuit_type = /obj/item/weapon/circuitboard/recycler
-	var/safety_mode = 0 // Temporality stops the machine if it detects a mob
-	var/grinding = 0
-	var/icon_name = "grinder-o"
-	var/blood = 0
-	var/eat_dir = WEST
-	var/amount_produced = 1
-	var/list/stored_material = list()
-	var/efficiency = 0.5 //Percentage of materials recovered from the recycled item
-	var/timelastoutput = 0
-	var/sound_idle = 'sound/machines/creaky_loop.ogg'
-	var/sound_processing = 'sound/machines/machine_wirr.ogg'
-	var/sound_outputs = 'sound/machines/hiss.ogg'
-	var/datum/sound_token/sound_looping = null
-	var/const/soundid = "Recyclers"
-
 	use_power = POWER_USE_IDLE
 	idle_power_usage = 100 //Watts
 	active_power_usage = 800 //Watts
@@ -38,6 +23,22 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 	radio_filter_out 	= RADIO_RECYCLER
 	radio_check_id 		= TRUE
 
+	var/safety_mode = 0 // Temporality stops the machine if it detects a mob
+	var/grinding = 0
+	var/icon_name = "grinder-o"
+	var/blood = 0
+	var/eat_dir = WEST
+	var/amount_produced = 1
+	var/list/stored_material = list()
+	var/efficiency = 0.3 //Percentage of materials recovered from the recycled item
+	var/max_reagent_storage = 2500 //Maximum units of reagents that can be stored in here with upgrades
+	var/timelastoutput = 0
+	var/sound_idle = 'sound/machines/creaky_loop.ogg'
+	var/sound_processing = 'sound/machines/machine_wirr.ogg'
+	var/sound_outputs = 'sound/machines/hiss.ogg'
+	var/datum/sound_token/sound_looping = null
+	var/const/soundid = "Recyclers"
+
 /obj/machinery/recycler/New()
 	..()
 	ADD_SAVED_VAR(blood)
@@ -47,8 +48,7 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 
 /obj/machinery/recycler/SetupReagents()
 	. = ..()
-	if(!reagents)
-		create_reagents(500)
+	create_reagents(500) //starting amount
 
 /obj/machinery/recycler/Initialize()
 	. = ..()
@@ -63,16 +63,21 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 /obj/machinery/recycler/examine()
 	set src in view()
 	..()
-	to_chat(usr, "The power light is [(stat & NOPOWER) ? "off" : "on"].")
+	to_chat(usr, "The power light is [isoff() ? "off" : "on"].")
 	to_chat(usr, "The safety-mode light is [safety_mode ? "on" : "off"].")
 	to_chat(usr, "The safety-sensors status light is [emagged ? "off" : "on"].")
+	to_chat(usr, "There's [reagents.get_free_space()]u left of waste reagent storage.")
+	if(length(stored_material))
+		to_chat(usr, "There's some materials accumulated inside:")
+		for(var/key in stored_material)
+			to_chat(usr, "[key] : [stored_material[key]] units")
 
 /obj/machinery/recycler/power_change()
 	..()
 	update_icon()
 	update_sound()
 
-/obj/machinery/recycler/proc/update_sound()
+/obj/machinery/recycler/update_sound()
 	if(operable() && !safety_mode)
 		if(!sound_looping)
 			sound_looping = GLOB.sound_player.PlayLoopingSound(src, soundid, sound_idle, 25, 5, 2)
@@ -104,11 +109,7 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 		Bumped(AM)
 
 /obj/machinery/recycler/Bumped(var/atom/movable/AM)
-	if(QDELETED(AM))
-		return
-	if(inoperable())
-		return
-	if(safety_mode)
+	if(QDELETED(AM) || inoperable() || safety_mode)
 		return
 	// If we're not already grinding something.
 	if(!grinding)
@@ -116,9 +117,10 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 	else
 		return
 
-	var/move_dir = get_dir(loc, AM.loc)
+	var/move_dir = get_dir(get_turf(src), get_turf(AM))
 	if(move_dir == eat_dir)
 		update_use_power(POWER_USE_ACTIVE)
+		use_power_oneoff(200)
 		if(isliving(AM))
 			if(can_crush(AM))
 				eat(AM)
@@ -128,7 +130,7 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 			recycle(AM)
 		else // Can't recycle
 			playsound(src.loc, 'sound/machines/buzz-sigh.ogg', 50, 0)
-			AM.loc = src.loc
+			AM.forceMove(get_turf(src))
 		update_use_power(POWER_USE_IDLE)
 	grinding = 0
 
@@ -226,7 +228,7 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 		L.loc = eat_dir
 		L.gib()
 		if(!issilicon(L))
-			stored_material["pinkgoo"] += L.getMaxHealth() * 2 //Generate a bit of goop from the health of the mob
+			stored_material[MATERIAL_PINK_GOO] += L.getMaxHealth() * 2 //Generate a bit of goop from the health of the mob
 	output_materials()
 
 /obj/machinery/recycler/Process()
@@ -294,31 +296,22 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 	return 1
 
 /obj/machinery/recycler/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	add_fingerprint(user)
-	if(istype(O, /obj/item/weapon/tool/wrench))
-		if(!anchored)
-			usr.visible_message("<span class='notice'>[user] secures the bolts of the [src]</span>", "<span class='notice'>You secure the bolts of the [src]</span>", "Someone's securing some bolts")
-			src.anchored = 1
-		else
-			usr.visible_message("<span class='danger'>[user] unsecures the bolts of the [src]!</span>", "<span class='notice'>You unsecure the bolts of the [src]</span>", "Someone's unsecuring some bolts")
-			src.anchored = 0
-
+	if(default_wrench_floor_bolts(user, O))
+		return 1
 	if(default_deconstruction_screwdriver(user, O))
-		updateUsrDialog()
-		return
+		return 1
 	if(default_deconstruction_crowbar(user, O))
-		return
+		return 1
 	if(default_part_replacement(user, O))
-		return
-	else if(istype(O, /obj/item/weapon/reagent_containers/glass))
-		var/obj/item/weapon/reagent_containers/glass/thatcontainer = O
+		return 1
+	else if(O.is_open_container())
+		var/obj/item/weapon/reagent_containers/thatcontainer = O
 		if(thatcontainer.reagents.total_volume >= thatcontainer.reagents.maximum_volume || reagents.total_volume < 1)
 			return
 		reagents.trans_to_obj(thatcontainer, thatcontainer.reagents.maximum_volume)
 		to_chat(user, SPAN_NOTICE("You transfer some waste liquid from [src] to the [thatcontainer]."))
-		return
+		return 1
 	return ..()
-
 
 /obj/machinery/recycler/proc/can_process(var/atom/movable/AM)
 	return can_recycle(AM) || can_crush(AM)
@@ -327,7 +320,10 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 /obj/machinery/recycler/proc/can_crush(var/atom/movable/AM)
 	return istype(AM, /mob/living) &&\
 		(!istype(AM, /mob/living/carbon/human) ||\
-		(istype(AM, /mob/living/carbon/human/monkey) || istype(AM, /mob/living/carbon/human/stok) || istype(AM, /mob/living/carbon/human/farwa) || istype(AM, /mob/living/carbon/human/neaera))\
+		(istype(AM, /mob/living/carbon/human/monkey) || \
+		istype(AM, /mob/living/carbon/human/stok) || \
+		istype(AM, /mob/living/carbon/human/farwa) || \
+		istype(AM, /mob/living/carbon/human/neaera))\
 		)
 
 /obj/machinery/recycler/proc/can_recycle(var/atom/movable/AM)
@@ -338,17 +334,21 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 	else if(istype(AM, /obj/structure/closet)) //Opened closets/crates
 		var/obj/structure/closet/thatcloset = AM
 		if(!thatcloset.opened)
-			return FALSE
+			return FALSE //Don't eat closed closets!
 	return TRUE
 
 /obj/machinery/recycler/proc/can_gib(var/atom/movable/AM)
-	return isanimal(AM) || issilicon(AM)||\
-		istype(AM, /mob/living/bot) ||\
-		istype(AM, /mob/living/carbon/human/monkey) ||\
-		istype(AM, /mob/living/carbon/human/stok) ||\
-		istype(AM, /mob/living/carbon/human/farwa) ||\
-		istype(AM, /mob/living/carbon/human/neaera) ||\
-		isslime(AM)? TRUE : FALSE
+	return isanimal(AM) || \
+		issilicon(AM)|| \
+		istype(AM, /mob/living/bot) || \
+		istype(AM, /mob/living/carbon/human/monkey)  || \
+		istype(AM, /mob/living/carbon/human/stok)    || \
+		istype(AM, /mob/living/carbon/human/farwa)   || \
+		istype(AM, /mob/living/carbon/human/neaera)  || \
+		istype(AM, /mob/living/carbon/human/corpse)  || \
+		istype(AM, /mob/living/carbon/human/dummy)   || \
+		istype(AM, /mob/living/carbon/human/machine) || \
+		isslime(AM)
 
 /obj/machinery/recycler/OnSignal(datum/signal/signal)
 	. = ..()
@@ -358,5 +358,25 @@ var/const/OUTPUT_DELAY = 5 SECONDS //intervals between material being outputed b
 		else if(isoff())
 			turn_idle()
 		update_sound()
+
+/obj/machinery/recycler/RefreshParts()
+	. = ..()
+	var/obj/item/weapon/stock_parts/matter_bin/B = locate() in component_parts
+	var/obj/item/weapon/stock_parts/manipulator/M = locate() in component_parts
+	var/volumediff = 0
+	if(B)
+		volumediff = reagents.maximum_volume
+		reagents.maximum_volume = between(500, B.rating/3 * max_reagent_storage, max_reagent_storage)
+	else
+		reagents.maximum_volume = 500
+
+	volumediff -= reagents.maximum_volume
+	if(volumediff > 0)
+		reagents.splash(get_turf(src), volumediff) //If we downgrade throw our extra content around
+
+	if(M)
+		efficiency = min(M.rating/3, 1.0)
+	else
+		efficiency = initial(efficiency)
 
 #undef RECYCLER_MAX_SANE_CONTAINER_DEPTH
