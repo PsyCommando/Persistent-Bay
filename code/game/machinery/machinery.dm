@@ -170,20 +170,21 @@ Class Procs:
 
 	if(faction_uid && !faction)
 		faction = get_faction(faction_uid)
+	update_sound()
 
 /obj/machinery/Destroy()
+	STOP_PROCESSING(SSmachines, src)
+	SSmachines.machinery -= src
+	if(has_transmitter())
+		delete_transmitter()
 	GLOB.moved_event.unregister(src, src, .proc/update_power_on_move)
 	REPORT_POWER_CONSUMPTION_CHANGE(get_power_usage(), 0)
-	SSmachines.machinery -= src
-	STOP_PROCESSING(SSmachines, src)
 	if(component_parts)
 		for(var/atom/A in component_parts)
 			if(A.loc == src) // If the components are inside the machine, delete them.
 				qdel(A)
 			else // Otherwise we assume they were dropped to the ground during deconstruction, and were not removed from the component_parts list by deconstruction code.
 				component_parts -= A
-	if(has_transmitter())
-		delete_transmitter()
 	faction = null
 	. = ..()
 
@@ -218,6 +219,10 @@ Class Procs:
 
 	// if(!(use_power || idle_power_usage || active_power_usage) && !interact_offline)
 	// 	return PROCESS_KILL
+
+//update sound effects for this machine
+/obj/machinery/update_sound()
+	return
 
 //-----------------------------------------
 // Machine State
