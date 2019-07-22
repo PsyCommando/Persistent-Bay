@@ -7,9 +7,9 @@
 	mob_bump_flag = SIMPLE_ANIMAL
 	mob_swap_flags = MONKEY|SLIME|SIMPLE_ANIMAL
 	mob_push_flags = MONKEY|SLIME|SIMPLE_ANIMAL
+	universal_speak = 0		//No, just no.
 
 	var/show_stat_health = 1	//does the percentage health show in the stat panel for the mob
-
 	var/icon_living = ""
 	var/icon_dead = ""
 	var/icon_gib = null	//We only try to show a gibbing animation if this exists.
@@ -21,12 +21,17 @@
 
 	var/turns_per_move = 1
 	var/turns_since_move = 0
-	universal_speak = 0		//No, just no.
 	var/meat_amount = 0
 	var/meat_type
 	var/stop_automated_movement = 0 //Use this to temporarely stop random movement or to if you write special movement code for animals.
-	var/wander = 1	// Does the mob wander around when idle?
 	var/stop_automated_movement_when_pulled = 1 //When set to 1 this stops the animal from moving when someone is pulling it.
+	var/wander = 1	// Does the mob wander around when idle?
+	var/stop_automation = FALSE //stops AI procs from running
+	var/stance = AI_STANCE_IDLE	//Used to determine behavior
+	var/turf/flee_target //What the entity escapes from when harmed
+	var/atom/movable/movement_target //our current movement goal
+	var/tmp/ticks_since_scan = 0
+	var/scan_interval = 20
 
 	//Interaction
 	var/response_help   = "tries to help"
@@ -60,11 +65,12 @@
 	var/defense = DAM_BLUNT //what armor protects against its attacks
 	var/list/natural_armor //what armor animal has
 	var/flash_vulnerability = 1 // whether or not the mob can be flashed; 0 = no, 1 = yes, 2 = very yes
+	var/tmp/time_last_damage = 0
 
 	//Null rod stuff
 	var/supernatural = 0
 	var/purge = 0
-	
+
 	var/bleed_ticks = 0
 	var/bleed_colour = COLOR_BLOOD_HUMAN
 	var/can_bleed = TRUE
@@ -72,21 +78,42 @@
 	// contained in a cage
 	var/in_stasis = 0
 
-	//Grabbing up 
+	//Feeding
+	var/nutrition					= 0		//Nutrition level affects various things
+	var/max_nutrition				= 0		//Maximum nutrition level
+	var/tmp/nutrition_depleterate 	= 0.001 //per tick
+	var/list/types_can_eat 			= list() //Types of things this critter can/want to eat
+
+	//Grabbing up
 	holder_type = /obj/item/weapon/holder
 
 /mob/living/simple_animal/New()
 	. = ..()
 	ADD_SAVED_VAR(bleed_ticks)
+	ADD_SAVED_VAR(meat_amount) //for mess-ups subtracting from the meat amount
+	ADD_SAVED_VAR(nutrition)
+	ADD_SAVED_VAR(max_nutrition)
 
 /mob/living/simple_animal/Initialize()
 	. = ..()
 	if(LAZYLEN(natural_armor))
 		set_extension(src, /datum/extension/armor, /datum/extension/armor, natural_armor)
+	if(!map_storage_loaded)
+		nutrition = max_nutrition
 
 /mob/living/simple_animal/after_load()
 	..()
-	if(stat == DEAD)
+	updatehealth()
+
+/mob/living/simple_animal/updatehealth()
+	if(health > maxHealth)
+		health = maxHealth
+	if(is_dead() && health > minHealth)
+		icon_state = icon_living
+		switch_from_dead_to_living_mob_list()
+		set_stat(CONSCIOUS)
+		set_density(1)
+	if(health <= minHealth && stat != DEAD)
 		death()
 
 /mob/living/simple_animal/Life()
@@ -95,31 +122,22 @@
 		return FALSE
 	if(!living_observers_present(GetConnectedZlevels(z)))
 		return
-	//Health
-	if(stat == DEAD)
-		if(health > 0)
-			icon_state = icon_living
-			switch_from_dead_to_living_mob_list()
-			set_stat(CONSCIOUS)
-			set_density(1)
-		return 0
 
 	handle_atmos()
-
-	if(health <= 0)
-		death()
-		return
-
-	if(health > maxHealth)
-		health = maxHealth
-
 	handle_stunned()
 	handle_weakened()
 	handle_paralysed()
 	handle_confused()
 	handle_supernatural()
 	handle_impaired_vision()
-	
+	handle_nutrition()
+
+	if(max_age > 0) //Only age if the mob supports it
+		handle_age()
+
+	if(fertility > 0)
+		handle_reproduction()
+
 	if(can_bleed && bleed_ticks > 0)
 		handle_bleeding()
 
@@ -133,13 +151,7 @@
 			visible_message("<span class='warning'>\The [src] struggles against \the [buckled]!</span>")
 
 	//Movement
-	if(!client && !stop_automated_movement && wander && !anchored)
-		if(isturf(src.loc) && !resting)		//This is so it only moves if it's not inside a closet, gentics machine, etc.
-			turns_since_move++
-			if(turns_since_move >= turns_per_move)
-				if(!(stop_automated_movement_when_pulled && pulledby)) //Some animals don't move when pulled
-					SelfMove(pick(GLOB.cardinal))
-					turns_since_move = 0
+	handle_movement()
 
 	//Speaking
 	if(!client && speak_chance)
@@ -296,14 +308,14 @@
 					to_chat(user, SPAN_NOTICE("You botch harvesting \the [src], and ruin some of the meat in the process."))
 					subtract_meat(user)
 					return
-				else	
+				else
 					harvest(user, user.get_skill_value(SKILL_COOKING))
 					return
 			else
 				to_chat(user, SPAN_NOTICE("Your hand slips with your movement, and some of the meat is ruined."))
 				subtract_meat(user)
 				return
-				
+
 	else
 		if(!O.force)
 			visible_message("<span class='notice'>[user] gently taps [src] with \the [O].</span>")
@@ -335,7 +347,7 @@
 /mob/living/simple_animal/movement_delay()
 	var/tally = ..() //Incase I need to add stuff other than "speed" later
 
-	tally += speed
+	tally += speed + pregnancy
 	if(purge)//Purged creatures will move more slowly. The more time before their purge stops, the slower they'll move.
 		if(tally <= 0)
 			tally = 1
@@ -459,13 +471,13 @@
 		bleed_ticks = max(bleed_ticks, amount)
 	else
 		bleed_ticks = max(bleed_ticks + amount, 0)
-		
+
 	bleed_ticks = round(bleed_ticks)
-	
+
 /mob/living/simple_animal/proc/handle_bleeding()
 	bleed_ticks--
 	adjustBruteLoss(1)
-	
+
 	var/obj/effect/decal/cleanable/blood/drip/drip = new(get_turf(src))
 	drip.basecolor = bleed_colour
 	drip.update_icon()
@@ -481,5 +493,180 @@
 			return FLASH_PROTECTION_NONE
 		if(0)
 			return FLASH_PROTECTION_MAJOR
-		else 
+		else
 			return FLASH_PROTECTION_MAJOR
+
+/mob/living/simple_animal/proc/can_act()
+	if(stat || stop_automation || incapacitated())
+		return FALSE
+	return TRUE
+
+/mob/living/simple_animal/proc/set_flee_target(atom/A)
+	if(A)
+		flee_target = A
+		ticks_since_scan = 5
+
+/mob/living/simple_animal/proc/determine_next_state()
+	//Try to find something to do only when idle
+	if(stance != AI_STANCE_IDLE || ticks_since_scan < scan_interval)
+		return
+
+	//Find all you need in one go!
+	var/list/obj/item/food = list()
+	var/list/mob/living/simple_animal/mates = list()
+	var/list/obj/structure/beds = list()
+
+	for(var/atom/A in orange(8, src))
+		if(!isturf(A.loc))
+			continue
+		if(istype(A, /obj/structure/dogbed) || istype(A, /obj/structure/bed))
+			beds |= A
+		if(istype(A, src.type))
+			mates |= A
+		if(is_type_in_list(A, types_can_eat))
+			food |= A
+
+	//then find the closest/best
+	if(max_nutrition && nutrition < (max_nutrition * 0.15) && food.len)
+		for(var/obj/item/F in food)
+			if(!movement_target)
+				movement_target = F
+			else if(get_dist(F.loc, loc) < get_dist( movement_target.loc, loc)) //get closest food!
+				movement_target = F
+		stance = AI_STANCE_FEED
+		stop_automated_movement = 1
+
+	//Find best mate
+	else if(!pregnancy && fertility && mates.len)
+		var/mob/living/simple_animal/bestmate
+		for(var/mob/living/simple_animal/matey in mates)
+			if(!matey)
+				continue
+			if(!bestmate)
+				bestmate = matey
+				if(matey.reproduction_candidate_score(src) > bestmate.reproduction_candidate_score(src))
+					bestmate = matey
+		movement_target = bestmate
+		stance = AI_STANCE_MATE
+		stop_automated_movement = 1
+
+	//find closest bed
+	else if(beds.len && (health < maxHealth || drowsyness || dizziness || weakened))
+		for(var/obj/structure/A in beds)
+			if(!A)
+				continue
+			if(!movement_target)
+				movement_target = A
+			else if(get_dist(A.loc, loc) < get_dist( movement_target.loc, loc))
+				movement_target = A
+		stance = AI_STANCE_TIRED
+		stop_automated_movement = 1
+
+
+/mob/living/simple_animal/proc/handle_movement()
+	if(client || stop_automation || stop_automated_movement || anchored || !isturf(src.loc) || resting || (stop_automated_movement_when_pulled && pulledby))
+		return
+
+	ticks_since_scan++
+	determine_next_state()
+
+	//Stance handling
+	switch(stance)
+		if(AI_STANCE_IDLE)
+			handle_idle()
+		if(AI_STANCE_TIRED, AI_STANCE_MATE, AI_STANCE_FEED) //All stances about seeking stuff
+			handle_movement_target()
+		if(AI_STANCE_ESCAPE)
+			handle_flee_target()
+
+/mob/living/simple_animal/proc/handle_idle()
+	turns_since_move++
+	if(!wander)
+		return
+	if(turns_since_move >= turns_per_move)
+		SelfMove(pick(GLOB.cardinal))
+		turns_since_move = 0
+
+/mob/living/simple_animal/proc/handle_flee_target()
+	//see if we should stop fleeing
+	if (flee_target && !(flee_target.loc in view(src)))
+		flee_target = null
+		stop_automated_movement = 0
+
+	if (flee_target)
+		stop_automated_movement = 1
+		walk_away(src, flee_target, 4, speed)
+
+
+/mob/living/simple_animal/proc/handle_movement_target()
+	if(!loc || (movement_target && !movement_target.loc))
+		return
+	//stop if target isn't on a turf
+	if(movement_target && !isturf(movement_target.loc))
+		movement_target = null
+		stop_automated_movement = 0
+		stance = AI_STANCE_IDLE
+
+	//if we have no target or our current one is out of sight/too far away
+	if( !movement_target || get_dist(movement_target.loc, loc) > 6)
+		movement_target = null
+		stop_automated_movement = 0
+		stance = AI_STANCE_IDLE
+
+	if(movement_target)
+		stop_automated_movement = 1
+		walk_to(src, movement_target, 0, 3)
+
+		if(movement_target.loc == loc)
+			stop_automated_movement = 0
+			reached_move_target()
+
+
+/mob/living/simple_animal/proc/reached_move_target()
+	switch(stance)
+		if(AI_STANCE_TIRED)
+			testing("[src]\ref[src] starts sleeping")
+			stance = AI_STANCE_SLEEPING
+			stop_automated_movement = 1
+			Sleeping(10)
+			movement_target = null
+		if(AI_STANCE_MATE)
+			testing("[src]\ref[src] starts mating")
+			stance = AI_STANCE_MATING
+			stop_automated_movement = 1
+			try_make_babies(movement_target)
+			movement_target = null
+		if(AI_STANCE_FEED)
+			testing("[src]\ref[src] starts feeding")
+			stance = AI_STANCE_FEEDING
+			stop_automated_movement = 1
+			ingest(movement_target)
+			movement_target = null
+
+
+//
+//	Nutrition
+//
+
+//Deplete and applies nutrition effects on the mob
+/mob/living/simple_animal/proc/handle_nutrition()
+	if(!max_nutrition)
+		return
+	var/nutrition_depleted = nutrition_depleterate
+	//If above 0 use it for healing a little bit
+	if(nutrition > 0 && health < maxHealth && (!time_last_damage || (world.time - time_last_damage) > 10 SECONDS) )
+		nutrition_depleted += 2
+		heal_overall_damage(1,1)
+	else if(nutrition > (max_nutrition * 0.5) && pregnancy) //If above 50%, and not wounded put some into expediting pregnancy
+		nutrition_depleted += 3
+		pregnancy = between(0.0, pregnancy + 0.01, 1.0)
+
+	nutrition = between(0, nutrition - nutrition_depleted, max_nutrition)
+
+/mob/living/simple_animal/proc/ingest(var/obj/item/I)
+	if(is_type_in_list(I, types_can_eat))
+		var/obj/item/weapon/reagent_containers/food/snacks/F = I
+		if(F)
+			nutrition = between(0, nutrition + F.nutriment_amt, max_nutrition)
+			visible_emote("munch on something")
+			qdel(I)

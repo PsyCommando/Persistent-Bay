@@ -1,7 +1,7 @@
 /mob/living/simple_animal/hostile
 	faction = "hostile"
 	should_save = FALSE
-	var/stance = HOSTILE_STANCE_IDLE	//Used to determine behavior
+	stance = HOSTILE_STANCE_IDLE	//Used to determine behavior
 	var/mob/living/target_mob
 	var/attack_same = 0
 	var/ranged = 0
@@ -22,7 +22,7 @@
 
 	var/shuttletarget = null
 	var/enroute = 0
-	var/stop_automation = FALSE //stops AI procs from running
+	
 	var/pry_time = 7 SECONDS //time it takes for mob to pry open a door
 	var/pry_desc = "prying" //"X begins pry_desc the door!"
 
@@ -36,10 +36,6 @@
 												/obj/structure/wall_frame,
 												/obj/structure/railing)
 
-/mob/living/simple_animal/hostile/proc/can_act()
-	if(stat || stop_automation || incapacitated())
-		return FALSE
-	return TRUE
 
 /mob/living/simple_animal/hostile/proc/kick_stance()
 	if(target_mob)

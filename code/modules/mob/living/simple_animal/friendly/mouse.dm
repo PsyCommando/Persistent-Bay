@@ -14,8 +14,8 @@
 	speak_chance = 1
 	turns_per_move = 5
 	see_in_dark = 6
-	maxHealth = 5
-	health = 5
+	maxHealth = 25
+	health = 25
 	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
 	meat_amount = 1
 	response_help  = "pets"
@@ -31,7 +31,6 @@
 	mob_size = MOB_MINISCULE
 	possession_candidate = 1
 	can_escape = 1
-
 	can_pull_size = ITEM_SIZE_TINY
 	can_pull_mobs = MOB_PULL_NONE
 
@@ -40,8 +39,7 @@
 	if(!.)
 		return FALSE
 	if(prob(speak_chance))
-		for(var/mob/M in view())
-			sound_to(M, 'sound/effects/mousesqueek.ogg')
+		emote("squeak")
 
 	if(!ckey && stat == CONSCIOUS && prob(0.5))
 		set_stat(UNCONSCIOUS)
@@ -79,18 +77,17 @@
 	icon_dead = "mouse_[body_color]_dead"
 	desc = "It's a small [body_color] rodent, often seen hiding in maintenance areas and making a nuisance of itself."
 
+	ADD_SAVED_VAR(body_color)
+
 /mob/living/simple_animal/mouse/proc/splat()
 	icon_dead = "mouse_[body_color]_splat"
 	adjustBruteLoss(maxHealth)  // Enough damage to kill
 	src.death()
 
 /mob/living/simple_animal/mouse/Crossed(AM as mob|obj)
-	if( ishuman(AM) )
-		if(!stat)
-			var/mob/M = AM
-			to_chat(M, "<span class='warning'>\icon[src] Squeek!</span>")
-			sound_to(M, 'sound/effects/mousesqueek.ogg')
-	..()
+	if(ishuman(AM) && !stat)
+		emote("squeak")
+	return ..()
 
 /*
  * Mouse types

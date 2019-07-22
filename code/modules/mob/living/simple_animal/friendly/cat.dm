@@ -18,9 +18,6 @@
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
-	var/turns_since_scan = 0
-	var/mob/living/simple_animal/mouse/movement_target
-	var/mob/flee_target
 	minbodytemp = 223		//Below -50 Degrees Celsius
 	maxbodytemp = 323	//Above 50 Degrees Celsius
 	holder_type = /obj/item/weapon/holder/cat
@@ -53,15 +50,15 @@
 
 
 
-	turns_since_scan++
-	if (turns_since_scan > 5)
-		walk_to(src,0)
-		turns_since_scan = 0
+	// turns_since_scan++
+	// if (turns_since_scan > 5)
+	// 	walk_to(src,0)
+	// 	turns_since_scan = 0
 
-		if (flee_target) //fleeing takes precendence
-			handle_flee_target()
-		else
-			handle_movement_target()
+	// 	if (flee_target) //fleeing takes precendence
+	// 		handle_flee_target()
+	// 	else
+	// 		handle_movement_target()
 
 	if(prob(2)) //spooky
 		var/mob/observer/ghost/spook = locate() in range(src,5)
@@ -75,25 +72,25 @@
 				var/atom/A = pick(visible)
 				visible_emote("suddenly stops and stares at something unseen[istype(A) ? " near [A]":""].")
 
-/mob/living/simple_animal/cat/proc/handle_movement_target()
-	//if our target is neither inside a turf or inside a human(???), stop
-	if((movement_target) && !(isturf(movement_target.loc) || ishuman(movement_target.loc) ))
-		movement_target = null
-		stop_automated_movement = 0
-	//if we have no target or our current one is out of sight/too far away
-	if( !movement_target || !(movement_target.loc in oview(src, 4)) )
-		movement_target = null
-		stop_automated_movement = 0
-		for(var/mob/living/simple_animal/mouse/snack in oview(src)) //search for a new target
-			if(isturf(snack.loc) && !snack.stat)
-				movement_target = snack
-				break
+// /mob/living/simple_animal/cat/proc/handle_movement_target()
+// 	//if our target is neither inside a turf or inside a human(???), stop
+// 	if((movement_target) && !(isturf(movement_target.loc) || ishuman(movement_target.loc) ))
+// 		movement_target = null
+// 		stop_automated_movement = 0
+// 	//if we have no target or our current one is out of sight/too far away
+// 	if( !movement_target || !(movement_target.loc in oview(src, 4)) )
+// 		movement_target = null
+// 		stop_automated_movement = 0
+// 		for(var/mob/living/simple_animal/mouse/snack in oview(src)) //search for a new target
+// 			if(isturf(snack.loc) && !snack.stat)
+// 				movement_target = snack
+// 				break
 
-	if(movement_target)
-		stop_automated_movement = 1
-		walk_to(src,movement_target,0,3)
+// 	if(movement_target)
+// 		stop_automated_movement = 1
+// 		walk_to(src,movement_target,0,3)
 
-/mob/living/simple_animal/cat/proc/handle_flee_target()
+/mob/living/simple_animal/cat/handle_flee_target()
 	//see if we should stop fleeing
 	if (flee_target && !(flee_target.loc in view(src)))
 		flee_target = null
@@ -103,11 +100,6 @@
 		if(prob(25)) say("HSSSSS")
 		stop_automated_movement = 1
 		walk_away(src, flee_target, 7, 2)
-
-/mob/living/simple_animal/cat/proc/set_flee_target(atom/A)
-	if(A)
-		flee_target = A
-		turns_since_scan = 5
 
 /mob/living/simple_animal/cat/attackby(var/obj/item/O, var/mob/user)
 	. = ..()
@@ -150,7 +142,7 @@
 			if (current_dist > follow_dist && !istype(movement_target, /mob/living/simple_animal/mouse) && (friend in oview(src)))
 				//stop existing movement
 				walk_to(src,0)
-				turns_since_scan = 0
+				ticks_since_scan = 0
 
 				//walk to friend
 				stop_automated_movement = 1
