@@ -240,15 +240,14 @@
 	testing("Organs still contained:")
 	for(var/obj/item/organ/O in contents)
 		testing("[O]\ref[O]([O?.x], [O?.y], [O?.z]), in \the '[O?.loc]'\ref[O?.loc]([O?.loc?.x], [O?.loc?.y], [O?.loc?.z])!")
+		qdel(organ)
+	for(var/organ in organs)
+		qdel(organ)
 #endif
 	. = ..()
 #ifdef TESTING
 	return QDEL_HINT_IFFAIL_FINDREFERENCE
 #endif
-		qdel(organ)
-	for(var/organ in organs)
-		qdel(organ)
-	return ..()
 
 /mob/living/carbon/human/get_ingested_reagents()
 	if(should_have_organ(BP_STOMACH))
