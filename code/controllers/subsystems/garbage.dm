@@ -260,6 +260,8 @@ SUBSYSTEM_DEF(garbage)
 		D.gc_destroyed = GC_QUEUED_FOR_HARD_DEL
 
 /datum/controller/subsystem/garbage/Recover()
+	if(!istype(src.queues))
+		PreInit()
 	if (istype(SSgarbage.queues))
 		for (var/i in 1 to SSgarbage.queues.len)
 			queues[i] |= SSgarbage.queues[i]
