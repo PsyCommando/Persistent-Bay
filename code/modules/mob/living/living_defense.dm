@@ -200,19 +200,14 @@
 	return 0
 
 // End BS12 momentum-transfer code.
-
-/mob/living/attack_generic(var/mob/user, var/damage, var/attack_message)
-
+/mob/living/attack_generic(var/mob/user, var/damage, var/attack_verb, var/damtype = DAM_BLUNT, var/used_weapon = null, var/armor_penetration = 0)
 	if(!damage || !istype(user))
 		return
-
-	//adjustBruteLoss(damage)
-	admin_attack_log(user, src, "Attacked", "Was attacked", "attacked")
-
-	src.visible_message("<span class='danger'>\The [user] has [attack_message] \the [src]!</span>")
 	user.do_attack_animation(src)
-	apply_damage(damage, DAM_BLUNT)
-	return 1
+	apply_damage(damage, damtype, null, null, used_weapon, armor_penetration, FALSE)
+	admin_attack_log(user, src, "Attacked their victim", "Was attacked", "has [attack_verb]")
+	src.visible_message(SPAN_DANGER("\The [user] has [attack_verb] \the [src]!"))
+	return TRUE
 
 /mob/living/proc/IgniteMob()
 	if(fire_stacks > 0 && !on_fire)

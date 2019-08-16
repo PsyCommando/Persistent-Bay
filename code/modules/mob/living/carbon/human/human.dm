@@ -165,14 +165,85 @@
 
 /mob/living/carbon/human/Destroy()
 	GLOB.human_mob_list -= src
-	QDEL_NULL_LIST(worn_underwear)
-	for(var/organ in internal_organs)
-#ifndef UNIT_TEST
-		if(src.loc && istype(organ, /obj/item/organ/internal/stack))
-			var/obj/item/organ/internal/stack/lace = organ
-			lace.removed()
-			lace.loc = loc
-			continue
+	remoteview_target = null
+	machine_visual = null
+	QDEL_NULL(vessel)
+	cultural_info = null
+	char_branch = null
+	char_rank = null
+//	QDEL_NULL_LIST(worn_underwear) //Last qdeleted?
+	default_attack = null
+	current_grab_type = null
+	wearing_rig = null
+	// if(descriptors)
+	// 	descriptors.Cut() //Probably last line ran before runtime
+	descriptors = null
+	lying_icon = null
+	stand_icon = null
+	lip_style = null
+
+	LAZYCLEARLIST(equipment_overlays)
+	LAZYCLEARLIST(flavor_texts)
+	if(backpack_setup)
+		QDEL_NULL(backpack_setup)
+
+	//Items
+	if(s_store)
+		s_store.dropInto(null)
+		QDEL_NULL(s_store)
+	if(l_store)
+		l_store.dropInto(null)
+		QDEL_NULL(l_store)
+	if(r_store)
+		r_store.dropInto(null)
+		QDEL_NULL(r_store)
+	if(wear_id)
+		wear_id.dropInto(null)
+		QDEL_NULL(wear_id)
+	if(r_ear)
+		r_ear.dropInto(null)
+		QDEL_NULL(r_ear)
+	if(l_ear)
+		l_ear.dropInto(null)
+		QDEL_NULL(l_ear)
+	if(head)
+		head.dropInto(null)
+		QDEL_NULL(head)
+	if(glasses)
+		glasses.dropInto(null)
+		QDEL_NULL(glasses)
+	if(gloves)
+		gloves.dropInto(null)
+		QDEL_NULL(gloves)
+	if(belt)
+		belt.dropInto(null)
+		QDEL_NULL(belt)
+	if(shoes)
+		shoes.dropInto(null)
+		QDEL_NULL(shoes)
+	if(w_uniform)
+		w_uniform.dropInto(null)
+		QDEL_NULL(w_uniform)
+	if(wear_suit)
+		wear_suit.dropInto(null)
+		QDEL_NULL(wear_suit)
+
+	LAZYCLEARLIST(bad_external_organs)
+	LAZYCLEARLIST(grasp_limbs)
+	LAZYCLEARLIST(stance_limbs)
+	LAZYCLEARLIST(cloaking_sources)
+	LAZYCLEARLIST(languages)
+	for(var/key in overlays_standing)
+		overlays_standing[key] = null
+#ifdef TESTING
+	testing("Destroying [src]\ref[src]([x], [y], [z]), in \the '[loc]'\ref[loc]([loc?.x], [loc?.y], [loc?.z])!")
+	testing("Organs still contained:")
+	for(var/obj/item/organ/O in contents)
+		testing("[O]\ref[O]([O?.x], [O?.y], [O?.z]), in \the '[O?.loc]'\ref[O?.loc]([O?.loc?.x], [O?.loc?.y], [O?.loc?.z])!")
+#endif
+	. = ..()
+#ifdef TESTING
+	return QDEL_HINT_IFFAIL_FINDREFERENCE
 #endif
 		qdel(organ)
 	for(var/organ in organs)

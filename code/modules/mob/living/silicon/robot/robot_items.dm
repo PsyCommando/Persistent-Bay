@@ -106,6 +106,15 @@
 	var/activated = 0
 	var/strobe_effect = null
 
+/obj/item/weapon/party_light/New()
+	. = ..()
+	ADD_SAVED_VAR(activated)
+
+/obj/item/weapon/party_light/Initialize()
+	. = ..()
+	if(activated)
+		activate_strobe()
+
 /obj/item/weapon/party_light/attack_self()
 	if (activated)
 		deactivate_strobe()
@@ -280,6 +289,10 @@
 	name = "Printing Pen"
 	var/mode = 1
 
+/obj/item/weapon/pen/robopen/New()
+	. = ..()
+	ADD_SAVED_VAR(mode)
+
 /obj/item/weapon/pen/robopen/attack_self(mob/user as mob)
 
 	var/choice = input("Would you like to change colour or mode?") as null|anything in list("Colour","Mode")
@@ -354,6 +367,10 @@
 	icon_state = "shock"
 	var/shield_level = 0.5 //Percentage of damage absorbed by the shield.
 
+/obj/item/borg/combat/shield/New()
+	. = ..()
+	ADD_SAVED_VAR(shield_level)
+
 /obj/item/borg/combat/shield/verb/set_shield_level()
 	set name = "Set shield level"
 	set category = "Object"
@@ -381,6 +398,12 @@
 	var/max_walls = 5
 	var/max_doors = 2
 	var/mode = 0 // 0 - Walls   1 - Doors
+
+/obj/item/weapon/inflatable_dispenser/New()
+	. = ..()
+	ADD_SAVED_VAR(stored_walls)
+	ADD_SAVED_VAR(stored_doors)
+	ADD_SAVED_VAR(mode)
 
 /obj/item/weapon/inflatable_dispenser/robot
 	w_class = ITEM_SIZE_HUGE
@@ -481,6 +504,13 @@
 	var/interact_type                  //Things of this type will trigger attack_hand when attacked by this.
 	var/capacity = 1                   //How many objects can be held.
 	var/list/obj/item/held = list()    //What is being held.
+
+/obj/item/robot_rack/New()
+	. = ..()
+	ADD_SAVED_VAR(object_type)
+	ADD_SAVED_VAR(interact_type)
+	ADD_SAVED_VAR(capacity)
+	ADD_SAVED_VAR(held)
 
 /obj/item/robot_rack/examine(mob/user)
 	. = ..()

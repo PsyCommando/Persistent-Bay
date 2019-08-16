@@ -35,6 +35,7 @@
 												/obj/structure/barricade,
 												/obj/structure/wall_frame,
 												/obj/structure/railing)
+	var/armor_penetration = 0 //how much armor is bypassed by an attack of this mob
 
 /mob/living/simple_animal/hostile/proc/can_act()
 	if(stat || stop_automation || incapacitated())
@@ -140,11 +141,11 @@
 			visible_message("<span class='notice'>\The [src] misses its attack on \the [target_mob]!</span>")
 			return
 		var/mob/living/L = target_mob
-		L.attack_generic(src,rand(melee_damage_lower,melee_damage_upper),attacktext,damtype,defense)
+		L.attack_generic(src, rand(melee_damage_lower, melee_damage_upper), attacktext, src.damtype, src.name, src.armor_penetration)
 		return L
 	if(istype(target_mob,/obj/mecha))
 		var/obj/mecha/M = target_mob
-		M.attack_generic(src,rand(melee_damage_lower,melee_damage_upper),attacktext)
+		M.attack_generic(src, rand(melee_damage_lower,melee_damage_upper), attacktext)
 		return M
 
 /mob/living/simple_animal/hostile/proc/LoseTarget()

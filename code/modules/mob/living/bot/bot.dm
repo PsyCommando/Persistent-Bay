@@ -17,7 +17,7 @@
 	var/obj/access_scanner = null
 	var/list/req_access = list()
 	var/list/req_one_access = list()
-	var/list/req_access_faction = list()
+	var/req_access_faction
 	var/datum/world_faction/connected_faction
 
 	var/atom/target = null
@@ -44,8 +44,6 @@
 
 /mob/living/bot/New()
 	..()
-	update_icons()
-
 	botcard = new /obj/item/weapon/card/id(src)
 	botcard.access = botcard_access.Copy()
 
@@ -60,6 +58,7 @@
 
 /mob/living/bot/Initialize()
 	. = ..()
+	update_icons()
 	if(on)
 		turn_on() // Update lights and other stuff
 	else
@@ -67,20 +66,17 @@
 
 /mob/living/bot/after_load()
 	..()
-	connected_faction = get_faction(req_access_faction)
+	if(req_access_faction)
+		connected_faction = get_faction(req_access_faction)
 
 /mob/living/bot/Life()
 	..()
-	if(health <= 0)
-		death()
-		return
 	weakened = 0
 	stunned = 0
 	paralysis = 0
 
-	if(on && !client && !busy)
-		spawn(0)
-			handleAI()
+	// if(on && !client && !busy)
+	// 	handleAI()
 
 /mob/living/bot/updatehealth()
 	if(status_flags & GODMODE)
@@ -229,10 +225,10 @@
 	return 0
 
 /mob/living/bot/proc/handleAI()
-	if(ignore_list.len)
+	if(LAZYLEN(ignore_list))
 		for(var/atom/A in ignore_list)
 			if(!A || !A.loc || prob(1))
-				ignore_list -= A
+				LAZYREMOVE(ignore_list, A)
 	handleRegular()
 	if(target && confirmTarget(target))
 		if(Adjacent(target))
@@ -273,7 +269,7 @@
 	if(!target || !target.loc)
 		return
 	if(get_dist(src, target) > min_target_dist)
-		if(!target_path.len || get_turf(target) != target_path[target_path.len])
+		if(!LAZYLEN(target_path) || get_turf(target) != target_path[target_path.len])
 			calcTargetPath()
 		if(makeStep(target_path))
 			frustration = 0

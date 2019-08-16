@@ -116,13 +116,13 @@
 	brainmob = new(src)
 	brainmob.SetName(H.real_name)
 	brainmob.real_name = H.real_name
-	brainmob.dna = H.dna
 	brainmob.container = src
-
 	SetName("[initial(name)]: [brainmob.real_name]")
+	if(istype(H))
+		brainmob.dna = H.dna //Since sometimes we're not transfering from something with a dna
+	locked = TRUE
 	update_icon()
-	locked = 1
-	return
+
 
 /obj/item/device/mmi/relaymove(var/mob/user, var/direction)
 	if(user.stat || user.stunned)

@@ -86,16 +86,15 @@
 		name = "lace-machine interface"
 
 /obj/item/device/lmi/proc/transfer_identity(var/mob/living/carbon/human/H)//Same deal as the regular brain proc. Used for human-->robot people.
-	brainmob = new(src)
+	brainmob = new(brainobj) //The mob lives in the lace
 	brainmob.name = H.real_name
 	brainmob.real_name = H.real_name
-	brainmob.dna = H.dna
-	brainmob.container = src
-
-	name = "Lace-Machine Interface: [brainmob.real_name]"
+	brainmob.container = brainobj //The mob lives in the lace
+	name = "Lace-Machine Interface ([brainmob.real_name])"
 	icon_state = "lmi_full"
-	locked = 1
-	return
+	locked = TRUE
+	if(istype(H))
+		brainmob.dna = H.dna //Since sometimes we're not transfering from something with a dna
 
 /obj/item/device/lmi/relaymove(var/mob/user, var/direction)
 	if(user.stat || user.stunned)

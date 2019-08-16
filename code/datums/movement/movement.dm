@@ -120,6 +120,7 @@ if(LAZYLEN(movement_handlers) && ispath(movement_handlers[1])) { \
 /atom/movable/Destroy()
 	if(LAZYLEN(movement_handlers) && !ispath(movement_handlers[1]))
 		QDEL_NULL_LIST(movement_handlers)
+	LAZYCLEARLIST(movement_handlers) //Seems like it won't clear sometimes..
 	. = ..()
 
 /datum/movement_handler

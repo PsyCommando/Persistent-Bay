@@ -71,7 +71,7 @@
 	var/wiresexposed = 0
 	var/locked = 1
 	var/has_power = 1
-	var/spawn_module = null
+	//var/spawn_module = null
 
 	var/spawn_sound = 'sound/voice/liveagain.ogg'
 	var/pitch_toggle = 1
@@ -113,24 +113,69 @@
 			var/datum/action/lace/laceaction = new(lmi.brainobj)
 			laceaction.Grant(src)
 
-/mob/living/silicon/robot/Initialize()
+/mob/living/silicon/robot/New()
+	. = ..()
+	ADD_SAVED_VAR(lights_on)
+	ADD_SAVED_VAR(power_efficiency)
+	ADD_SAVED_VAR(sight_mode)
+	ADD_SAVED_VAR(custom_name)
+	ADD_SAVED_VAR(custom_sprite)
+	ADD_SAVED_VAR(crisis)
+	ADD_SAVED_VAR(crisis_override)
+	ADD_SAVED_VAR(integrated_light_max_bright)
+	ADD_SAVED_VAR(module_category)
+	ADD_SAVED_VAR(module)
+	ADD_SAVED_VAR(module_active)
+	ADD_SAVED_VAR(module_state_1)
+	ADD_SAVED_VAR(module_state_2)
+	ADD_SAVED_VAR(module_state_3)
+	ADD_SAVED_VAR(cell)
+	ADD_SAVED_VAR(components)
+	ADD_SAVED_VAR(mmi)
+	ADD_SAVED_VAR(lmi)
+	ADD_SAVED_VAR(storage)
+	ADD_SAVED_VAR(opened)
+	ADD_SAVED_VAR(emagged)
+	ADD_SAVED_VAR(wiresexposed)
+	ADD_SAVED_VAR(locked)
+	ADD_SAVED_VAR(pitch_toggle)
+	ADD_SAVED_VAR(req_access)
+	ADD_SAVED_VAR(viewalerts)
+	ADD_SAVED_VAR(modtype)
+	ADD_SAVED_VAR(lower_mod)
+	ADD_SAVED_VAR(jetpack)
+	ADD_SAVED_VAR(jeton)
+	ADD_SAVED_VAR(killswitch)
+	ADD_SAVED_VAR(killswitch_time)
+	ADD_SAVED_VAR(weapon_lock)
+	ADD_SAVED_VAR(weaponlock_time)
+	ADD_SAVED_VAR(lawupdate)
+	ADD_SAVED_VAR(lockcharge)
+	ADD_SAVED_VAR(speed)
+	ADD_SAVED_VAR(scrambledcodes)
+	ADD_SAVED_VAR(intenselight)
+	ADD_SAVED_VAR(installed_module)
+	ADD_SAVED_VAR(chassis_mod)
+	ADD_SAVED_VAR(chassis_mod_toggled)
+
+/mob/living/silicon/robot/Initialize(mapload)
 	. = ..()
 	spark_system = new /datum/effect/effect/system/spark_spread()
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
-
-	add_language("Robot Talk", 1)
-	add_language(LANGUAGE_EAL, 1)
-
 	wires = new(src)
-
 	robot_modules_background = new()
 	robot_modules_background.icon_state = "block"
 	ident = random_id(/mob/living/silicon/robot, 1, 999)
-	module_sprites["Basic"] = "robot"
-	icontype = "Basic"
+	
+
+	if(!map_storage_loaded)
+		add_language("Robot Talk", 1)
+		add_language(LANGUAGE_EAL, 1)
+		module_sprites["Basic"] = "robot"
+		icontype = "Basic"
+		initialize_components()
 	updatename(modtype)
-	queue_icon_update()
 
 	if(!scrambledcodes && !camera)
 		camera = new /obj/machinery/camera(src)
@@ -139,23 +184,32 @@
 		if(wires.IsIndexCut(BORG_WIRE_CAMERA))
 			camera.status = 0
 	init()
-	initialize_components()
-
-	for(var/V in components) if(V != "power cell")
-		var/datum/robot_component/C = components[V]
-		C.installed = 1
-		C.wrapped = new C.external_type
-
 	if(ispath(cell))
 		cell = new cell(src)
-
-	if(cell)
-		var/datum/robot_component/cell_component = components["power cell"]
-		cell_component.wrapped = cell
-		cell_component.installed = 1
-
+	setup_components()
 	add_robot_verbs()
+	init_hud()
+	verbs -= /mob/living/silicon/robot/verb/Namepick
+	AddMovementHandler(/datum/movement_handler/robot/use_power, /datum/movement_handler/mob/space)
+	if(mapload)
+		queue_icon_update()
+	else
+		update_icon()
 
+/mob/living/silicon/robot/proc/setup_components()
+	for(var/V in components) 
+		var/datum/robot_component/C = components[V]
+		var/obj/item/found = locate(C.external_type) in src
+		if(found)
+			C.wrapped = found
+		else
+			if(V == "power cell")
+				C.wrapped = cell
+			else
+				C.wrapped = new C.external_type(src)
+		C.installed = 1
+
+/mob/living/silicon/robot/proc/init_hud()
 	hud_list[HEALTH_HUD]      = new /image/hud_overlay('icons/mob/hud.dmi', src, "hudblank")
 	hud_list[STATUS_HUD]      = new /image/hud_overlay('icons/mob/hud.dmi', src, "hudhealth100")
 	hud_list[LIFE_HUD]        = new /image/hud_overlay('icons/mob/hud.dmi', src, "hudhealth100")
@@ -165,18 +219,16 @@
 	hud_list[IMPCHEM_HUD]     = new /image/hud_overlay('icons/mob/hud.dmi', src, "hudblank")
 	hud_list[IMPTRACK_HUD]    = new /image/hud_overlay('icons/mob/hud.dmi', src, "hudblank")
 	hud_list[SPECIALROLE_HUD] = new /image/hud_overlay('icons/mob/hud.dmi', src, "hudblank")
-	verbs -= /mob/living/silicon/robot/verb/Namepick
-	AddMovementHandler(/datum/movement_handler/robot/use_power, /datum/movement_handler/mob/space)
 
 /mob/living/silicon/robot/after_load()
+	..()
 	if(lmi)
 		add_lace_action()
-		
+
 /mob/living/silicon/robot/get_stack()
 	if(lmi)
 		return lmi.brainobj
-		
-		
+
 /mob/living/silicon/robot/verb/ModuleDisable()
 	set category = "Robot Commands"
 	set name = "Deactivate Module"
@@ -274,8 +326,6 @@
 		else
 			lawupdate = 0
 
-	playsound(loc, spawn_sound, 75, pitch_toggle)
-
 /mob/living/silicon/robot/fully_replace_character_name(pickedName as text)
 	custom_name = pickedName
 	updatename()
@@ -337,6 +387,15 @@
 	connected_ai = null
 	QDEL_NULL(module)
 	QDEL_NULL(wires)
+	QDEL_NULL(cell)
+	QDEL_NULL(storage)
+	QDEL_NULL(installed_module)
+	QDEL_NULL(chassis_mod)
+	camera = null
+	module_active = null
+	module_state_1 = null
+	module_state_2 = null
+	module_state_3 = null
 	. = ..()
 
 /mob/living/silicon/robot/proc/set_module_sprites(var/list/new_sprites)
@@ -359,6 +418,7 @@
 		icon_state = module_sprites[icontype]
 	update_icon()
 	return module_sprites
+
 /mob/living/silicon/robot/proc/choose_icon_new(var/icon)
 	icon_state = icon
 
@@ -644,7 +704,7 @@
 				C.installed = 1
 				C.wrapped = W
 				C.install()
-				W.forceMove(null)
+				W.forceMove(src)
 
 				var/obj/item/robot_parts/robot_component/WC = W
 				if(istype(WC))

@@ -65,7 +65,11 @@
 	QDEL_NULL(metabolism_effects)
 	bloodstr = null // We don't qdel(bloodstr) because it's the same as qdel(reagents)
 	QDEL_NULL_LIST(internal_organs)
+	//Do those after deleting the organs, since they access the parent's organ lists directly on destroy
 	QDEL_NULL_LIST(hallucinations)
+	QDEL_NULL_LIST(organs)
+	LAZYCLEARLIST(organs_by_name)
+	species = null
 	if(loc)
 		for(var/mob/M in contents)
 			M.dropInto(loc)

@@ -18,6 +18,16 @@
 		client.screen = list()
 	if(mind && mind.current == src)
 		spellremove(src)
+	unset_machine()
+	QDEL_NULL(hud_used)
+	QDEL_NULL_LIST(embedded)
+	if(istype(skillset))
+		QDEL_NULL(skillset)
+	for(var/obj/item/grab/G in grabbed_by)
+		qdel(G)
+	move_intent = null //its a decl, so just null it
+	LAZYCLEARLIST(move_intents)
+	QDEL_NULL(dna)
 	ghostize()
 	..()
 	return QDEL_HINT_HARDDEL
@@ -1329,4 +1339,3 @@
 
 /mob/after_load()
 	. = ..()
-

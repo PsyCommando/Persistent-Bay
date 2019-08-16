@@ -57,10 +57,8 @@
 		if(NORTHWEST)
 			mob.hotkey_drop()
 
-/mob/proc/hotkey_drop()
-	to_chat(usr, "<span class='warning'>This mob type cannot drop items.</span>")
 
-/mob/living/carbon/hotkey_drop()
+/mob/proc/hotkey_drop()
 	if(!get_active_hand())
 		to_chat(usr, "<span class='warning'>You have nothing to drop in your hand.</span>")
 	else

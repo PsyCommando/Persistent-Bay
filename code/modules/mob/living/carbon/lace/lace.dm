@@ -23,8 +23,8 @@
 	container = loc
 	var/datum/action/lace/laceaction = new(container)
 	laceaction.Grant(src)
-	default_language = all_languages[LANGUAGE_GALCOM]
 	add_language(LANGUAGE_GALCOM)
+	default_language = all_languages[LANGUAGE_GALCOM]
 	..()
 
 /mob/living/carbon/lace/after_load()
@@ -39,13 +39,17 @@
 	update_action_buttons()
 
 /mob/living/carbon/lace/Destroy()
+	container = null
+	container2 = null
+	if(laceaction)
+		laceaction.Remove(src) //Make sure the lace action is cleared of any references
 	if(key)				//If there is a mob connected to this thing. Have to check key twice to avoid false death reporting.
 		if(stat!=DEAD)	//If not dead.
 			death(1)	//Brains can die again. AND THEY SHOULD AHA HA HA HA HA HA
 		message_admins("DEAD LACE DETECTED!! [key] [src]")
 		ghostize()		//Ghostize checks for key so nothing else is necessary.
-	container = null
-	container2 = null
+	QDEL_NULL(tmp_storage_action)
+	QDEL_NULL(laceaction)
 	. = ..()
 
 /mob/living/carbon/brain/say_understands(var/other)//Goddamn is this hackish, but this say code is so odd

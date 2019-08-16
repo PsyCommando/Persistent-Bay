@@ -57,7 +57,7 @@
 	var/environment_smash = 0
 	var/resistance		  = 0	// Damage reduction
 	var/damtype = DAM_BLUNT
-	var/defense = DAM_BLUNT //what armor protects against its attacks
+	//var/defense = DAM_BLUNT //what armor protects against its attacks
 	var/list/natural_armor //what armor animal has
 	var/flash_vulnerability = 1 // whether or not the mob can be flashed; 0 = no, 1 = yes, 2 = very yes
 
