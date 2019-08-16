@@ -300,3 +300,7 @@ var/list/slot_equipment_priority = list( \
 		var/obj/item/I = entry
 		if(I.body_parts_covered & body_parts)
 			. += I
+
+//Abstraction over returning the inventory slots this mob has
+/mob/proc/get_all_inventory_slots()
+	return null

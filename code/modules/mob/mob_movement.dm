@@ -57,6 +57,9 @@
 		if(NORTHWEST)
 			mob.hotkey_drop()
 
+// /mob/proc/hotkey_drop()
+// 	to_chat(usr, "<span class='warning'>This mob type cannot drop items.</span>")
+
 /mob/proc/hotkey_drop()
 	to_chat(usr, "<span class='warning'>This mob type cannot drop items.</span>")
 

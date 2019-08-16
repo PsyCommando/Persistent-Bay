@@ -513,4 +513,8 @@ This saves us from having to call add_fingerprint() any time something is put in
 			return E
 	return null
 
+/mob/living/carbon/human/get_all_inventory_slots()
+	if(species && species.hud && species.hud.equip_slots)
+		return species.hud.equip_slots
+
 #undef REMOVE_INTERNALS
