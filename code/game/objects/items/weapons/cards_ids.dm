@@ -382,6 +382,10 @@ var/const/NO_EMAG_ACT = -50
 				detail_color = j.selection_color
 	update_icon()
 
+/obj/item/weapon/card/id/Destroy()
+	GLOB.all_id_cards -= src
+	return ..()
+
 /obj/item/weapon/card/id/get_mob_overlay(mob/user_mob, slot)
 	var/image/ret = ..()
 	ret.overlays += overlay_image(ret.icon, "[ret.icon_state]_colors", detail_color, RESET_COLOR)
