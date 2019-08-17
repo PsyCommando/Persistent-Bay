@@ -14,6 +14,7 @@
 	var/teleport_time = 0 // time when you can teleport back to nexus
 
 	var/datum/action/lace_storage/tmp_storage_action
+	var/datum/action/lace/laceaction = null
 
 
 /mob/living/carbon/lace/get_stack()
@@ -21,7 +22,7 @@
 
 /mob/living/carbon/lace/New()
 	container = loc
-	var/datum/action/lace/laceaction = new(container)
+	laceaction = new(container)
 	laceaction.Grant(src)
 	add_language(LANGUAGE_GALCOM)
 	default_language = all_languages[LANGUAGE_GALCOM]
