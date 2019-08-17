@@ -299,6 +299,7 @@
 		spawn(1)
 			qdel(rgrab)
 	return success
+
 /*
 	We want to ensure that a mob may only apply pressure to one organ of one mob at any given time. Currently this is done mostly implicitly through
 	the behaviour of do_after() and the fact that applying pressure to someone else requires a grab:
@@ -312,27 +313,41 @@
 	if(!organ || !(organ.status & ORGAN_BLEEDING) || BP_IS_ROBOTIC(organ))
 		return 0
 
-	if(organ.applied_pressure)
+	if(organ.applied_pressure != user)
 		var/message = "<span class='warning'>[ismob(organ.applied_pressure)? "Someone" : "\A [organ.applied_pressure]"] is already applying pressure to [user == src? "your [organ.name]" : "[src]'s [organ.name]"].</span>"
 		to_chat(user, message)
 		return 0
 
-	if(user == src)
-		user.visible_message("\The [user] starts applying pressure to \his [organ.name]!", "You start applying pressure to your [organ.name]!")
-	else
-		user.visible_message("\The [user] starts applying pressure to [src]'s [organ.name]!", "You start applying pressure to [src]'s [organ.name]!")
-	spawn(0)
+	//Allow people to move and hold pressure, because otherwise its kind of useless.
+	if(!organ.applied_pressure) //apply pressure 
 		organ.applied_pressure = user
+		applying_pressure = organ
+		if(user == src)
+			user.visible_message("\The [user] starts applying pressure to \his [organ.name]!", "You start applying pressure to your [organ.name]!")
+		else
+			user.visible_message("\The [user] starts applying pressure to [src]'s [organ.name]!", "You start applying pressure to [src]'s [organ.name]!")
 
-		//apply pressure as long as they stay still and keep grabbing
-		do_mob(user, src, INFINITY, target_zone, progress = 0)
-
+	else //Remove pressure
 		organ.applied_pressure = null
-
+		applying_pressure = null
 		if(user == src)
 			user.visible_message("\The [user] stops applying pressure to \his [organ.name]!", "You stop applying pressure to your [organ.name]!")
 		else
 			user.visible_message("\The [user] stops applying pressure to [src]'s [organ.name]!", "You stop applying pressure to [src]'s [organ.name]!")
+
+
+	// spawn(0)
+	// 	organ.applied_pressure = user
+
+	// 	//apply pressure as long as they stay still and keep grabbing
+	// 	do_mob(user, src, INFINITY, target_zone, progress = 0)
+
+	// 	organ.applied_pressure = null
+
+	// 	if(user == src)
+	// 		user.visible_message("\The [user] stops applying pressure to \his [organ.name]!", "You stop applying pressure to your [organ.name]!")
+	// 	else
+	// 		user.visible_message("\The [user] stops applying pressure to [src]'s [organ.name]!", "You stop applying pressure to [src]'s [organ.name]!")
 
 	return 1
 

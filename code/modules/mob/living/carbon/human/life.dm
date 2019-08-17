@@ -92,6 +92,9 @@
 
 	voice = GetVoice()
 
+	if(applying_pressure && incapacitated(INCAPACITATION_ALL))
+		applying_pressure = null //Make sure we don't hold pressure if we're incapacited
+
 	//No need to update all of these procs if the guy is dead.
 	if(stat != DEAD && !InStasis())
 		//Updates the number of stored chemicals for powers

@@ -120,3 +120,4 @@
 	var/list/descriptors
 	var/decaylevel = 0 //For rotting bodies
 	var/branded = null	//For whether or not they've been branded, and what they've been branded with.
+	var/obj/item/organ/applying_pressure = null //Organ the mob is currently applying pressure to
