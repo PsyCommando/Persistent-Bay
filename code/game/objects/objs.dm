@@ -42,6 +42,9 @@
 	var/anchor_fall = FALSE
 	var/holographic = FALSE //if the obj is a holographic object spawned by the holodeck
 
+	//Fire overlay
+	var/image/fire_overlay = null
+
 /obj/New()
 	..()
 	if(obj_flags & OBJ_FLAG_DAMAGEABLE && max_health) //save health only when its relevant
@@ -56,6 +59,8 @@
 
 /obj/Destroy()
 	STOP_PROCESSING(SSobj, src)
+	LAZYCLEARLIST(overlays)
+	QDEL_NULL(fire_overlay)
 	return ..()
 
 /obj/item/proc/is_used_on(obj/O, mob/user)
@@ -313,7 +318,7 @@
 	update_icon()
 
 //Called when the object's health reaches 0, with the last damage type that hit it
-//Differs from Destroy in that Destroy has been mostly used as a destructor more than a damage effect proc. 
+//Differs from Destroy in that Destroy has been mostly used as a destructor more than a damage effect proc.
 //And since we don't always want to create debris and stuff when destroying an object, its better to separate them.
 // - damagetype : is the damage type that dealt the killing blow.
 // - user : is the attacker
@@ -521,31 +526,39 @@
 	. = ..()
 	if(!isdamageable() || !exposed_temperature || !air)
 		return
-
-	if(!burning && burn_point >= exposed_temperature)
+	var/moles_ratio_oxidizer = air.total_moles? air.get_by_flag(XGM_GAS_OXIDIZER) / air.total_moles : 0
+	var/can_burn = (moles_ratio_oxidizer >= 16) && (burn_point >= exposed_temperature)
+	if(burning)
+		if(!can_burn)
+			extinguish()
+			return
+	else if(can_burn)
 		ignite()
-	else if(burning && (burn_point < exposed_temperature ))
-		extinguish()
-	else
-		fire_consume(air, exposed_temperature, exposed_volume)
+	fire_consume(air, exposed_temperature, exposed_volume)
 
 //Implementation of the object burning from being in contact with fire
 /obj/proc/fire_consume(var/datum/gas_mixture/air, var/exposed_temperature, var/exposed_volume)
-	var/expvol = exposed_volume
 	if(!burn_point || !air)
 		return
-	if(expvol <= 0)
-		expvol = 1
+	var/expvol = max(exposed_volume, 1)
 	var/fire_damage = (exposed_temperature/burn_point) * (air.volume/expvol)
-	take_damage(fire_damage, DAM_BURN) //might make more sense to use laser here...
+	take_damage(fire_damage, DAM_BURN, 0, "fire", DAM_DISPERSED)
+	ADJUST_ATOM_TEMPERATURE(src, 1950 CELSIUS) //Most things burn at around 1950+ degrees
+
+	//Then increase the ambient temp a little bit
+	var/datum/gas_mixture/locair = loc? loc.return_air() : null
+	if(locair)
+		locair.add_thermal_energy(20460) //1,060 joules is about 1 BTU
 
 //Called when set on fire
 /obj/proc/ignite()
 	burning = TRUE
+	update_icon()
 
 //Called when fire is put out
 /obj/proc/extinguish()
 	burning = FALSE
+	update_icon()
 
 //This is called when the object is destroyed by fire
 /obj/melt(var/user = null)
@@ -595,3 +608,17 @@
 		to_chat(user, SPAN_NOTICE("You [anchored? "un" : ""]secured \the [src]!"))
 		set_anchored(!anchored)
 	return TRUE
+
+/obj/proc/on_update_fire_layer()
+	if(burning)
+		if(!fire_overlay)
+			fire_overlay = image('icons/effects/fire.dmi', src, "fire", ABOVE_OBJ_LAYER, src.dir)
+		fire_overlay.opacity = 1
+		overlays |= fire_overlay
+	else
+		fire_overlay.opacity = 0
+		overlays -= fire_overlay
+
+/obj/on_update_icon()
+	. = ..()
+	on_update_fire_layer()
