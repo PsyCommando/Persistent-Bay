@@ -144,11 +144,7 @@
 
 	return ..()
 
-/obj/machinery/floodlight/verb/rotate()
-	set name = "Rotate Light"
-	set category = "Object"
-	set src in oview(1)
-
+/obj/machinery/floodlight/rotate()
 	if(!usr || !Adjacent(usr))
 		return
 

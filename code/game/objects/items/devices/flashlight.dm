@@ -496,11 +496,7 @@
 	flashlight_outer_range = 7
 
 
-/obj/item/device/flashlight/floodlamp/verb/rotate()
-	set name = "Rotate Light"
-	set category = "Object"
-	set src in oview(1)
-
+/obj/item/device/flashlight/floodlamp/rotate()
 	if(!usr || !Adjacent(usr))
 		return
 

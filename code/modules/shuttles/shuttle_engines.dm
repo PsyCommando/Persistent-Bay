@@ -92,17 +92,6 @@
 /obj/machinery/shuttleengine/AltClick()
 	rotate()
 
-/obj/machinery/shuttleengine/verb/rotate()
-	set name = "Rotate Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	if (src.anchored || usr:stat)
-		to_chat(usr, "It is fastened to the floor!")
-		return 0
-	src.set_dir(turn(src.dir, 270))
-	return 1
-
 /obj/machinery/shuttleengine/verb/rotateccw()
 	set name = "Rotate Counter Clockwise"
 	set category = "Object"

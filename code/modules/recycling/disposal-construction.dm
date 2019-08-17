@@ -102,29 +102,6 @@
 		set_invisibility((intact && level==1) ? 101: 0)	// hide if floor is intact
 		update()
 
-
-	// flip and rotate verbs
-	verb/rotate()
-		set category = "Object"
-		set name = "Rotate Pipe"
-		set src in view(1)
-
-		if(!usr || !Adjacent(usr))
-			return
-
-		if(usr.incapacitated())
-			return
-
-		if(usr.stat)
-			return
-
-		if(anchored)
-			to_chat(usr, "You must unfasten the pipe before rotating it.")
-			return
-
-		set_dir(turn(dir, -90))
-		update()
-
 	verb/flip()
 		set category = "Object"
 		set name = "Flip Pipe"

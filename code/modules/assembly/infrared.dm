@@ -104,13 +104,6 @@
 	if(usr)
 		attack_self(usr)
 
-/obj/item/device/assembly/infra/verb/rotate()//This could likely be better
-	set name = "Rotate Infrared Laser"
-	set category = "Object"
-	set src in usr
-
-	set_dir(turn(dir, 90))
-
 /obj/item/device/assembly/infra/proc/on_beam_entered(var/atom/enterer)
 	if(enterer == src)
 		return
