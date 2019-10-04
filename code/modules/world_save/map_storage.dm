@@ -44,6 +44,8 @@ var/global/list/debug_data = list()
 	var/skip_empty = ""
 	var/skip_icon_state = 0
 	var/map_storage_loaded = 0 // this is special instructions for problematic Initialize()
+	var/list/extra_save_data = null //This is meant to be used as needed when we need to save some extra info about an object in the save file, without creating a new useless var. Should be cleared after saving, and after loading.
+
 /mob
 	var/stored_ckey = ""
 
@@ -73,6 +75,7 @@ var/global/list/debug_data = list()
 /obj/after_load()
 	..()
 	queue_icon_update()
+	
 /area
 	map_storage_saved_vars = ""
 
@@ -177,11 +180,13 @@ var/global/list/debug_data = list()
 		zones_to_save |= zone
 	areas_to_save |= loc
 	StandardWrite(f)
+
 /turf/StandardWrite(f)
 	var/starttime = REALTIMEOFDAY
 	..()
 	if((REALTIMEOFDAY - starttime)/10 > 2)
 		to_world("[src.type] took [(REALTIMEOFDAY - starttime)/10] seconds to save at [x] [y] [z]")
+
 /mob/Write(savefile/f)
 	StandardWrite(f)
 	if(ckey)
@@ -635,6 +640,7 @@ var/global/list/debug_data = list()
 
 /datum/proc/get_saved_vars()
 	var/list/to_save = list()
+	to_save |= "extra_save_data" //Always save this one
 	to_save |= params2list(map_storage_saved_vars)
 	var/A = src.type
 	var/B = replacetext("[A]", "/", "-")
