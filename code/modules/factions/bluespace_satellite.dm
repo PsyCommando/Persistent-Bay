@@ -3,12 +3,11 @@
 /obj/machinery/bluespace_satellite
 	name = "bluespace satellite"
 	desc = "Can be configured and launched to create a new logistics network."
-	anchored = 0
-	density = 1
+	anchored = FALSE
+	density = TRUE
 	icon = 'icons/obj/supplybeacon.dmi'
 	icon_state = "beacon"
-
-	use_power = 0			//1 = idle, 2 = active
+	use_power = POWER_USE_OFF
 	var/chosen_uid
 	var/chosen_name
 	var/chosen_short
@@ -46,11 +45,8 @@
 	SSnano.update_uis(src)
 	return 1
 
-
-
 /obj/machinery/bluespace_satellite/attack_hand(var/mob/user as mob)
 	ui_interact(user)
-
 
 /obj/machinery/bluespace_satellite/attackby(var/obj/I as obj, var/mob/user as mob)
 	if(istype(I, /obj/item/weapon/card/id))
@@ -60,12 +56,9 @@
 		loc.visible_message("The \icon[src] [src] reports that the card was successfully scanned and the leadership has been set to '[starting_leader]'.")
 		SSnano.update_uis(src)
 		return
-	..()
-
+	return ..()
 
 /obj/machinery/bluespace_satellite/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
-
-
 	// this is the data which will be sent to the ui
 	var/data[0]
 	data["chosen_uid"] = chosen_uid ? chosen_uid : "*UNSET*"
