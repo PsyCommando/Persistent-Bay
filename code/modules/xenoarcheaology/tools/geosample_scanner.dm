@@ -9,6 +9,7 @@
 
 	idle_power_usage = 20
 	active_power_usage = 300
+	circuit_type = /obj/item/weapon/circuitboard/radiocarbon_spectrometer
 
 	//var/obj/item/weapon/reagent_containers/glass/coolant_container
 	var/scanning = 0
@@ -45,7 +46,6 @@
 
 /obj/machinery/radiocarbon_spectrometer/New()
 	..()
-	create_reagents(500)
 	coolant_reagents_purity[/datum/reagent/water] = 0.5
 	coolant_reagents_purity[/datum/reagent/drink/coffee/icecoffee] = 0.6
 	coolant_reagents_purity[/datum/reagent/drink/tea/icetea] = 0.6
@@ -58,6 +58,15 @@
 	coolant_reagents_purity[/datum/reagent/cryoxadone] = 0.9
 	coolant_reagents_purity[/datum/reagent/coolant] = 1
 	coolant_reagents_purity[/datum/reagent/adminordrazine] = 2
+	ADD_SAVED_VAR(scanned_item)
+	ADD_SAVED_VAR(report_num)
+	ADD_SAVED_VAR(last_scan_data)
+	ADD_SAVED_VAR(scanner_seal_integrity)
+	ADD_SAVED_VAR(coolant_reagents)
+
+/obj/machinery/radiocarbon_spectrometer/SetupReagents()
+	. = ..()
+	create_reagents(500)
 
 /obj/machinery/radiocarbon_spectrometer/attack_hand(var/mob/user as mob)
 	ui_interact(user)
@@ -66,7 +75,9 @@
 	if(scanning)
 		to_chat(user, "<span class='warning'>You can't do that while [src] is scanning!</span>")
 	else
-		if(istype(I, /obj/item/stack/nanopaste))
+		if(standard_machine_procs(I, user))
+			return TRUE
+		else if(istype(I, /obj/item/stack/nanopaste))
 			var/choice = alert("What do you want to do with the nanopaste?","Radiometric Scanner","Scan nanopaste","Fix seal integrity")
 			if(choice == "Fix seal integrity")
 				var/obj/item/stack/nanopaste/N = I
@@ -233,16 +244,16 @@
 			//emergency stop if seal integrity reaches 0
 			if(scanner_seal_integrity <= 0 || (scanner_temperature >= 1273 && !rad_shield))
 				stop_scanning()
-				src.visible_message("<span class='notice'>\icon[src] buzzes unhappily. It has failed mid-scan!</span>", 2)
+				src.visible_message("<span class='notice'>\icon[src] buzzes unhappily. It has failed mid-scan!</span>", range = 2)
 
 			if(prob(5))
-				src.visible_message("<span class='notice'>\icon[src] [pick("whirrs","chuffs","clicks")][pick(" excitedly"," energetically"," busily")].</span>", 2)
+				src.visible_message("<span class='notice'>\icon[src] [pick("whirrs","chuffs","clicks")][pick(" excitedly"," energetically"," busily")].</span>", range = 2)
 	else
 		//gradually cool down over time
 		if(scanner_temperature > 0)
 			scanner_temperature = max(scanner_temperature - 5 - 10 * rand(), 0)
 		if(prob(0.75))
-			src.visible_message("<span class='notice'>\icon[src] [pick("plinks","hisses")][pick(" quietly"," softly"," sadly"," plaintively")].</span>", 2)
+			src.visible_message("<span class='notice'>\icon[src] [pick("plinks","hisses")][pick(" quietly"," softly"," sadly"," plaintively")].</span>", range = 2)
 	last_process_worldtime = world.time
 
 /obj/machinery/radiocarbon_spectrometer/proc/stop_scanning()
@@ -260,7 +271,7 @@
 		used_coolant = 0
 
 /obj/machinery/radiocarbon_spectrometer/proc/complete_scan()
-	src.visible_message("<span class='notice'>\icon[src] makes an insistent chime.</span>", 2)
+	src.visible_message("<span class='notice'>\icon[src] makes an insistent chime.</span>", range = 2)
 
 	if(scanned_item)
 		//create report
