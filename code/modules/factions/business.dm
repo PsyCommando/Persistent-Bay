@@ -87,13 +87,12 @@ GLOBAL_LIST_EMPTY(all_business)
 	if(!leader_name || leader_name == "") return "**NONE**"
 	return leader_name
 
-
-
-
-
-
-
-
-
-
-
+/datum/world_faction/proc/get_members()
+	var/list/members = list()
+	var/list/contracts = GLOB.contract_database.get_contracts(src.uid, CONTRACT_BUSINESS)
+	for(var/datum/recurring_contract/contract in contracts)
+		if(contract.payee_cancelled || contract.payee_completed|| contract.payer_cancelled || contract.payer_completed)
+			continue
+		if(contract.func == CONTRACT_SERVICE_MEMBERSHIP)
+			members |= contract
+	return members

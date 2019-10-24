@@ -453,3 +453,112 @@
 
 
 // END MEDIA LIMITS
+
+// SOCIAL LIMITS
+
+/datum/machine_limits/social/spec/religion
+	limit_engfab = 1
+	limit_servicefab = 1
+	limit_atnonstandard = 1
+
+/datum/machine_limits/social/spec/club
+	limit_voidfab = 1
+	limit_shuttles = 1
+	limit_ataccessories = 1
+
+/datum/machine_limits/social/one
+	limit_tech_consumer = 1
+	limit_tech_general = 1
+	limit_area = 200
+	limit_genfab = 2
+	limit_consumerfab = 1
+
+/datum/machine_limits/social/two
+	cost = 750
+	limit_tech_consumer = 2
+	limit_tech_general = 2
+	limit_area = 300
+	limit_genfab = 3
+	limit_consumerfab = 2
+	desc = "Increase area size, tech levels and fabricator limits."
+/datum/machine_limits/social/three
+	cost = 1600
+	limit_tech_consumer = 3
+	limit_tech_general = 3
+	limit_area = 400
+	limit_genfab = 3
+	limit_consumerfab = 2
+	desc = "Increase area size, tech levels and fabricator limits."
+/datum/machine_limits/social/four
+	cost = 3200
+	limit_tech_consumer = 4
+	limit_tech_general = 4
+	limit_area = 500
+	limit_genfab = 3
+	limit_consumerfab = 2
+	limit_shuttles = 1
+	desc = "Gain final tech levels, area limit, fabricators and a shuttle."
+// END SOCIAL LIMITS
+
+// SCIENCE LIMITS
+
+/datum/machine_limits/science/spec/practical
+	limit_engfab = 1
+	limit_area = 200
+/datum/machine_limits/science/spec/theory
+	limit_voidfab = 1
+	limit_shuttles = 1
+/datum/machine_limits/science/one
+	limit_tech_consumer = 2
+	limit_tech_general = 2
+	limit_tech_combat = 2
+	limit_tech_medical = 2
+	limit_tech_engi = 2
+	limit_area = 200
+	limit_genfab = 2
+	limit_medicalfab = 1
+	limit_servicefab = 1
+	limit_botany = 2
+
+/datum/machine_limits/science/two
+	cost = 1250
+	limit_tech_consumer = 3
+	limit_tech_general = 3
+	limit_tech_combat = 3
+	limit_tech_medical = 3
+	limit_area = 300
+	limit_genfab = 2
+	limit_servicefab = 2
+	limit_medicalfab = 2
+	limit_botany = 3
+	desc = "Increase area size, tech levels, fabricator limits and get an extra botany tray."
+/datum/machine_limits/science/three
+	cost = 2500
+	limit_tech_consumer = 4
+	limit_tech_general = 4
+	limit_tech_combat = 4
+	limit_tech_medical = 4
+	limit_area = 400
+	limit_genfab = 3
+	limit_servicefab = 3
+	limit_botany = 3
+	limit_voidfab = 1
+	limit_medicalfab = 2
+	limit_shuttles = 1
+	desc = "Increase area size, tech levels, fabricator limits and get an EVA fabricator and shuttle limit."
+/datum/machine_limits/science/four
+	cost = 5000
+	limit_tech_consumer = 5
+	limit_tech_general = 5
+	limit_tech_combat = 5
+	limit_tech_medical = 5
+	limit_area = 500
+	limit_genfab = 3
+	limit_servicefab = 3
+	limit_botany = 4
+	limit_voidfab = 2
+	limit_shuttles = 2
+	limit_engfab = 1
+	limit_medicalfab = 2
+	desc = "Gain final tech levels, area limit, extra fabricators including a medical and engineering fabricator, botany trays, plus an extra shuttle."
+// END SCIENCE LIMITS
