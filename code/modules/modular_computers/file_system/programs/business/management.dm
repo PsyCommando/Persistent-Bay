@@ -47,78 +47,78 @@
 	if(menu == 3)
 		data["business_task"] = connected_faction.objective
 
-	if(menu == 4)
-		data["module_name"] = connected_faction.module.name
-		data["module_spec"] = connected_faction.module.spec.name
-		data["module_level"] = connected_faction.module.current_level
-		if(connected_faction.module.current_level >= 4)
-			data["max_level"] = 1
-			data["upgrade_desc"] = ""
-		else
-			var/datum/machine_limits/limit = connected_faction.module.levels[connected_faction.module.current_level+1]
-			data["upgrade_desc"] = limit.desc
-			data["upgrade_cost"] = limit.cost
-		var/datum/machine_limits/limits = connected_faction.get_limits()
-		data["gen_tech"] = limits.limit_tech_general
-		data["eng_tech"] = limits.limit_tech_engi
-		data["med_tech"] = limits.limit_tech_medical
-		data["consumer_tech"] = limits.limit_tech_consumer
-		data["combat_tech"] = limits.limit_tech_combat
-		data["shuttle_limit"] = limits.limit_shuttles
-		data["shuttle_limit_used"] = limits.shuttles.len
-		data["area_limit"] = limits.limit_area
-		data["area_limit_used"] = connected_faction.get_claimed_area()
-		data["drill_limit"] = limits.limit_drills
-		data["drill_limit_used"] = limits.drills.len
-		data["tray_limit"] = limits.limit_botany
-		data["tray_limit_used"] = limits.botany.len
-		data["tcomm_limit"] = limits.limit_tcomms
-		data["tcomm_limit_used"] = limits.tcomms.len
-		data["gen_limit"] = limits.limit_genfab
-		data["gen_limit_used"] = limits.genfabs.len
-		data["eng_limit"] = limits.limit_engfab
-		data["eng_limit_used"] = limits.engfabs.len
-		data["med_limit"] = limits.limit_medicalfab
-		data["med_limit_used"] = limits.medicalfabs.len
-		data["eva_limit"] = limits.limit_voidfab
-		data["eva_limit_used"] = limits.voidfabs.len
-		data["consumer_limit"] = limits.limit_consumerfab
-		data["consumer_limit_used"] = limits.consumerfabs.len
-		data["service_limit"] = limits.limit_servicefab
-		data["service_limit_used"] = limits.servicefabs.len
-		data["combat_limit"] = limits.limit_ammofab
-		data["combat_limit_used"] = limits.ammofabs.len
-		data["atstandard_limit"] = limits.limit_atstandard
-		data["atstandard_limit_used"] = limits.atstandards.len
-		data["ataccessory_limit"] = limits.limit_ataccessories
-		data["ataccessory_limit_used"] = limits.ataccessories.len
-		data["atspecial_limit"] = limits.limit_atnonstandard
-		data["atspecial_limit_used"] = limits.atnonstandards.len
+	// if(menu == 4)
+	// 	data["module_name"] = connected_faction.module.name
+	// 	data["module_spec"] = connected_faction.module.spec.name
+	// 	data["module_level"] = connected_faction.module.current_level
+	// 	if(connected_faction.module.current_level >= 4)
+	// 		data["max_level"] = 1
+	// 		data["upgrade_desc"] = ""
+	// 	else
+	// 		var/datum/machine_limits/limit = connected_faction.module.levels[connected_faction.module.current_level+1]
+	// 		data["upgrade_desc"] = limit.desc
+	// 		data["upgrade_cost"] = limit.cost
+	// 	var/datum/machine_limits/limits = connected_faction.get_limits()
+	// 	data["gen_tech"] = limits.limit_tech_general
+	// 	data["eng_tech"] = limits.limit_tech_engi
+	// 	data["med_tech"] = limits.limit_tech_medical
+	// 	data["consumer_tech"] = limits.limit_tech_consumer
+	// 	data["combat_tech"] = limits.limit_tech_combat
+	// 	data["shuttle_limit"] = limits.limit_shuttles
+	// 	data["shuttle_limit_used"] = limits.shuttles.len
+	// 	data["area_limit"] = limits.limit_area
+	// 	data["area_limit_used"] = connected_faction.get_claimed_area()
+	// 	data["drill_limit"] = limits.limit_drills
+	// 	data["drill_limit_used"] = limits.drills.len
+	// 	data["tray_limit"] = limits.limit_botany
+	// 	data["tray_limit_used"] = limits.botany.len
+	// 	data["tcomm_limit"] = limits.limit_tcomms
+	// 	data["tcomm_limit_used"] = limits.tcomms.len
+	// 	data["gen_limit"] = limits.limit_genfab
+	// 	data["gen_limit_used"] = limits.genfabs.len
+	// 	data["eng_limit"] = limits.limit_engfab
+	// 	data["eng_limit_used"] = limits.engfabs.len
+	// 	data["med_limit"] = limits.limit_medicalfab
+	// 	data["med_limit_used"] = limits.medicalfabs.len
+	// 	data["eva_limit"] = limits.limit_voidfab
+	// 	data["eva_limit_used"] = limits.voidfabs.len
+	// 	data["consumer_limit"] = limits.limit_consumerfab
+	// 	data["consumer_limit_used"] = limits.consumerfabs.len
+	// 	data["service_limit"] = limits.limit_servicefab
+	// 	data["service_limit_used"] = limits.servicefabs.len
+	// 	data["combat_limit"] = limits.limit_ammofab
+	// 	data["combat_limit_used"] = limits.ammofabs.len
+	// 	data["atstandard_limit"] = limits.limit_atstandard
+	// 	data["atstandard_limit_used"] = limits.atstandards.len
+	// 	data["ataccessory_limit"] = limits.limit_ataccessories
+	// 	data["ataccessory_limit_used"] = limits.ataccessories.len
+	// 	data["atspecial_limit"] = limits.limit_atnonstandard
+	// 	data["atspecial_limit_used"] = limits.atnonstandards.len
 
-	if(menu == 5)
-		if(connected_faction.hourly_objective)
-			data["objective_hour"] = connected_faction.hourly_objective.name
-			data["objective_hour_status"] = connected_faction.hourly_objective.get_status()
-		else
-			data["objective_hour_status"] = "*None*"
-		data["objective_hour_timer"] = time2text(connected_faction.hourly_assigned + 2 HOURS, "MMM DD hh:mm:ss")
+	// if(menu == 5)
+	// 	if(connected_faction.hourly_objective)
+	// 		data["objective_hour"] = connected_faction.hourly_objective.name
+	// 		data["objective_hour_status"] = connected_faction.hourly_objective.get_status()
+	// 	else
+	// 		data["objective_hour_status"] = "*None*"
+	// 	data["objective_hour_timer"] = time2text(connected_faction.hourly_assigned + 2 HOURS, "MMM DD hh:mm:ss")
 
-		if(connected_faction.module.current_level >= 2)
-			data["daily_unlocked"] = 1
-			if(connected_faction.daily_objective)
-				data["objective_daily"] = connected_faction.daily_objective.name
-				data["objective_daily_status"] = connected_faction.daily_objective.get_status()
-			else
-				data["objective_daily_status"] = "*None*"
-			data["objective_daily_timer"] = time2text(connected_faction.daily_assigned + 1 DAY, "MMM DD hh:mm:ss")
-		if(connected_faction.module.current_level >= 3)
-			data["weekly_unlocked"] = 1
-			if(connected_faction.weekly_objective)
-				data["objective_weekly"] = connected_faction.weekly_objective.name
-				data["objective_weekly_status"] = connected_faction.weekly_objective.get_status()
-			else
-				data["objective_weekly_status"] = "*None*"
-			data["objective_weekly_timer"] = time2text(connected_faction.daily_assigned + 7 DAYS, "MMM DD hh:mm:ss")
+	// 	if(connected_faction.module.current_level >= 2)
+	// 		data["daily_unlocked"] = 1
+	// 		if(connected_faction.daily_objective)
+	// 			data["objective_daily"] = connected_faction.daily_objective.name
+	// 			data["objective_daily_status"] = connected_faction.daily_objective.get_status()
+	// 		else
+	// 			data["objective_daily_status"] = "*None*"
+	// 		data["objective_daily_timer"] = time2text(connected_faction.daily_assigned + 1 DAY, "MMM DD hh:mm:ss")
+	// 	if(connected_faction.module.current_level >= 3)
+	// 		data["weekly_unlocked"] = 1
+	// 		if(connected_faction.weekly_objective)
+	// 			data["objective_weekly"] = connected_faction.weekly_objective.name
+	// 			data["objective_weekly_status"] = connected_faction.weekly_objective.get_status()
+	// 		else
+	// 			data["objective_weekly_status"] = "*None*"
+	// 		data["objective_weekly_timer"] = time2text(connected_faction.daily_assigned + 7 DAYS, "MMM DD hh:mm:ss")
 
 	if(menu == 6)
 		var/list/transactions = connected_faction.central_account.transaction_log
@@ -188,85 +188,85 @@
 			choseValue = min(max(0, input(usr, "Enter the invoice commission percentage.", "Invoice Commission", connected_faction.commission) as null|num),95)
 			if(!isnull(choseValue))
 				connected_faction.commission = choseValue
-		if("upgrade")
-			if(connected_faction.module.current_level > 3) return
-			var/datum/machine_limits/limit = connected_faction.module.levels[connected_faction.module.current_level+1]
-			var/cost = limit.cost
-			if(connected_faction.central_account.money < cost)
-				to_chat(usr, "Insufficent funds in the business account.")
-			else
-				var/datum/transaction/Te = new("Upgraded by [usr.real_name]", "Business Upgrade", -cost, "Business Upgrade Cost")
-				connected_faction.central_account.do_transaction(Te)
-				connected_faction.module.current_level++
-		if("objective_hour_abandon")
-			var/curr_objective = connected_faction.hourly_objective
-			var/choice = input(usr,"This will cancel the objective giving up any chance of completing it.") in list("Confirm", "Cancel")
-			if(choice == "Confirm")
-				if(connected_faction.hourly_objective == curr_objective)
-					connected_faction.hourly_objective = null
-		if("objective_daily_abandon")
-			var/curr_objective = connected_faction.daily_objective
-			var/choice = input(usr,"This will cancel the objective giving up any chance of completing it.") in list("Confirm", "Cancel")
-			if(choice == "Confirm")
-				if(connected_faction.daily_objective == curr_objective)
-					connected_faction.daily_objective = null
-		if("objective_weekly_abandon")
-			var/curr_objective = connected_faction.weekly_objective
-			var/choice = input(usr,"This will cancel the objective giving up any chance of completing it.") in list("Confirm", "Cancel")
-			if(choice == "Confirm")
-				if(connected_faction.weekly_objective == curr_objective)
-					connected_faction.weekly_objective = null
+		// if("upgrade")
+		// 	if(connected_faction.module.current_level > 3) return
+		// 	var/datum/machine_limits/limit = connected_faction.module.levels[connected_faction.module.current_level+1]
+		// 	var/cost = limit.cost
+		// 	if(connected_faction.central_account.money < cost)
+		// 		to_chat(usr, "Insufficent funds in the business account.")
+		// 	else
+		// 		var/datum/transaction/Te = new("Upgraded by [usr.real_name]", "Business Upgrade", -cost, "Business Upgrade Cost")
+		// 		connected_faction.central_account.do_transaction(Te)
+		// 		connected_faction.module.current_level++
+		// if("objective_hour_abandon")
+		// 	var/curr_objective = connected_faction.hourly_objective
+		// 	var/choice = input(usr,"This will cancel the objective giving up any chance of completing it.") in list("Confirm", "Cancel")
+		// 	if(choice == "Confirm")
+		// 		if(connected_faction.hourly_objective == curr_objective)
+		// 			connected_faction.hourly_objective = null
+		// if("objective_daily_abandon")
+		// 	var/curr_objective = connected_faction.daily_objective
+		// 	var/choice = input(usr,"This will cancel the objective giving up any chance of completing it.") in list("Confirm", "Cancel")
+		// 	if(choice == "Confirm")
+		// 		if(connected_faction.daily_objective == curr_objective)
+		// 			connected_faction.daily_objective = null
+		// if("objective_weekly_abandon")
+		// 	var/curr_objective = connected_faction.weekly_objective
+		// 	var/choice = input(usr,"This will cancel the objective giving up any chance of completing it.") in list("Confirm", "Cancel")
+		// 	if(choice == "Confirm")
+		// 		if(connected_faction.weekly_objective == curr_objective)
+		// 			connected_faction.weekly_objective = null
 					
-		if("unlink_area")
-			for(var/obj/machinery/power/apc/apc in connected_faction.limits.apcs)
-				apc.can_disconnect(connected_faction, usr)
+		// if("unlink_area")
+		// 	for(var/obj/machinery/power/apc/apc in connected_faction.limits.apcs)
+		// 		apc.can_disconnect(connected_faction, usr)
 				
-		if("unlink_drill")
-			for(var/obj/machinery/mining/drill/drill in connected_faction.limits.drills)
-				drill.can_disconnect(connected_faction, usr)
+		// if("unlink_drill")
+		// 	for(var/obj/machinery/mining/drill/drill in connected_faction.limits.drills)
+		// 		drill.can_disconnect(connected_faction, usr)
 		
-		if("unlink_tray")
-			for(var/obj/machinery/portable_atmospherics/hydroponics/tray in connected_faction.limits.botany)
-				tray.can_disconnect(connected_faction, usr)		
+		// if("unlink_tray")
+		// 	for(var/obj/machinery/portable_atmospherics/hydroponics/tray in connected_faction.limits.botany)
+		// 		tray.can_disconnect(connected_faction, usr)		
 
-		if("unlink_gen")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.genfabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_gen")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.genfabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 
-		if("unlink_eng")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.engfabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_eng")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.engfabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 
-		if("unlink_med")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.medicalfabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_med")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.medicalfabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 		
-		if("unlink_eva")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.voidfabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_eva")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.voidfabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 		
-		if("unlink_consumer")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.consumerfabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_consumer")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.consumerfabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 		
-		if("unlink_service")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.servicefabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_service")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.servicefabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 
-		if("unlink_combat")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.ammofabs)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_combat")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.ammofabs)
+		// 		fab.can_disconnect(connected_faction, usr)
 
-		if("unlink_atstandard")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.atstandards)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_atstandard")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.atstandards)
+		// 		fab.can_disconnect(connected_faction, usr)
 
-		if("unlink_ataccessories")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.ataccessories)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_ataccessories")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.ataccessories)
+		// 		fab.can_disconnect(connected_faction, usr)
 
-		if("unlink_atspecial")
-			for(var/obj/machinery/fabricator/fab in connected_faction.limits.atnonstandards)
-				fab.can_disconnect(connected_faction, usr)
+		// if("unlink_atspecial")
+		// 	for(var/obj/machinery/fabricator/fab in connected_faction.limits.atnonstandards)
+		// 		fab.can_disconnect(connected_faction, usr)
 
 

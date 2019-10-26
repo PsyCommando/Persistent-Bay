@@ -25,7 +25,6 @@
 /datum/stock_proposal/proc/pass_proposal()
 	connected_faction.pass_proposal(src)
 
-
 //
 //
 //

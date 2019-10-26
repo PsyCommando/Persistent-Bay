@@ -128,19 +128,19 @@
 // if interior and has no open level above ceiling level, do nothing
 // if exterior, replace turfs only in space area and do not replace walls
 /datum/shuttle/proc/remove_ceiling()
-	for(var/area/A in shuttle_area)
-		if(HasAbove(current_location.z))
-			for(var/turf/TO in A.contents)
-				var/turf/TA = GetAbove(TO)
-				if (bridge.dock.dock_interior == 1 && get_base_turf_by_area(TA.loc))
-					TA.ChangeTurf(get_base_turf_by_area(TA.loc), 1, 1)
-				if (bridge.dock.dock_interior == 0)
-					if (istype(TA.loc,/area/space) && !istype(TA,/turf/simulated/wall))
-						TA.ChangeTurf(/turf/space, 1, 1, 1)
-						for(var/atom/AT in TA.contents)
-							if (istype(AT, /atom/movable/lighting_overlay)) // Remove lighting overlay on space turfs
-								TA.contents -= AT
-								qdel(AT)
+	// for(var/area/A in shuttle_area)
+	// 	if(HasAbove(current_location.z))
+	// 		for(var/turf/TO in A.contents)
+	// 			var/turf/TA = GetAbove(TO)
+	// 			if (bridge.dock.dock_interior == 1 && get_base_turf_by_area(TA.loc))
+	// 				TA.ChangeTurf(get_base_turf_by_area(TA.loc), 1, 1)
+	// 			if (bridge.dock.dock_interior == 0)
+	// 				if (istype(TA.loc,/area/space) && !istype(TA,/turf/simulated/wall))
+	// 					TA.ChangeTurf(/turf/space, 1, 1, 1)
+	// 					for(var/atom/AT in TA.contents)
+	// 						if (istype(AT, /atom/movable/lighting_overlay)) // Remove lighting overlay on space turfs
+	// 							TA.contents -= AT
+	// 							qdel(AT)
 
 // add_ceiling - Adds ceiling so the air doesn't leak out
 // Replace ceiling if not in space and /turf/simulated/open above
@@ -210,12 +210,12 @@
 
 // attempt_move - Prepare the shuttle for moving
 /datum/shuttle/proc/attempt_move(var/obj/effect/shuttle_landmark/destination, var/obj/effect/shuttle_landmark/location)
-	if(istype(location, /obj/machinery/docking_beacon))
-		var/obj/machinery/docking_beacon/beacon = location
-		location = beacon.get_top_turf()
-	if(istype(destination, /obj/machinery/docking_beacon))
-		var/obj/machinery/docking_beacon/beacon = destination
-		destination = beacon.get_top_turf()
+	// if(istype(location, /obj/machinery/docking_beacon))
+	// 	var/obj/machinery/docking_beacon/beacon = location
+	// 	location = beacon.get_top_turf()
+	// if(istype(destination, /obj/machinery/docking_beacon))
+	// 	var/obj/machinery/docking_beacon/beacon = destination
+	// 	destination = beacon.get_top_turf()
 	if(location) current_location = location
 	if(current_location == destination)
 		return FALSE
@@ -327,25 +327,25 @@
 	//If the location is a landmark
 	if(istype(current_location))
 		barea = current_location.base_area 
-		bturf = bridge.dock.dock_interior == 1? current_location.base_turf : /turf/space
-	else if(bridge.dock.dock_interior == 1)
-		bturf = /turf/simulated/floor/plating
+		bturf = /*bridge.dock.dock_interior == 1? current_location.base_turf :*/ /turf/space
+	// else if(bridge.dock.dock_interior == 1)
+	// 	bturf = /turf/simulated/floor/plating
 	//	barea = get_area(current_location)
 	translate_turfs(turf_translation, barea, bturf)
 
 	// Reset interior lighting
-	var/obj/machinery/docking_beacon/dest_dock
-	for (var/obj/machinery/docking_beacon/i in destination)
-		dest_dock = i
-	if (istype(bridge.dock,/obj/machinery/docking_beacon) && istype(dest_dock,/obj/machinery/docking_beacon))
-		if (bridge.dock.dock_interior == 1 || dest_dock.dock_interior == 1)
-			var/area/A = get_area(current_location)
-			var/area/B = get_area(destination)
-			spawn(0)
-				if(bridge.dock.dock_interior == 1)
-					A.set_lightswitch(0); sleep(10); A.set_lightswitch(1)
-				if(dest_dock.dock_interior == 1)
-					B.set_lightswitch(0); sleep(10); B.set_lightswitch(1)
+	//var/obj/machinery/docking_beacon/dest_dock
+	// for (var/obj/machinery/docking_beacon/i in destination)
+	// 	dest_dock = i
+	// if (istype(bridge.dock,/obj/machinery/docking_beacon) && istype(dest_dock,/obj/machinery/docking_beacon))
+	// 	if (bridge.dock.dock_interior == 1 || dest_dock.dock_interior == 1)
+	// 		var/area/A = get_area(current_location)
+	// 		var/area/B = get_area(destination)
+	// 		spawn(0)
+	// 			if(bridge.dock.dock_interior == 1)
+	// 				A.set_lightswitch(0); sleep(10); A.set_lightswitch(1)
+	// 			if(dest_dock.dock_interior == 1)
+	// 				B.set_lightswitch(0); sleep(10); B.set_lightswitch(1)
 
 	current_location = destination
 	add_ceiling()

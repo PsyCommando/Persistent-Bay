@@ -2,7 +2,7 @@
 	var/name = "" // can should never be changed and must be unique
 	var/list/stock_holders = list() // Format list("real_name" = numofstocks) adding up to 100
 	var/list/employees = list() // format list("real_name" = employee_data)
-	var/datum/NewsFeed/feed
+	//var/datum/NewsFeed/feed
 	var/datum/money_account/central_account
 	var/ceo_name = ""
 	var/ceo_payrate = 100
@@ -26,9 +26,9 @@
 /datum/small_business/New()
 	..()
 	central_account = create_account(name, 0)
-	feed = new()
-	feed.name = name
-	feed.parent = src
+	// feed = new()
+	// feed.name = name
+	// feed.parent = src
 
 //-------------------------------------
 // Business state handling

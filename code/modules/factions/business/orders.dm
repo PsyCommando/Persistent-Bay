@@ -27,6 +27,7 @@
 	var/datum/stock_order/order = buyorders.L[1]
 	if(order)
 		return order.price
+
 /datum/world_faction/business/proc/get_best_sell()
 	if(!sellorders.L.len) return null
 	var/datum/stock_order/order = sellorders.L[1]
@@ -107,7 +108,6 @@
 	for(var/datum/stock_order/sell_order in sellorders.L)
 		volume += sell_order.volume
 	return volume
-
 
 /datum/world_faction/business/proc/get_buyprice(var/volume)
 	var/final_price = 0

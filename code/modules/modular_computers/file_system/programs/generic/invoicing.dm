@@ -160,9 +160,9 @@
 			var/datum/transaction/Te = new("[account_name]", purpose, transaction_amount, "Digital Invoice")
 			target_account.do_transaction(Te)
 			paid = 1
-			if(istype(connected_faction, /datum/world_faction/business))
-				var/datum/world_faction/business/business_faction = connected_faction
-				business_faction.sales_objectives(account_name, 2)
+			// if(istype(connected_faction, /datum/world_faction/business))
+			// 	var/datum/world_faction/business/business_faction = connected_faction
+			// 	business_faction.sales_objectives(account_name, 2)
 			info = replacetext(info, "*Unpaid*", "Paid")
 			info = replacetext(info, "*None*", "[account_name]")
 			to_chat(user, "Payment succesful")
@@ -192,7 +192,7 @@
 		var/final_amount = transaction_amount
 		if(istype(connected_faction, /datum/world_faction/business))
 			var/datum/world_faction/business/business_faction = connected_faction
-			business_faction.sales_objectives(usr.real_name, 1)
+			//business_faction.sales_objectives(usr.real_name, 1)
 			if(business_faction.commission)
 				var/datum/money_account/sales_account = get_account_record(salesperson)
 				if(sales_account)

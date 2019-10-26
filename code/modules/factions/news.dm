@@ -28,8 +28,8 @@ var/PriorityQueue/all_feeds
 
 /datum/NewsStory/proc/view_story(var/mob/M)
 	purchased |= M.real_name
-	if(istype(parent.parent.parent))
-		parent.parent.parent.article_view_objectives(M.real_name)
+	// if(istype(parent.parent.parent))
+	// 	parent.parent.parent.article_view_objectives(M.real_name)
 
 
 /datum/NewsIssue

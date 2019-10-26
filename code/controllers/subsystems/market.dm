@@ -23,36 +23,36 @@ SUBSYSTEM_DEF(market)
 /datum/module_objective_manager
 
 /datum/module_objective_manager/proc/process()
-	for(var/datum/world_faction/business/faction in GLOB.all_world_factions)
-		if(faction.hourly_objective)
-			if(faction.hourly_objective.completed || faction.hourly_objective.check_completion())
-				if((faction.hourly_assigned + 2 HOURS) < world.realtime)
-					faction.assign_hourly_objective()
-		else
-			if((faction.hourly_assigned + 2 HOURS) < world.realtime)
-				faction.assign_hourly_objective()
-		if((faction.hourly_assigned + 1 DAY) < world.realtime)
-			faction.hourly_assigned = world.realtime
-		if(faction.module.current_level >= 2)
-			if(faction.daily_objective)
-				if(faction.daily_objective.completed || faction.daily_objective.check_completion())
-					if((faction.daily_assigned + 1 DAY) < world.realtime)
-						faction.assign_daily_objective()
-			else
-				if((faction.daily_assigned + 1 DAY) < world.realtime)
-					faction.assign_daily_objective()
-			if((faction.daily_assigned + 1 DAY) < world.realtime)
-				faction.daily_assigned = world.realtime
-		if(faction.module.current_level >= 3)
-			if(faction.weekly_objective)
-				if(faction.weekly_objective.completed || faction.weekly_objective.check_completion())
-					if((faction.weekly_assigned + 7 DAY) < world.realtime)
-						faction.assign_weekly_objective()
-			else
-				if((faction.weekly_assigned + 7 DAYS) < world.realtime)
-					faction.assign_weekly_objective()
-			if((faction.weekly_assigned + 7 DAYS) < world.realtime)
-				faction.weekly_assigned = world.realtime
+	// for(var/datum/world_faction/business/faction in GLOB.all_world_factions)
+	// 	if(faction.hourly_objective)
+	// 		if(faction.hourly_objective.completed || faction.hourly_objective.check_completion())
+	// 			if((faction.hourly_assigned + 2 HOURS) < world.realtime)
+	// 				faction.assign_hourly_objective()
+	// 	else
+	// 		if((faction.hourly_assigned + 2 HOURS) < world.realtime)
+	// 			faction.assign_hourly_objective()
+	// 	if((faction.hourly_assigned + 1 DAY) < world.realtime)
+	// 		faction.hourly_assigned = world.realtime
+	// 	if(faction.module.current_level >= 2)
+	// 		if(faction.daily_objective)
+	// 			if(faction.daily_objective.completed || faction.daily_objective.check_completion())
+	// 				if((faction.daily_assigned + 1 DAY) < world.realtime)
+	// 					faction.assign_daily_objective()
+	// 		else
+	// 			if((faction.daily_assigned + 1 DAY) < world.realtime)
+	// 				faction.assign_daily_objective()
+	// 		if((faction.daily_assigned + 1 DAY) < world.realtime)
+	// 			faction.daily_assigned = world.realtime
+	// 	if(faction.module.current_level >= 3)
+	// 		if(faction.weekly_objective)
+	// 			if(faction.weekly_objective.completed || faction.weekly_objective.check_completion())
+	// 				if((faction.weekly_assigned + 7 DAY) < world.realtime)
+	// 					faction.assign_weekly_objective()
+	// 		else
+	// 			if((faction.weekly_assigned + 7 DAYS) < world.realtime)
+	// 				faction.assign_weekly_objective()
+	// 		if((faction.weekly_assigned + 7 DAYS) < world.realtime)
+	// 			faction.weekly_assigned = world.realtime
 
 
 
@@ -87,18 +87,18 @@ SUBSYSTEM_DEF(market)
 		all_contracts = list()
 
 /datum/contract_database/proc/add_contract(var/datum/recurring_contract/contract)
-	var/datum/world_faction/business/faction = get_faction(contract.payee)
+//	var/datum/world_faction/business/faction = get_faction(contract.payee)
 	if(contract.auto_pay)
 		if(contract.handle_payment())
 			contract.add_services()
 			all_contracts |= contract
-			if(istype(faction))
-				faction.contract_objectives(contract.payer, contract.payer_type)
+			// if(istype(faction))
+			// 	faction.contract_objectives(contract.payer, contract.payer_type)
 	else
 		contract.add_services()
 		all_contracts |= contract
-		if(istype(faction))
-			faction.contract_objectives(contract.payer, contract.payer_type)
+		// if(istype(faction))
+		// 	faction.contract_objectives(contract.payer, contract.payer_type)
 /datum/contract_database/proc/get_contracts(var/uid, var/typee)
 	var/list/contracts = list()
 	for(var/datum/recurring_contract/contract in all_contracts)
@@ -370,8 +370,8 @@ SUBSYSTEM_DEF(market)
 	if(round_duration_in_ticks > takedata)
 		takedata = round_duration_in_ticks + 1 HOUR
 		TakeData()
-	for(var/datum/world_faction/faction in GLOB.all_world_factions)
-		faction.rebuild_inventory()
+	// for(var/datum/world_faction/faction in GLOB.all_world_factions)
+	// 	faction.rebuild_inventory()
 	for(var/datum/material_market_entry/entry in all_products)
 		entry.verify_orders()
 
@@ -531,12 +531,12 @@ SUBSYSTEM_DEF(market)
 	for(var/datum/material_order/order in sellorders.L)
 		if(order.admin_order) continue
 		var/datum/world_faction/faction = get_faction(order.faction_uid)
-		if(!faction || !faction.inventory)
+		if(!faction /*|| !faction.inventory*/)
 			sellorders.L -= order
 			continue
-		if(faction.inventory.vars[name] < order.get_remaining_volume())
-			sellorders.L -= order
-			continue
+		// if(faction.inventory.vars[name] < order.get_remaining_volume())
+		// 	sellorders.L -= order
+		// 	continue
 
 
 

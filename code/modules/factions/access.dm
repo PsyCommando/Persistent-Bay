@@ -6,31 +6,27 @@
 	var/auth_req
 	var/auth_level
 
-/datum/assignment/after_load()
-	..()
-
 /datum/access_category
 	var/name = ""
 	var/list/accesses = list() // format-- list("11" = "Bridge Access")
 
 /datum/access_category/core
 	name = "Core Access"
-
-/datum/access_category/core/New()
-	accesses["101"] = "Access & Assignment Control"
-	accesses["102"] = "Command Programs"
-	accesses["103"] = "Reassignment/Promotion Vote"
-	accesses["104"] = "Research Control"
-	accesses["105"] = "Engineering Programs"
-	accesses["106"] = "Medical Programs"
-	accesses["107"] = "Security Programs"
-	accesses["108"] = "Shuttle Control"
-	accesses["109"] = "Machine Linking"
-	accesses["110"] = "Computer Linking"
-	accesses["111"] = "Budget View"
-	accesses["112"] = "Contract Signing/Control"
-	accesses["113"] = "Material Marketplace"
-
+	accesses = list(
+		"101" = "Access & Assignment Control",
+		"102" = "Command Programs",
+		"103" = "Reassignment/Promotion Vote",
+		"104" = "Research Control",
+		"105" = "Engineering Programs",
+		"106" = "Medical Programs",
+		"107" = "Security Programs",
+		"108" = "Shuttle Control",
+		"109" = "Machine Linking",
+		"110" = "Computer Linking",
+		"111" = "Budget View",
+		"112" = "Contract Signing/Control",
+		"113" = "Material Marketplace",
+	)
 
 /datum/world_faction/proc/get_access_name(var/access)
 	var/datum/access_category/core/core = new()

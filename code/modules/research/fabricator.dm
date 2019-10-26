@@ -173,14 +173,14 @@ as their designs, in a single .dm file. voidsuit_fabricator.dm is an entirely co
 				data["design_icon"] = user.browse_rsc_icon(selected_design.builds.icon, selected_design.builds.icon_state)
 			else
 				data["design_icon"] = null
-			if(selected_design.research && selected_design.research != "")
-				var/datum/tech_entry/entry = SSresearch.files.get_tech_entry(selected_design.research)
-				if(entry)
-					if(!has_research(selected_design.research))
-						data["design_research"] = "<font color='red'>" + entry.name + "</font>"
-					else
-						data["design_research"] = "<font color='green'>" + entry.name + "</font>"
-					data["disk_uses"] = get_uses()
+			// if(selected_design.research && selected_design.research != "")
+			// 	var/datum/tech_entry/entry = SSresearch.files.get_tech_entry(selected_design.research)
+			// 	if(entry)
+			// 		if(!has_research(selected_design.research))
+			// 			data["design_research"] = "<font color='red'>" + entry.name + "</font>"
+			// 		else
+			// 			data["design_research"] = "<font color='green'>" + entry.name + "</font>"
+			// 		data["disk_uses"] = get_uses()
 
 	if(menu == 2)
 		data["queue"] = get_queue_names()
@@ -430,11 +430,12 @@ as their designs, in a single .dm file. voidsuit_fabricator.dm is an entirely co
 	return 1
 
 /obj/machinery/fabricator/proc/add_research(var/uid)
-	var/datum/tech_entry/entry = SSresearch.files.get_tech_entry(uid)
-	var/datum/fabricator_tech/tech = new()
-	tech.uid = entry.uid
-	tech.uses = entry.uses
-	circuit.unlocked_techs |= tech
+	// var/datum/tech_entry/entry = SSresearch.files.get_tech_entry(uid)
+	// var/datum/fabricator_tech/tech = new()
+	// tech.uid = entry.uid
+	// tech.uses = entry.uses
+	// circuit.unlocked_techs |= tech
+
 /obj/machinery/fabricator/proc/has_research(var/uid)
 	for(var/datum/fabricator_tech/tech in circuit.unlocked_techs)
 		if(tech.uid == uid)
@@ -442,9 +443,9 @@ as their designs, in a single .dm file. voidsuit_fabricator.dm is an entirely co
 	return 0
 
 /obj/machinery/fabricator/proc/needs_research(var/uid)
-	var/list/design_options = SSresearch.files.get_research_options(build_type)
-	for(var/datum/design/D in design_options)
-		if(D.research == uid) return 1
+	// var/list/design_options = SSresearch.files.get_research_options(build_type)
+	// for(var/datum/design/D in design_options)
+	// 	if(D.research == uid) return 1
 
 /obj/machinery/fabricator/proc/get_research(var/uid)
 	for(var/datum/fabricator_tech/tech in circuit.unlocked_techs)
@@ -486,10 +487,10 @@ as their designs, in a single .dm file. voidsuit_fabricator.dm is an entirely co
 		if(D.research && D.research != "")
 			handle_uses(D.research)
 		var/obj/new_item = D.Fabricate(loc, src)
-		if(connected_faction)
-			if(istype(connected_faction, /datum/world_faction/business))
-				var/datum/world_faction/business/business_faction = connected_faction
-				business_faction.fabricator_objectives()
+		//if(connected_faction)
+			//if(istype(connected_faction, /datum/world_faction/business))
+				//var/datum/world_faction/business/business_faction = connected_faction
+				//business_faction.fabricator_objectives()
 		visible_message("\The [src] pings, indicating that \the [D] is complete.", "You hear a ping.")
 		if(mat_efficiency != 1)
 			if(new_item.matter && new_item.matter.len > 0)
@@ -505,28 +506,28 @@ as their designs, in a single .dm file. voidsuit_fabricator.dm is an entirely co
 
 /obj/machinery/fabricator/proc/get_build_options()
 	. = list()
-	var/list/design_options = SSresearch.files.get_research_options(build_type)
-	var/list/techless = list()
-	for(var/i = 1 to design_options.len)
-		var/datum/design/D = design_options[i]
-		var/design_research
-		if(D.research && D.research != "")
-			if(!has_research(D.research))
-				techless |= D
-				continue
-			else
-				design_research = "<font color='green'>[D.get_tech_name()]</font>"
-		. += list(list("name" = D.name, "id" = i, "category" = D.category, "resources" = get_design_resources(D), "research" = design_research, "ref" = "\ref[D]"))
+//	var/list/design_options = SSresearch.files.get_research_options(build_type)
+	// var/list/techless = list()
+	// for(var/i = 1 to design_options.len)
+	// 	var/datum/design/D = design_options[i]
+	// 	var/design_research
+	// 	if(D.research && D.research != "")
+	// 		if(!has_research(D.research))
+	// 			techless |= D
+	// 			continue
+	// 		else
+	// 			design_research = "<font color='green'>[D.get_tech_name()]</font>"
+	// 	. += list(list("name" = D.name, "id" = i, "category" = D.category, "resources" = get_design_resources(D), "research" = design_research, "ref" = "\ref[D]"))
 
-	for(var/i = 1 to techless.len)
-		var/datum/design/D = techless[i]
-		var/design_research
-		if(D.research && D.research != "")
-			if(!has_research(D.research))
-				design_research = "<font color='red'>[D.get_tech_name()]</font>"
-			else
-				design_research = "<font color='green'>[D.get_tech_name()]</font>"
-		. += list(list("name" = D.name, "id" = i, "category" = D.category, "resources" = get_design_resources(D), "research" = design_research, "ref" = "\ref[D]"))
+	// for(var/i = 1 to techless.len)
+	// 	var/datum/design/D = techless[i]
+	// 	var/design_research
+	// 	if(D.research && D.research != "")
+	// 		if(!has_research(D.research))
+	// 			design_research = "<font color='red'>[D.get_tech_name()]</font>"
+	// 		else
+	// 			design_research = "<font color='green'>[D.get_tech_name()]</font>"
+	// 	. += list(list("name" = D.name, "id" = i, "category" = D.category, "resources" = get_design_resources(D), "research" = design_research, "ref" = "\ref[D]"))
 
 /obj/machinery/fabricator/proc/CallReagentName(var/reagent_type)
 	var/datum/reagent/R = reagent_type
@@ -559,14 +560,14 @@ as their designs, in a single .dm file. voidsuit_fabricator.dm is an entirely co
 
 /obj/machinery/fabricator/proc/update_categories()
 	categories = list()
-	var/list/design_options = SSresearch.files.get_research_options(build_type)
+	// var/list/design_options = SSresearch.files.get_research_options(build_type)
 	var/list/design_materials = list()
-	for(var/i = 1 to design_options.len)
-		var/datum/design/D = design_options[i]
-		categories |= D.category
-		for(var/material in D.materials) // Iterating over the Designs' materials so that we know what should be able to be inserted
-			design_materials |= material
-			design_materials[material] = 0 // Prevents material count from appearing as null instead of 0
+	// for(var/i = 1 to design_options.len)
+	// 	var/datum/design/D = design_options[i]
+	// 	categories |= D.category
+	// 	for(var/material in D.materials) // Iterating over the Designs' materials so that we know what should be able to be inserted
+	// 		design_materials |= material
+	// 		design_materials[material] = 0 // Prevents material count from appearing as null instead of 0
 
 	for(var/material in materials)
 		if(!(material in design_materials))

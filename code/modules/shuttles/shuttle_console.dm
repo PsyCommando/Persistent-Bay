@@ -57,23 +57,23 @@
 		shuttle.cancel_launch(src)
 
 /obj/machinery/computer/bridge_computer/proc/get_docks(mob/user)
-	var/list/beacons = list()
-	if(!shuttle) return
-	for(var/obj/machinery/docking_beacon/beacon in GLOB.all_docking_beacons)
-		if(beacon == dock || beacon.status != 2 || !beacon.loc || beacon.dimensions < shuttle.size)
-			continue
-		if(beacon.visible_mode)
-			if(beacon.visible_mode == 1)
-				beacons[beacon] = 1
-			else
-				if(beacon.allowed(user))
-					beacons[beacon] = 1
-				else
-					beacons[beacon] = 2
-		else
-			if(beacon.allowed(user))
-				beacons[beacon] = 1
-	return beacons
+	// var/list/beacons = list()
+	// if(!shuttle) return
+	// for(var/obj/machinery/docking_beacon/beacon in GLOB.all_docking_beacons)
+	// 	if(beacon == dock || beacon.status != 2 || !beacon.loc || beacon.dimensions < shuttle.size)
+	// 		continue
+	// 	if(beacon.visible_mode)
+	// 		if(beacon.visible_mode == 1)
+	// 			beacons[beacon] = 1
+	// 		else
+	// 			if(beacon.allowed(user))
+	// 				beacons[beacon] = 1
+	// 			else
+	// 				beacons[beacon] = 2
+	// 	else
+	// 		if(beacon.allowed(user))
+	// 			beacons[beacon] = 1
+	// return beacons
 
 /obj/machinery/computer/bridge_computer/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	var/list/data = list()
@@ -99,16 +99,16 @@
 			else
 				data["can_launch"] = 0
 
-			var/list/beacons = get_docks(user)
+			//var/list/beacons = get_docks(user)
 			var/list/formatted_beacons[0]
-			for(var/obj/machinery/docking_beacon/beacon in beacons)
-				var/dock_status = beacons[beacon]
-				var/dock_name
-				if(dock_status == 2)
-					dock_name = "REQUEST: [beacon.id]"
-				else
-					dock_name = "DOCK: [beacon.id]"
-				formatted_beacons[++formatted_beacons.len] = list("name" = dock_name, "status" = dock_status, "ref" = "\ref[beacon]")
+			// for(var/obj/machinery/docking_beacon/beacon in beacons)
+			// 	var/dock_status = beacons[beacon]
+			// 	var/dock_name
+			// 	if(dock_status == 2)
+			// 		dock_name = "REQUEST: [beacon.id]"
+			// 	else
+			// 		dock_name = "DOCK: [beacon.id]"
+			// 	formatted_beacons[++formatted_beacons.len] = list("name" = dock_name, "status" = dock_status, "ref" = "\ref[beacon]")
 			data["beacons"] = formatted_beacons
 		else
 			data["desired_name"] = desired_name != "" ? desired_name : "Unset!"
@@ -195,23 +195,23 @@
 			to_chat(usr, "Shuttle finalization complete.")
 		else
 			to_chat(usr, "Shuttle finalization failed, check details.")
-	if(href_list["select_dock"])
-		if(!dock)
-			for(var/obj/machinery/docking_beacon/beacon in GLOB.all_docking_beacons)
-				beacon.check_shuttle()
-			return
-		var/obj/machinery/docking_beacon/beacon = locate(href_list["selected_ref"])
-		if(beacon.dimensions < shuttle.size)
-			to_chat(usr, "Dock is not big enough.")
-			return 1
-		beacon.status = 4
-		shuttle.short_jump(beacon, dock)
-		dock.status = 2
-		dock = beacon
-		dock.status = 4
-		dock.bridge = src
-		dock.shuttle = shuttle
-		shuttle.current_location = dock
+//	if(href_list["select_dock"])
+		// if(!dock)
+		// 	for(var/obj/machinery/docking_beacon/beacon in GLOB.all_docking_beacons)
+		// 		beacon.check_shuttle()
+		// 	return
+		// var/obj/machinery/docking_beacon/beacon = locate(href_list["selected_ref"])
+		// if(beacon.dimensions < shuttle.size)
+		// 	to_chat(usr, "Dock is not big enough.")
+		// 	return 1
+		// beacon.status = 4
+		// shuttle.short_jump(beacon, dock)
+		// dock.status = 2
+		// dock = beacon
+		// dock.status = 4
+		// dock.bridge = src
+		// dock.shuttle = shuttle
+		// shuttle.current_location = dock
 
 	if(..())
 		return 1

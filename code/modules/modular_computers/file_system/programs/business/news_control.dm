@@ -9,7 +9,7 @@
 	size = 8
 	required_access = core_access_security_programs
 	business = 1
-	required_module = /datum/business_module/media
+//	required_module = /datum/business_module/media
 	category = PROG_OFFICE
 	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP | PROGRAM_TELESCREEN
 /datum/nano_module/program/news_control
@@ -204,7 +204,7 @@
 			insert2_name = null
 			headline = ""
 			filedata = ""
-			connected_faction.publish_article_objectives()
+			// connected_faction.publish_article_objectives()
 			
 	if(href_list["PRG_editfile"])
 		var/oldtext = html_decode(filedata)

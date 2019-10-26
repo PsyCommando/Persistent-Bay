@@ -1,5 +1,5 @@
 /datum/computer_file/program/newbusiness
-	filename = "businessregister"
+	filename = "register_business"
 	filedesc = "Create a new business"
 	program_icon_state = "comm"
 	program_menu_icon = "flag"
@@ -14,8 +14,8 @@
 	name = "Create a new business"
 	available_to_ai = TRUE
 
-	var/datum/business_module/selected_type
-	var/datum/business_spec/selected_spec
+	// var/datum/business_module/selected_type
+	// var/datum/business_spec/selected_spec
 
 	var/business_uid
 	var/business_name
@@ -28,24 +28,6 @@
 
 /datum/nano_module/program/newbusiness/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
 	var/list/data = host.initial_data()
-
-	if(selected_type)
-		data["business_type"] = selected_type.name
-		data["type_desc"] = selected_type.desc
-		data["cost"] = selected_type.cost
-		if(selected_spec)
-			data["business_spec"] = selected_spec.name
-			data["spec_desc"] = selected_spec.desc
-			data["chose_business"] = 1
-		else
-			data["business_spec"] = "*NONE*"
-			data["spec_desc"] = ""
-	else
-		data["business_type"] = "*NONE*"
-		data["type_desc"] = ""
-		data["business_spec"] = "*NONE*"
-		data["spec_desc"] = ""
-
 	if(business_uid)
 		data["business_uid"] = business_uid
 		data["chose_uid"] = 1
@@ -63,6 +45,7 @@
 		data["chose_ceo"] = 1
 	else
 		data["business_ceo"] = "*NONE*"
+	
 	data["business_ceowage"] = "[ceo_wage]$$/30 minutes"
 	var/list/formatted_names[0]
 	for(var/obj/item/weapon/paper/contract/contract in signed_contracts)
@@ -71,7 +54,8 @@
 	var/commitment = get_contributed()
 	var/signed_stocks = get_distributed()
 	var/finalize = 0
-	if(selected_type && selected_spec && commitment >= selected_type.cost && signed_stocks == 100 && business_uid && business_name && ceo_name) finalize = 1
+	if(commitment >= 1000 && signed_stocks == 100 && business_uid && business_name && ceo_name) 
+		finalize = 1
 	data["commitment"] = commitment
 	data["signed_stocks"] = signed_stocks
 	data["finish_ready"] = finalize
@@ -79,11 +63,9 @@
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if(!ui)
 		ui = new(user, src, ui_key, "new_business.tmpl", name, 800, 700, state = state)
-		ui.auto_update_layout = 1
+		//ui.auto_update_layout = 1
 		ui.set_initial_data(data)
 		ui.open()
-
-
 
 /datum/nano_module/program/newbusiness/Topic(href, href_list)
 	if(..())
@@ -92,28 +74,28 @@
 	var/mob/user = usr
 	switch(href_list["action"])
 
-		if("change_business_type")
-			var/chose_type = input(user, "Select a type of business") as null|anything in SSresearch.business_modules
-			if(!chose_type) return
-			if(signed_contracts.len)
-				var/choice = input(usr,"Changing this will cancel all pending contracts.") in list("Confirm", "Cancel")
-				if(choice == "Confirm")
-					cancel_contracts()
-				else
-					return
-			selected_type = chose_type
-			selected_spec = null
-		if("change_business_spec")
+		// if("change_business_type")
+		// 	var/chose_type = input(user, "Select a type of business") as null|anything in SSresearch.business_modules
+		// 	if(!chose_type) return
+		// 	if(signed_contracts.len)
+		// 		var/choice = input(usr,"Changing this will cancel all pending contracts.") in list("Confirm", "Cancel")
+		// 		if(choice == "Confirm")
+		// 			cancel_contracts()
+		// 		else
+		// 			return
+		// 	selected_type = chose_type
+		// 	selected_spec = null
+		// if("change_business_spec")
 
-			var/chose_type = input(user, "Select a specialization") as null|anything in selected_type.specs
-			if(!chose_type) return
-			if(signed_contracts.len)
-				var/choice = input(usr,"Changing this will cancel all pending contracts.") in list("Confirm", "Cancel")
-				if(choice == "Confirm")
-					cancel_contracts()
-				else
-					return
-			selected_spec = chose_type
+		// 	var/chose_type = input(user, "Select a specialization") as null|anything in selected_type.specs
+		// 	if(!chose_type) return
+		// 	if(signed_contracts.len)
+		// 		var/choice = input(usr,"Changing this will cancel all pending contracts.") in list("Confirm", "Cancel")
+		// 		if(choice == "Confirm")
+		// 			cancel_contracts()
+		// 		else
+		// 			return
+		// 	selected_spec = chose_type
 
 		if("change_business_uid")
 			var/select_name = input(usr,"Enter the UID for the business. It must be unique.","UID", business_uid) as null|text
@@ -129,6 +111,7 @@
 				else
 					return
 			business_uid = select_name
+			return TOPIC_REFRESH
 
 		if("change_business_name")
 			var/select_name = sanitize(input(usr,"Enter the display name for the business.","Display Name", business_name) as null|text, MAX_NAME_LEN)
@@ -140,6 +123,7 @@
 				else
 					return
 			business_name = select_name
+			return TOPIC_REFRESH
 
 		if("change_business_ceo")
 			var/select_name =  sanitize(input(usr,"Enter the full name of the starting CEO.","CEO", ceo_name) as null|text)
@@ -154,6 +138,7 @@
 				else
 					return
 			ceo_name = select_name
+			return TOPIC_REFRESH
 
 		if("change_business_ceowage")
 			var/new_pay = input("Enter wage. This wage is paid every thirty minutes.","CEO Wage") as null|num
@@ -167,9 +152,10 @@
 				else
 					return
 			ceo_wage = new_pay
+			return TOPIC_REFRESH
 
 		if("business_contract")
-			if(!business_name || !business_uid || !ceo_name || !selected_type || !selected_spec)
+			if(!business_name || !business_uid || !ceo_name /*|| !selected_type || !selected_spec*/)
 				return
 			var/to_be = 100 - get_distributed()
 			var/amount = round(input("How many stocks is this contract worth?", "Investment", to_be) as null|num)
@@ -196,12 +182,12 @@
 									<td>
 										<center><h1>Investment Contract for [business_name]</h1></center>
 									</td>
-								</tr>
+								</tr>"} + /*{"
 								<tr>
 									<td>
 										<br>[selected_spec.name] [selected_type.name]<br>
 									</td>
-								</tr>
+								</tr>"} +*/ {"
 								<tr>
 									<td>
 										<br>Initial CEO [ceo_name] paid [ceo_wage] every thirty minutes.<br>
@@ -222,22 +208,23 @@
 				contract.update_icon()
 				pending_contracts |= contract
 				playsound(get_turf(program.computer), pick('sound/items/polaroid1.ogg', 'sound/items/polaroid2.ogg'), 75, 1, -3)
+				return TOPIC_REFRESH
 
 
 		if("business_finalize")
-			if(!business_name || !business_uid || !ceo_name || !selected_type || !selected_spec)
+			if(!business_name || !business_uid || !ceo_name /*|| !selected_type || !selected_spec*/)
 				return
 			if(get_faction(business_uid))
 				business_uid = null
 				return
-			if(!selected_spec in selected_type.specs)
-				selected_spec = null
-				return
+			// if(!selected_spec in selected_type.specs)
+			// 	selected_spec = null
+			// 	return
 			var/commitment = get_contributed()
 			var/signed_stocks = get_distributed()
-			if(commitment < selected_type.cost || signed_stocks != 100)
+			if(commitment < 1000 || signed_stocks != 100)
 				return
-			commitment -= selected_type.cost
+			commitment -= 1000
 			for(var/obj/item/weapon/paper/contract/contract in signed_contracts)
 				if(!contract.is_solvent())
 					message_admins("insolvent contract")
@@ -245,11 +232,11 @@
 					SSnano.update_uis(src)
 					return 0
 			var/datum/world_faction/business/new_business = new()
-			new_business.module = new selected_type.type()
-			for(var/datum/business_spec/spec in new_business.module.specs)
-				if(spec.type == selected_spec.type)
-					new_business.module.spec = spec
-					break
+			//new_business.module = new selected_type.type()
+			// for(var/datum/business_spec/spec in new_business.module.specs)
+			// 	if(spec.type == selected_spec.type)
+			// 		new_business.module.spec = spec
+			// 		break
 			var/datum/accesses/rank = new()
 			rank.pay = ceo_wage
 			new_business.CEO.accesses |= rank
@@ -286,17 +273,18 @@
 			secure_closet.req_access_faction = business_uid
 			secure_closet.req_access = list(101)
 			secure_closet.name = "[business_name] Starting Equipment"
-			for(var/x in new_business.module.starting_items)
-				var/ind = new_business.module.starting_items[x]
-				for(var/i in 1 to ind)
-					new x(secure_closet)
+			// for(var/x in new_business.module.starting_items)
+			// 	var/ind = new_business.module.starting_items[x]
+			// 	for(var/i in 1 to ind)
+			// 		new x(secure_closet)
 			business_name = null
 			business_uid = null
 			ceo_name = null
 			ceo_wage = 100
-			selected_spec = null
-			selected_type = null
+			// selected_spec = null
+			// selected_type = null
 			cancel_contracts()
+			return TOPIC_REFRESH
 
 
 /datum/nano_module/program/newbusiness/contract_signed(var/obj/item/weapon/paper/contract/contract)

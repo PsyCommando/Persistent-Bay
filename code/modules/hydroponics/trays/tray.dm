@@ -184,21 +184,21 @@
 
 
 /obj/machinery/portable_atmospherics/hydroponics/can_connect(var/datum/world_faction/trying, var/mob/M)
-	var/datum/machine_limits/limits = trying.get_limits()
-	if(M && !has_access(list(core_access_machine_linking), list(), M.GetAccess(trying.uid)))
-		to_chat(M, "You do not have access to link machines to [trying.name].")
-		return 0
-	if(limits.limit_botany <= limits.botany.len)
-		if(M)
-			to_chat(M, "[trying.name] cannot connect any more machines of this type.")
-		return 0
-	limits.botany |= src
+	// var/datum/machine_limits/limits = trying.get_limits()
+	// if(M && !has_access(list(core_access_machine_linking), list(), M.GetAccess(trying.uid)))
+	// 	to_chat(M, "You do not have access to link machines to [trying.name].")
+	// 	return 0
+	// if(limits.limit_botany <= limits.botany.len)
+	// 	if(M)
+	// 		to_chat(M, "[trying.name] cannot connect any more machines of this type.")
+	// 	return 0
+	// limits.botany |= src
 	req_access_faction = trying.uid
 	connected_faction = trying
 
 /obj/machinery/portable_atmospherics/hydroponics/can_disconnect(var/datum/world_faction/trying, var/mob/M)
-	var/datum/machine_limits/limits = trying.get_limits()
-	limits.botany -= src
+	// var/datum/machine_limits/limits = trying.get_limits()
+	// limits.botany -= src
 	req_access_faction = ""
 	connected_faction = null
 	if(M) to_chat(M, "The machine has been disconnected.")

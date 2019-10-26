@@ -247,21 +247,21 @@
 		connected_faction = trying
 		return TRUE
 
-	var/list/turfs = get_area_turfs(area)
-	var/datum/machine_limits/limits = trying.get_limits()
+	//var/list/turfs = get_area_turfs(area)
+	// var/datum/machine_limits/limits = trying.get_limits()
 
 	if(M && !has_access(list(core_access_engineering_programs), list(), M.GetAccess(trying.uid)))
 		to_chat(M, "You do not have access to link machines to [trying.name].")
 		return 0
 
-	if((area && !area.shuttle) && (!force && (limits.limit_area <= (turfs.len + trying.get_claimed_area()) ) ) )
-		if(M)
-			to_chat(M, "[trying.name] cannot connect this APC as it will exceed its area limit.")
-		return 0
-	limits.apcs |= src
+	// if((area && !area.shuttle) && (!force && (limits.limit_area <= (turfs.len + trying.get_claimed_area()) ) ) )
+	// 	if(M)
+	// 		to_chat(M, "[trying.name] cannot connect this APC as it will exceed its area limit.")
+	// 	return 0
+	// limits.apcs |= src
 	req_access_faction = trying.uid
 	connected_faction = trying
-	trying.calculate_claimed_area()
+//	trying.calculate_claimed_area()
 	if(M)
 		to_chat(M, "You successfuly connect this APC to [trying.name].")
 	return TRUE
@@ -270,12 +270,12 @@
 	if(!trying) 
 		log_error("[src]\ref[src] tried to disconnect from faction \"[trying? trying : "null" ]\"! connected_faction is \"[connected_faction? connected_faction : "null"]\"")
 		return FALSE
-	var/datum/machine_limits/limits = trying.get_limits()
-	limits.apcs -= src
+	// var/datum/machine_limits/limits = trying.get_limits()
+	// limits.apcs -= src
 	req_access_faction = ""
 	connected_faction = null
 	locked = 1
-	trying.calculate_claimed_area()
+//	trying.calculate_claimed_area()
 	if(M) to_chat(M, "You successfuly disconnect this APC from [trying.name].")
 	return TRUE
 

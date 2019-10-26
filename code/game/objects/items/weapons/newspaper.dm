@@ -16,12 +16,12 @@
 	var/issue_id
 
 /obj/item/weapon/newspaper/after_load()
-	var/datum/small_business/business = get_business(feed_id)
-	if(business)
-		for(var/datum/NewsIssue/issue in business.feed.all_issues)
-			if(issue.uid == issue_id)
-				linked_issue = issue
-				break
+	// var/datum/small_business/business = get_business(feed_id)
+	// if(business)
+	// 	for(var/datum/NewsIssue/issue in business.feed.all_issues)
+	// 		if(issue.uid == issue_id)
+	// 			linked_issue = issue
+	// 			break
 	..()
 
 /obj/item/weapon/newspaper/OnTopic(user, href_list)

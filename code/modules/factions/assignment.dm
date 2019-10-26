@@ -57,10 +57,6 @@
 /datum/assignment_category/proc/create_account()
 	account = create_account(name, 0)
 
-
-
-
-
 /datum/world_faction/proc/rebuild_all_assignments()
 	all_assignments = list()
 	for(var/datum/assignment_category/assignment_category in assignment_categories)

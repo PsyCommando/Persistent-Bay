@@ -157,16 +157,16 @@
 			if(loud)
 				to_chat(user, "<span class='notice'>\The [computer] must be connected to a business network for this program to run.</span>")
 			return 0
-		if(required_module)
-			if((computer && computer.network_card && computer.network_card.connected_network && computer.network_card.connected_network.holder))
-				var/datum/world_faction/business/business = computer.network_card.connected_network.holder
-				if(!istype(business.module, required_module))
-					if(loud)
-						to_chat(user, "<span class='notice'>\The [computer] must be connected to a business that has the correct module for this program..</span>")
-					return 0
-			else
-				to_chat(user, "<span class='notice'>\The [computer] must be connected to a business that has the correct module for this program..</span>")
-				return 0
+		// if(required_module)
+		// 	if((computer && computer.network_card && computer.network_card.connected_network && computer.network_card.connected_network.holder))
+		// 		var/datum/world_faction/business/business = computer.network_card.connected_network.holder
+		// 		if(!istype(business.module, required_module))
+		// 			if(loud)
+		// 				to_chat(user, "<span class='notice'>\The [computer] must be connected to a business that has the correct module for this program..</span>")
+		// 			return 0
+		// 	else
+		// 		to_chat(user, "<span class='notice'>\The [computer] must be connected to a business that has the correct module for this program..</span>")
+		// 		return 0
 
 	if(!access_to_check) // No required_access, allow it.
 		return 1

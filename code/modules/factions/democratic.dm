@@ -79,7 +79,7 @@
 	special_category.head_position = governor_assignment
 	special_category.parent = src
 	special_category.command_faction = 1
-	limits = new /datum/machine_limits/democracy()
+	// limits = new /datum/machine_limits/democracy()
 
 	name = "Nexus City Government"
 	abbreviation = "NEXUS"

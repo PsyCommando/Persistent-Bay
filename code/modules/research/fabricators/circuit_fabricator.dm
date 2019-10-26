@@ -682,11 +682,11 @@
 	build_path = /obj/item/weapon/circuitboard/shuttleengine
 
 
-/datum/design/circuit/dockingbeacon
-	name = "Docking Beacon"
-	id = "dockingbeacon"
-	req_tech = list(TECH_ENGINEERING = 4, TECH_BLUESPACE = 4)
-	build_path = /obj/item/weapon/circuitboard/docking_beacon
+// /datum/design/circuit/dockingbeacon
+// 	name = "Docking Beacon"
+// 	id = "dockingbeacon"
+// 	req_tech = list(TECH_ENGINEERING = 4, TECH_BLUESPACE = 4)
+// 	build_path = /obj/item/weapon/circuitboard/docking_beacon
 
 
 /datum/design/circuit/bridgecomputer

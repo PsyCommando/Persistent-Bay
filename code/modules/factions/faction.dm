@@ -31,15 +31,15 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 // Faction Define
 //-------------------------------
 /datum/world_faction
-	var/name = "" // can be safely changed
-	var/abbreviation = "" // can be safely changed
-	var/short_tag = "" // This can be safely changed as long as it doesn't conflict
-	var/purpose = "" // can be safely changed
-	var/uid = "" // THIS SHOULD NEVER BE CHANGED!
-	var/password = "password" // this is used to access the faction, can be safely changed
-	var/list/assignment_categories = list()
-	var/list/access_categories = list()
-	var/list/all_access = list() // format list("10", "11", "12", "13") used to determine which accesses are already given out.
+	var/name 						= "" // can be safely changed
+	var/abbreviation 				= "" // can be safely changed
+	var/short_tag 					= "" // This can be safely changed as long as it doesn't conflict
+	var/purpose 					= "" // can be safely changed
+	var/uid 						= "" // THIS SHOULD NEVER BE CHANGED!
+	var/password					= "password" // this is used to access the faction, can be safely changed
+	var/list/assignment_categories 	= list()
+	var/list/access_categories		= list()
+	var/list/all_access 			= list() // format list("10", "11", "12", "13") used to determine which accesses are already given out.
 	var/list/all_assignments
 	var/datum/records_holder/records
 	var/datum/ntnet/network
@@ -74,9 +74,9 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 
 	var/list/reserved_frequencies = list() // Reserved frequencies that the faction can create encryption keys from.
 
-	var/datum/machine_limits/limits
+	//var/datum/machine_limits/limits
 
-	var/datum/faction_research/research
+	//var/datum/faction_research/research
 
 	var/status = 1
 
@@ -84,7 +84,7 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 
 	var/objective = ""
 
-	var/datum/material_inventory/inventory
+	//var/datum/material_inventory/inventory
 
 	var/obj/machinery/telepad_cargo/default_telepad
 	var/default_telepad_x
@@ -111,9 +111,9 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 	network.holder = src
 	records = new()
 	create_faction_account()
-	limits = new()
-	research = new()
-	inventory = new()
+	//limits = new()
+	// research = new()
+	// inventory = new()
 
 /datum/world_faction/before_save()
 	if(default_telepad)
@@ -160,13 +160,6 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 	for(var/obj/item/organ/internal/stack/stack in connected_laces)
 		if(stack.owner)
 			to_chat(stack.owner, "Your neural lace buzzes letting you know that [M.real_name] is in critical health status.")
-
-
-
-
-
-
-
 
 /datum/world_faction/proc/give_inventory(var/typepath, var/amount)
 	var/obj/machinery/telepad_cargo/using_telepad
@@ -215,88 +208,82 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 		taken += take
 	return 1
 
+// /datum/world_faction/proc/rebuild_inventory()
+// 	inventory.steel = 0
+// 	inventory.glass = 0
+// 	inventory.gold = 0
+// 	inventory.silver = 0
+// 	inventory.copper = 0
+// 	inventory.wood = 0
+// 	inventory.cloth = 0
+// 	inventory.leather = 0
+// 	inventory.phoron = 0
+// 	inventory.diamond = 0
+// 	inventory.uranium = 0
+// 	rebuild_cargo_telepads()
+// 	for(var/obj/machinery/telepad_cargo/telepad in cargo_telepads)
+// 		if(telepad.loc)
+// 			var/list/stacks = telepad.loc.search_contents_for(/obj/item/stack/material, list(/mob/))
+// 			if(!stacks.len) continue
+// 			for(var/ind in 1 to stacks.len)
+// 				var/obj/item/stack/material/stack = stacks[ind]
+// 				if(istype(stack, /obj/item/stack/material/steel))
+// 					inventory.steel += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/glass))
+// 					inventory.glass += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/gold))
+// 					inventory.gold += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/silver))
+// 					inventory.silver += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/copper))
+// 					inventory.copper += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/wood))
+// 					inventory.wood += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/cloth))
+// 					inventory.cloth += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/leather))
+// 					inventory.leather += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/phoron))
+// 					inventory.phoron += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/diamond))
+// 					inventory.diamond += stack.amount
+// 				if(istype(stack, /obj/item/stack/material/uranium))
+// 					inventory.uranium += stack.amount
 
-
-
-/datum/world_faction/proc/rebuild_inventory()
-	inventory.steel = 0
-	inventory.glass = 0
-	inventory.gold = 0
-	inventory.silver = 0
-	inventory.copper = 0
-	inventory.wood = 0
-	inventory.cloth = 0
-	inventory.leather = 0
-	inventory.phoron = 0
-	inventory.diamond = 0
-	inventory.uranium = 0
-	rebuild_cargo_telepads()
-	for(var/obj/machinery/telepad_cargo/telepad in cargo_telepads)
-		if(telepad.loc)
-			var/list/stacks = telepad.loc.search_contents_for(/obj/item/stack/material, list(/mob/))
-			if(!stacks.len) continue
-			for(var/ind in 1 to stacks.len)
-				var/obj/item/stack/material/stack = stacks[ind]
-				if(istype(stack, /obj/item/stack/material/steel))
-					inventory.steel += stack.amount
-				if(istype(stack, /obj/item/stack/material/glass))
-					inventory.glass += stack.amount
-				if(istype(stack, /obj/item/stack/material/gold))
-					inventory.gold += stack.amount
-				if(istype(stack, /obj/item/stack/material/silver))
-					inventory.silver += stack.amount
-				if(istype(stack, /obj/item/stack/material/copper))
-					inventory.copper += stack.amount
-				if(istype(stack, /obj/item/stack/material/wood))
-					inventory.wood += stack.amount
-				if(istype(stack, /obj/item/stack/material/cloth))
-					inventory.cloth += stack.amount
-				if(istype(stack, /obj/item/stack/material/leather))
-					inventory.leather += stack.amount
-				if(istype(stack, /obj/item/stack/material/phoron))
-					inventory.phoron += stack.amount
-				if(istype(stack, /obj/item/stack/material/diamond))
-					inventory.diamond += stack.amount
-				if(istype(stack, /obj/item/stack/material/uranium))
-					inventory.uranium += stack.amount
-
-/datum/material_inventory
-	var/steel = 0
-	var/glass = 0
-	var/gold = 0
-	var/silver = 0
-	var/copper = 0
-	var/wood = 0
-	var/cloth = 0
-	var/leather = 0
-	var/phoron = 0
-	var/diamond = 0
-	var/uranium = 0
-
-
-
+// /datum/material_inventory
+// 	var/steel = 0
+// 	var/glass = 0
+// 	var/gold = 0
+// 	var/silver = 0
+// 	var/copper = 0
+// 	var/wood = 0
+// 	var/cloth = 0
+// 	var/leather = 0
+// 	var/phoron = 0
+// 	var/diamond = 0
+// 	var/uranium = 0
 
 /datum/world_faction/proc/get_stockholder(var/real_name)
 	return 0
 
-/datum/world_faction/proc/get_limits()
-	return limits
+// /datum/world_faction/proc/get_limits()
+// 	return limits
 
 //(Re)Calculates the current claimed area and returns it.
-/datum/world_faction/proc/get_claimed_area()
-	src.calculate_claimed_area()
-	return limits.claimed_area
+// /datum/world_faction/proc/get_claimed_area()
+// 	src.calculate_claimed_area()
+// 	return limits.claimed_area
 
 //Calculates the current claimed area. Only used by "get_claimed_area()" and "apc/can_disconnect()" procs.~
 //Call "get_claimed_area()" directly instead (in most cases).
-/datum/world_faction/proc/calculate_claimed_area()
-	var/new_claimed_area = 0
+// /datum/world_faction/proc/calculate_claimed_area()
+// 	var/new_claimed_area = 0
 
-	for(var/obj/machinery/power/apc/apc in limits.apcs)
-		if(!apc.area || apc.area.shuttle) continue
-		var/list/apc_turfs = get_area_turfs(apc.area)
-		new_claimed_area += apc_turfs.len
-	limits.claimed_area = new_claimed_area
+// 	for(var/obj/machinery/power/apc/apc in limits.apcs)
+// 		if(!apc.area || apc.area.shuttle) continue
+// 		var/list/apc_turfs = get_area_turfs(apc.area)
+// 		new_claimed_area += apc_turfs.len
+// 	limits.claimed_area = new_claimed_area
 
 /datum/world_faction/proc/get_duty_status(var/real_name)
 	for(var/obj/item/organ/internal/stack/stack in connected_laces)
@@ -317,28 +304,25 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 			return 0
 		debts -= x
 
-/datum/world_faction/proc/get_tech_points()
-	return research.points
+// /datum/world_faction/proc/get_tech_points()
+// 	return research.points
 
-/datum/world_faction/proc/take_tech_points(var/amount)
-	research.points -= amount
-
-
-/datum/world_faction/proc/unlock_tech(var/uid)
-	research.unlocked |= uid
-
-/datum/world_faction/proc/is_tech_unlocked(var/uid)
-	if(uid in research.unlocked)
-		return 1
-
-/datum/world_faction/proc/meets_prereqs(var/datum/tech_entry/tech)
-	for(var/x in tech.prereqs)
-		if(!(x in research.unlocked))
-			return 0
-	return 1
+// /datum/world_faction/proc/take_tech_points(var/amount)
+// 	research.points -= amount
 
 
+// /datum/world_faction/proc/unlock_tech(var/uid)
+// 	research.unlocked |= uid
 
+// /datum/world_faction/proc/is_tech_unlocked(var/uid)
+// 	if(uid in research.unlocked)
+// 		return 1
+
+// /datum/world_faction/proc/meets_prereqs(var/datum/tech_entry/tech)
+// 	for(var/x in tech.prereqs)
+// 		if(!(x in research.unlocked))
+// 			return 0
+// 	return 1
 
 /datum/world_faction/proc/rebuild_cargo_telepads()
 	cargo_telepads.Cut()
@@ -347,14 +331,10 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 			telepad.connected_faction = src
 			cargo_telepads |= telepad
 
-
-
-
 //Just a way to customize the starting money for new characters joining a specific faction on spawn
 // Can be expanded to check the specie and origins and etc too
 /datum/world_faction/proc/get_new_character_money(var/mob/living/carbon/human/H)
 	return DEFAULT_NEW_CHARACTER_MONEY //By default just throw the default amount at them
-
 
 /datum/world_faction/proc/get_records()
 	return records.faction_records
@@ -431,37 +411,6 @@ GLOBAL_RAW(/list/datum/world_faction/all_world_factions);GLOBAL_UNMANAGED(all_wo
 		else return 0
 	return 0
 
-
-
 /datum/world_faction/proc/create_faction_account()
 	central_account = create_account(name, 0)
 	central_account.account_type = 2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/obj/machinery/economic_beacon
-	name = "Economic Beacon"
-	anchored = 1
-	var/datum/world_faction/holder
-	var/holder_uid
-
-	var/list/connected_orgs = list()
-	var/list/connected_orgs_uids = list()
-	var/completed_objectives = 0

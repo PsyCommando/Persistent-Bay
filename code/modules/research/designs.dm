@@ -61,11 +61,12 @@ other types of metals and chemistry for reagents).
 		id = lowertext(name)
 		
 /datum/design/proc/get_tech_name()
-	if(research && research != "")
-		var/datum/tech_entry/entry
-		entry = SSresearch.files.get_tech_entry(research)
-		if(entry)
-			return entry.name
+	// if(research && research != "")
+	// 	var/datum/tech_entry/entry
+	// 	entry = SSresearch.files.get_tech_entry(research)
+	// 	if(entry)
+	// 		return entry.name
+	return "ERROR"
 	
 	
 //These procs are used in subtypes for assigning names and descriptions dynamically

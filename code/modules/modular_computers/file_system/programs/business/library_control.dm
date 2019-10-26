@@ -9,7 +9,7 @@
 	size = 8
 	required_access = core_access_security_programs
 	business = 1
-	required_module = /datum/business_module/media
+//	required_module = /datum/business_module/media
 	category = PROG_OFFICE
 	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP | PROGRAM_TELESCREEN
 
@@ -109,7 +109,7 @@
 				book.name = scanned_book.title
 				book.icon_state = scanned_book.icon_state
 				connected_faction.library.books |= book
-				connected_faction.publish_book_objectives(book.author_real)
+				// connected_faction.publish_book_objectives(book.author_real)
 				scanned_book = null
 				selected_book = book
 				menu = 3

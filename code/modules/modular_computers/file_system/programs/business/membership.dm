@@ -9,7 +9,7 @@
 	size = 8
 	required_access = core_access_command_programs
 	business = 1
-	required_module = /datum/business_module/social
+//	required_module = /datum/business_module/social
 	category = PROG_OFFICE
 	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP | PROGRAM_TELESCREEN
 /datum/nano_module/program/membership

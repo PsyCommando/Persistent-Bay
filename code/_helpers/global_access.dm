@@ -119,8 +119,6 @@
 			return global.SSpsi;
 		if("SSradiation")
 			return global.SSradiation;
-		if("SSresearch")
-			return global.SSresearch;
 		if("SSrobots")
 			return global.SSrobots;
 		if("SSshuttle")
@@ -1118,8 +1116,6 @@
 			global.SSpsi=newval;
 		if("SSradiation")
 			global.SSradiation=newval;
-		if("SSresearch")
-			global.SSresearch=newval;
 		if("SSrobots")
 			global.SSrobots=newval;
 		if("SSshuttle")
