@@ -1,104 +1,15 @@
-#define SIMPLE_DOOR_HEALTH_MULTIPLIER 10
-#define SIMPLE_DOOR_DAMAGE_CAP 100
-#define SIMPLE_DOOR_SOUND_VOL 20
-
 /obj/machinery/door/unpowered/simple
-	name 		= "door"
-	icon 		= 'icons/obj/doors/material_doors.dmi'
-	icon_state 	= "metal"
-	sound_hit 	= 'sound/weapons/genhit.ogg'
-	autoset_access = FALSE // Doesn't even use access
-	broken_threshold = 0.3
+	name = "door"
+	icon = 'icons/obj/doors/material_doors.dmi'
+	icon_state = "metal"
+
 	var/material/material
 	var/icon_base
+	hitsound = 'sound/weapons/genhit.ogg'
 	var/datum/lock/lock
 	var/initial_lock_value //for mapping purposes. Basically if this value is set, it sets the lock to this value.
-
-/obj/machinery/door/unpowered/simple/New(var/newloc, var/material_name, var/locked)
-	..()
-	ADD_SAVED_VAR(lock)
-
-/obj/machinery/door/unpowered/simple/Write(savefile/f)
-	. = ..()
-	if(istype(material))
-		to_file(f["material"], material.name)
-	
-/obj/machinery/door/unpowered/simple/Read(savefile/f)
-	. = ..()
-	var/mat
-	from_file(f["material"], mat)
-	if(istext(mat))
-		material = mat
-
-/obj/machinery/door/unpowered/simple/Initialize(mapload, var/material_name, var/locked)
-	. = ..()
-	if(!map_storage_loaded)
-		if(initial_lock_value)
-			locked = initial_lock_value
-		if(locked)
-			lock = new(src,locked)
-		
-		if(!material_name)
-			material = MATERIAL_STEEL
-		else
-			material = material_name
-	if(istext(material))
-		material = SSmaterials.get_material_by_name(material)
-	if(!material)
-		log_warning("[src]\ref[src] ([x], [y], [z]) had an invalid material type on init! Deleting!")
-		return INITIALIZE_HINT_QDEL
-	update_material()
-
-/obj/machinery/door/unpowered/simple/Destroy()
-	material = null
-	QDEL_NULL(lock)
-	return ..()
-
-/obj/machinery/door/unpowered/simple/requiresID()
-	return FALSE
-
-/obj/machinery/door/unpowered/simple/get_material()
-	return material
-
-/obj/machinery/door/unpowered/simple/get_material_name()
-	return material? material.name : null
-
-/obj/machinery/door/unpowered/simple/proc/update_material()
-	name 				= "[material.display_name] door"
-	max_health 			= max(100, material.integrity * SIMPLE_DOOR_HEALTH_MULTIPLIER)
-	health 				= max_health
-	sound_hit 			= material.hitsound
-
-	armor = list(
-		DAM_BLUNT  	= material.brute_armor * MaxArmorValue,
-		DAM_PIERCE 	= round(material.hardness * 0.90),
-		DAM_CUT 	= material.hardness,
-		DAM_BULLET 	= material.brute_armor * MaxArmorValue,
-		DAM_ENERGY 	= material.burn_armor * MaxArmorValue,
-		DAM_BURN 	= material.burn_armor * MaxArmorValue,
-		DAM_BOMB 	= material.burn_armor * MaxArmorValue,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue) 	//Resistance for various types of damages
-
-	if(!icon_base)
-		icon_base = material.door_icon_base
-	color = material.icon_colour
-	if(material.opacity < 0.5)
-		glass = TRUE
-		set_opacity(0)
-	else
-		set_opacity(1)
-	queue_icon_update()
-
-/obj/machinery/door/unpowered/simple/bullet_act(var/obj/item/projectile/Proj)
-	var/damage = Proj.get_structure_damage()
-	if(damage)
-		//cap projectile damage so that there's still a minimum number of hits required to break the door
-		take_damage(min(damage, SIMPLE_DOOR_DAMAGE_CAP), Proj.damtype, Proj.armor_penetration, Proj)
+	autoset_access = FALSE // Doesn't even use access
+	pry_mod = 0.1
 
 /obj/machinery/door/unpowered/simple/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	TemperatureAct(exposed_temperature)
@@ -106,8 +17,54 @@
 /obj/machinery/door/unpowered/simple/proc/TemperatureAct(temperature)
 	take_damage(100*material.combustion_effect(get_turf(src),temperature, 0.3))
 
+/obj/machinery/door/unpowered/simple/New(var/newloc, var/material_name, var/locked)
+	..()
+	if(!material_name)
+		material_name = MATERIAL_STEEL
+	material = SSmaterials.get_material_by_name(material_name)
+	if(!material)
+		qdel(src)
+		return
+	maxhealth = max(100, material.integrity*10)
+	health = maxhealth
+	if(!icon_base)
+		icon_base = material.door_icon_base
+	hitsound = material.hitsound
+	name = "[material.display_name] door"
+	color = material.icon_colour
+	if(initial_lock_value)
+		locked = initial_lock_value
+	if(locked)
+		lock = new(src,locked)
+
+	if(material.opacity < 0.5)
+		glass = 1
+		set_opacity(0)
+	else
+		set_opacity(1)
+	update_icon()
+
+/obj/machinery/door/unpowered/simple/requiresID()
+	return 0
+
+/obj/machinery/door/unpowered/simple/get_material()
+	return material
+
+/obj/machinery/door/unpowered/simple/get_material_name()
+	return material.name
+
+/obj/machinery/door/unpowered/simple/bullet_act(var/obj/item/projectile/Proj)
+	var/damage = Proj.get_structure_damage()
+	if(damage)
+		//cap projectile damage so that there's still a minimum number of hits required to break the door
+		take_damage(min(damage, 100))
+
 /obj/machinery/door/unpowered/simple/on_update_icon()
-	icon_state = density? "[icon_base]" : "[icon_base]open"
+	if(density)
+		icon_state = "[icon_base]"
+	else
+		icon_state = "[icon_base]open"
+	return
 
 /obj/machinery/door/unpowered/simple/do_animate(animation)
 	switch(animation)
@@ -120,17 +77,30 @@
 /obj/machinery/door/unpowered/simple/inoperable(var/additional_flags = 0)
 	return (stat & (BROKEN|additional_flags))
 
-/obj/machinery/door/unpowered/simple/close(var/forced = FALSE)
+/obj/machinery/door/unpowered/simple/close(var/forced = 0)
 	if(!can_close(forced))
 		return
-	playsound(src.loc, material.dooropen_noise, SIMPLE_DOOR_SOUND_VOL, TRUE)
+	
+	// If the door is blocked, don't close
+	for(var/turf/A in locs)
+		var/turf/T = A
+		var/obstruction = T.get_obstruction()
+		if (obstruction)
+			return
+	
+	playsound(src.loc, material.dooropen_noise, 100, 1)
 	..()
 
-/obj/machinery/door/unpowered/simple/open(var/forced = FALSE)
+/obj/machinery/door/unpowered/simple/open(var/forced = 0)
 	if(!can_open(forced))
 		return
-	playsound(src.loc, material.dooropen_noise, SIMPLE_DOOR_SOUND_VOL, TRUE)
+	playsound(src.loc, material.dooropen_noise, 100, 1)
 	..()
+
+/obj/machinery/door/unpowered/simple/set_broken(var/new_state, var/cause = MACHINE_BROKEN_GENERIC)
+	..()
+	if(new_state)
+		deconstruct(null)
 
 /obj/machinery/door/unpowered/simple/deconstruct(mob/user, moved = FALSE)
 	material.place_dismantled_product(get_turf(src))
@@ -143,98 +113,101 @@
 		if(Adjacent(user)) //not remotely though
 			return attack_hand(user)
 
+/obj/machinery/door/unpowered/simple/ex_act(severity)
+	switch(severity)
+		if(1.0)
+			set_broken(TRUE)
+		if(2.0)
+			if(prob(25))
+				set_broken(TRUE)
+			else
+				take_damage(300)
+		if(3.0)
+			if(prob(20))
+				take_damage(150)
+
+
 /obj/machinery/door/unpowered/simple/attackby(obj/item/I as obj, mob/user as mob)
-	if(src.operating) 
-		return
-	if(!lock.isLocked() && default_wrench_floor_bolts(user, I, 6 SECONDS))
-		return
-	else if(isCrowbar(I) && !isanchored())
-		var/obj/item/weapon/tool/T = I
-		if(T.use_tool(user, src, 5 SECOND))
-			to_chat(user, SPAN_DANGER("You destroy \the [src] salvaging nothing!"))
-			qdel(src)
-			return
-	
+	src.add_fingerprint(user, 0, I)
 	if(istype(I, /obj/item/weapon/key) && lock)
 		var/obj/item/weapon/key/K = I
-		if(!lock.toggle(K))
-			to_chat(user, SPAN_WARNING("\The [K] does not fit in the lock!"))
+		if(!lock.toggle(I))
+			to_chat(user, "<span class='warning'>\The [K] does not fit in the lock!</span>")
 		return
-	else if(lock && lock.pick_lock(I,user))
+	if(lock && lock.pick_lock(I,user))
 		return
-	else if(istype(I,/obj/item/weapon/material/lock_construct))
+
+	if(istype(I,/obj/item/weapon/material/lock_construct))
 		if(lock)
-			to_chat(user, SPAN_WARNING("\The [src] already has a lock."))
+			to_chat(user, "<span class='warning'>\The [src] already has a lock.</span>")
 		else
 			var/obj/item/weapon/material/lock_construct/L = I
 			lock = L.create_lock(src,user)
 		return
-	else if(istype(I, /obj/item/stack/material) && I.get_material_name() == src.get_material_name())
-		if(isbroken())
-			to_chat(user, SPAN_NOTICE("It looks like \the [src] is pretty busted. It's going to need more than just patching up now."))
+
+	if(istype(I, /obj/item/stack/material) && I.get_material_name() == src.get_material_name())
+		if(stat & BROKEN)
+			to_chat(user, "<span class='notice'>It looks like \the [src] is pretty busted. It's going to need more than just patching up now.</span>")
 			return
-		if(health >= max_health)
-			to_chat(user, SPAN_NOTICE("Nothing to fix!"))
+		if(health >= maxhealth)
+			to_chat(user, "<span class='notice'>Nothing to fix!</span>")
 			return
 		if(!density)
-			to_chat(user, SPAN_WARNING("\The [src] must be closed before you can repair it."))
+			to_chat(user, "<span class='warning'>\The [src] must be closed before you can repair it.</span>")
 			return
 
 		//figure out how much metal we need
-		var/obj/item/stack/material/stack = I
-		var/amount_needed = ceil((max_health - health)/DOOR_REPAIR_AMOUNT)
+		var/obj/item/stack/stack = I
+		var/amount_needed = ceil((maxhealth - health)/DOOR_REPAIR_AMOUNT)
 		var/used = min(amount_needed,stack.amount)
 		if (used)
-			to_chat(user, SPAN_NOTICE("You fit [used] [stack.singular_name]\s to damaged and broken parts on \the [src]."))
+			to_chat(user, "<span class='notice'>You fit [used] [stack.singular_name]\s to damaged and broken parts on \the [src].</span>")
 			stack.use(used)
-			health = between(health, health + used * DOOR_REPAIR_AMOUNT, max_health)
+			health = between(health, health + used*DOOR_REPAIR_AMOUNT, maxhealth)
 		return
-	else 
-		return ..()
 
 	//psa to whoever coded this, there are plenty of objects that need to call attack() on doors without bludgeoning them.
-	// else if(src.density && istype(I, /obj/item/weapon) && user.a_intent == I_HURT && !istype(I, /obj/item/weapon/card))
-	// 	var/obj/item/weapon/W = I
-	// 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	// 	if(IsDamageTypeBrute(W.damtype) || IsDamageTypeBurn(W.damtype))
-	// 		user.do_attack_animation(src)
-	// 		// if(W.force < damthreshold_brute)
-	// 		// 	user.visible_message("<span class='danger'>\The [user] hits \the [src] with \the [W] with no visible effect.</span>")
-	// 		// else
-	// 		// 	user.visible_message("<span class='danger'>\The [user] forcefully strikes \the [src] with \the [W]!</span>")
-	// 		playsound(src.loc, sound_hit, 100, TRUE)
-	// 		take_damage(W.force, W.damtype, W.armor_penetration, W)
-	// 	return
-
-/obj/machinery/door/unpowered/simple/attack_hand(mob/user)
-	if(inoperable())
-		to_chat(user, SPAN_WARNING("\The [src] looks broken.."))
+	if(src.density && istype(I, /obj/item/weapon) && user.a_intent == I_HURT && !istype(I, /obj/item/weapon/card))
+		var/obj/item/weapon/W = I
+		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
+		if(W.damtype == BRUTE || W.damtype == BURN)
+			user.do_attack_animation(src)
+			if(W.force < min_force)
+				user.visible_message("<span class='danger'>\The [user] hits \the [src] with \the [W] with no visible effect.</span>")
+			else
+				user.visible_message("<span class='danger'>\The [user] forcefully strikes \the [src] with \the [W]!</span>")
+				playsound(src.loc, hitsound, 100, 1)
+				take_damage(W.force)
 		return
-	if(user && user.a_intent == I_HELP)
-		add_fingerprint(user)
-		if(lock && lock.isLocked())
-			to_chat(user, "\The [src] is locked!")
-		if(can_open())
+
+	if(src.operating) return
+
+	if(lock && lock.isLocked())
+		to_chat(user, "\The [src] is locked!")
+
+	if(operable())
+		if(src.density)
 			open()
-		else if(can_close())
-			close()
 		else
-			to_chat(user, "\The [src] is being used!")
+			close()
 		return
-	return ..()
 
-/obj/machinery/door/unpowered/simple/examine(mob/user)
-	if(..(user,1) && lock)
-		to_chat(user, SPAN_NOTICE("It appears to have a lock."))
+	return
+
+/obj/machinery/door/unpowered/simple/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1 && lock)
+		to_chat(user, "<span class='notice'>It appears to have a lock.</span>")
 
 /obj/machinery/door/unpowered/simple/can_open()
 	if(!..() || (lock && lock.isLocked()))
 		return 0
 	return 1
 
-//------------------------------------
-//	Subtypes
-//------------------------------------
+/obj/machinery/door/unpowered/simple/Destroy()
+	QDEL_NULL(lock)
+	return ..()
+
 /obj/machinery/door/unpowered/simple/iron/New(var/newloc,var/material_name,var/complexity)
 	..(newloc, MATERIAL_IRON, complexity)
 
@@ -274,20 +247,13 @@
 
 /obj/machinery/door/unpowered/simple/wood/saloon
 	icon_base = "saloon"
-	autoclose = TRUE
+	autoclose = 1
 	normalspeed = 0
 
 /obj/machinery/door/unpowered/simple/wood/saloon/New(var/newloc,var/material_name,var/complexity)
 	..(newloc, MATERIAL_WOOD, complexity)
-	glass = TRUE
+	glass = 1
 	set_opacity(0)
-
-/obj/machinery/door/unpowered/simple/resin/New(var/newloc,var/material_name,var/complexity)
-	..(newloc, MATERIAL_RESIN, complexity)
 
 /obj/machinery/door/unpowered/simple/cult/New(var/newloc,var/material_name,var/complexity)
 	..(newloc, MATERIAL_CULT, complexity)
-
-#undef SIMPLE_DOOR_HEALTH_MULTIPLIER
-#undef SIMPLE_DOOR_DAMAGE_CAP
-#undef SIMPLE_DOOR_SOUND_VOL

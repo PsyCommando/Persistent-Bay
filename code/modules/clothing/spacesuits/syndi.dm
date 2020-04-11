@@ -4,19 +4,15 @@
 	icon_state = "syndicate"
 	item_state = "syndicate"
 	desc = "A crimson helmet sporting clean lines and durable plating. Engineered to look menacing."
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 35,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 30,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_RESISTANT,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SMALL,
+		rad = ARMOR_RAD_MINOR
+		)
 	siemens_coefficient = 0.3
 
 /obj/item/clothing/suit/space/syndicate
@@ -29,19 +25,15 @@
 	desc = "A crimson spacesuit sporting clean lines and durable plating. Robust, reliable, and slightly suspicious."
 	w_class = ITEM_SIZE_NORMAL
 	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/melee/energy/sword,/obj/item/weapon/handcuffs,/obj/item/weapon/tank/emergency)
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 35,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 30,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_RESISTANT,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SMALL,
+		rad = ARMOR_RAD_MINOR
+		)
 	siemens_coefficient = 0.3
 
 /obj/item/clothing/suit/space/syndicate/New()

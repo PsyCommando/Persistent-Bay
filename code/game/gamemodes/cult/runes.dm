@@ -5,7 +5,6 @@
 	icon = 'icons/effects/uristrunes.dmi'
 	icon_state = "blank"
 	unacidable = 1
-	plane = ABOVE_TURF_PLANE
 	layer = RUNE_LAYER
 
 	var/blood
@@ -18,6 +17,7 @@
 	bcolor = blcolor
 	blood = nblood
 	update_icon()
+	set_extension(src, /datum/extension/turf_hand, 10)
 
 /obj/effect/rune/on_update_icon()
 	overlays.Cut()
@@ -39,7 +39,7 @@
 	color = bcolor
 	desc = "A strange collection of symbols drawn in [blood]."
 
-/obj/effect/rune/examine(var/mob/user)
+/obj/effect/rune/examine(mob/user)
 	. = ..()
 	if(iscultist(user))
 		to_chat(user, "This is \a [cultname] rune.")
@@ -124,19 +124,19 @@
 		spamcheck = 0
 		if(!iscultist(target) && target.loc == get_turf(src)) // They hesitated, resisted, or can't join, and they are still on the rune - burn them
 			if(target.stat == CONSCIOUS)
-				target.take_overall_damage(10, DAM_BURN)
+				target.take_overall_damage(0, 10)
 				switch(target.getFireLoss())
 					if(0 to 25)
 						to_chat(target, "<span class='danger'>Your blood boils as you force yourself to resist the corruption invading every corner of your mind.</span>")
 					if(25 to 45)
 						to_chat(target, "<span class='danger'>Your blood boils and your body burns as the corruption further forces itself into your body and mind.</span>")
-						target.take_overall_damage(3, DAM_BURN)
+						target.take_overall_damage(0, 3)
 					if(45 to 75)
 						to_chat(target, "<span class='danger'>You begin to hallucinate images of a dark and incomprehensible being and your entire body feels like its engulfed in flame as your mental defenses crumble.</span>")
-						target.take_overall_damage(5, DAM_BURN)
+						target.take_overall_damage(0, 5)
 					if(75 to 100)
 						to_chat(target, "<span class='cult'>Your mind turns to ash as the burning flames engulf your very soul and images of an unspeakable horror begin to bombard the last remnants of mental resistance.</span>")
-						target.take_overall_damage(10, DAM_BURN)
+						target.take_overall_damage(0, 10)
 
 /obj/effect/rune/convert/Topic(href, href_list)
 	if(href_list["join"])
@@ -147,11 +147,10 @@
 	cultname = "teleport"
 	var/destination
 
-/obj/effect/rune/teleport/Initialize()
-	. = ..()
+/obj/effect/rune/teleport/New()
+	..()
 	var/area/A = get_area(src)
-	if(A)
-		destination = A.name
+	destination = A.name
 	GLOB.cult.teleport_runes += src
 
 /obj/effect/rune/teleport/Destroy()
@@ -161,7 +160,7 @@
 		A.forceMove(T)
 	return ..()
 
-/obj/effect/rune/teleport/examine(var/mob/user)
+/obj/effect/rune/teleport/examine(mob/user)
 	. = ..()
 	if(iscultist(user))
 		to_chat(user, "Its name is [destination].")
@@ -177,7 +176,7 @@
 			showOptions(user)
 			var/warning = 0
 			while(user.loc == src)
-				user.apply_damage(2, DAM_BURN)
+				user.take_organ_damage(0, 2)
 				if(user.getFireLoss() > 50)
 					to_chat(user, "<span class='danger'>Your body can't handle the heat anymore!</span>")
 					leaveRune(user)
@@ -253,7 +252,7 @@
 		wall = new /obj/effect/cultwall(get_turf(src), bcolor)
 		wall.rune = src
 		t = wall.health
-	user.pay_for_rune(t / 50)
+	user.remove_blood_simple(t / 50)
 	speak_incantation(user, "Khari[pick("'","`")]d! Eske'te tannin!")
 	to_chat(user, "<span class='warning'>Your blood flows into the rune, and you feel that the very space over the rune thickens.</span>")
 
@@ -267,7 +266,8 @@
 	density = 1
 	unacidable = 1
 	var/obj/effect/rune/wall/rune
-	max_health = 200
+	var/health
+	var/max_health = 200
 
 /obj/effect/cultwall/New(var/loc, var/bcolor)
 	..()
@@ -281,7 +281,7 @@
 		rune = null
 	return ..()
 
-/obj/effect/cultwall/examine(var/mob/user)
+/obj/effect/cultwall/examine(mob/user)
 	. = ..()
 	if(iscultist(user))
 		if(health == max_health)
@@ -304,19 +304,21 @@
 		qdel(src)
 	else if(I.force)
 		user.visible_message("<span class='notice'>\The [user] hits \the [src] with \the [I].</span>", "<span class='notice'>You hit \the [src] with \the [I].</span>")
-		take_damage(I.force, I.damtype)
+		take_damage(I.force)
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		user.do_attack_animation(src)
 
 /obj/effect/cultwall/bullet_act(var/obj/item/projectile/Proj)
-	if(!(IsDamageTypeBrute(Proj.damtype)|| IsDamageTypeBurn(Proj.damtype)))
+	if(!(Proj.damage_type == BRUTE || Proj.damage_type == BURN))
 		return
-	take_damage(Proj.force, Proj.damtype)
+	take_damage(Proj.damage)
 	..()
 
-/obj/effect/cultwall/destroyed()
-	visible_message(SPAN_WARNING("\The [src] dissipates."))
-	qdel(src)
+/obj/effect/cultwall/proc/take_damage(var/amount)
+	health -= amount
+	if(health <= 0)
+		visible_message("<span class='warning'>\The [src] dissipates.</span>")
+		qdel(src)
 
 /obj/effect/rune/ajorney
 	cultname = "astral journey"
@@ -341,7 +343,7 @@
 		else if(user.loc != get_turf(src) && soul)
 			soul.reenter_corpse()
 		else
-			user.apply_damage(1, DAM_BURN)
+			user.take_organ_damage(0, 1)
 		sleep(20)
 	fizzle(user)
 
@@ -453,8 +455,7 @@
 		//T.turf_animation('icons/effects/effects.dmi', "rune_sac")
 		victim.fire_stacks = max(2, victim.fire_stacks)
 		victim.IgniteMob()
-		victim.apply_damage(2 + casters.len, DAM_BURN)
-		victim.apply_damage(2 + casters.len, DAM_BLUNT) // This is to speed up the process and also damage mobs that don't take damage from being on fire, e.g. borgs
+		victim.take_organ_damage(2 + casters.len, 2 + casters.len) // This is to speed up the process and also damage mobs that don't take damage from being on fire, e.g. borgs
 		if(ishuman(victim))
 			var/mob/living/carbon/human/H = victim
 			if(H.is_asystole())
@@ -568,15 +569,15 @@
 		return statuses
 	var/list/obj/item/organ/damaged = list()
 	for(var/obj/item/organ/I in user.internal_organs)
-		if(I.isdamaged())
+		if(I.damage)
 			damaged += I
 	if(damaged.len)
 		statuses += "you feel pain inside for a moment that passes quickly"
 		while(charges && damaged.len)
 			var/obj/item/organ/fix = pick(damaged)
-			fix.add_health(1)
+			fix.damage = max(0, fix.damage - min(charges, 1))
 			charges = max(charges - 1, 0)
-			if(!fix.isdamaged())
+			if(fix.damage == 0)
 				damaged -= fix
 	/* this is going to need rebalancing
 	if(charges)
@@ -588,7 +589,7 @@
 /datum/reagent/hell_water
 	name = "Hell water"
 	reagent_state = LIQUID
-	color = "#0050a177"
+	color = "#0050a1"
 	metabolism = REM * 0.1
 
 /datum/reagent/hell_water/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
@@ -752,8 +753,7 @@
 			var/obj/item/weapon/nullrod/N = locate() in M
 			if(N)
 				continue
-			M.take_overall_damage(5, DAM_BLUNT)
-			M.take_overall_damage(5, DAM_BURN)
+			M.take_overall_damage(5, 5)
 			if(!(M in previous))
 				if(M.should_have_organ(BP_HEART))
 					to_chat(M, "<span class='danger'>Your blood boils!</span>")

@@ -1,3 +1,37 @@
+
+/hook/global_init/proc/AddVirusAdminVerb()
+	admin_verbs_spawn += /client/proc/virus2_editor
+
+/client/proc/give_disease2(mob/T as mob in SSmobs.mob_list) // -- Giacom
+	set category = "Fun"
+	set name = "Give Disease"
+	set desc = "Gives a Disease to a mob."
+
+	var/datum/disease2/disease/D = new /datum/disease2/disease()
+
+	var/severity = 1
+	var/greater = input("Is this a lesser, greater, or badmin disease?", "Give Disease") in list("Lesser", "Greater", "Badmin")
+	switch(greater)
+		if ("Lesser") severity = 1
+		if ("Greater") severity = 2
+		if ("Badmin") severity = 99
+
+	D.makerandom(severity)
+	D.infectionchance = input("How virulent is this disease? (1-100)", "Give Disease", D.infectionchance) as num
+
+	if(istype(T,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = T
+		if (H.species)
+			D.affected_species = list(H.species.get_bodytype(H))
+			if(H.species.primitive_form)
+				D.affected_species |= H.species.primitive_form
+			if(H.species.greater_form)
+				D.affected_species |= H.species.greater_form
+	infect_virus2(T,D,1)
+
+	SSstatistics.add_field_details("admin_verb","GD2") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	log_and_message_admins("gave [key_name(T)] a [greater] disease2 with infection chance [D.infectionchance].")
+
 /datum/disease2/disease/Topic(href, href_list)
 	. = ..()
 	if(.) return
@@ -213,3 +247,55 @@
 				infect_virus2(infectee, D, forced=1)
 
 		show_ui(usr)
+
+/mob/get_view_variables_options()
+	return ..() + {"
+		<option value='?_src_=vars;give_disease2=\ref[src]'>Give Disease</option>
+		<option value='?_src_=vars;give_disease=\ref[src]'>Give TG-style Disease</option>
+	"}
+
+/datum/VV_locked()
+	var/list/ret = ..()
+	ret += "virus"
+	ret += "viruses"
+	return ret
+
+/client/view_var_Topic(href, href_list, hsrc)
+	//This should all be moved over to datum/admins/Topic() or something ~Carn
+	if( (usr.client != src) || !src.holder )
+		return
+	if(href_list["give_disease2"])
+		if(!check_rights(R_ADMIN|R_FUN))	return
+
+		var/mob/M = locate(href_list["give_disease2"])
+		if(!istype(M))
+			to_chat(usr, "This can only be used on instances of type /mob")
+			return
+
+		src.give_disease2(M)
+		href_list["datumrefresh"] = href_list["give_spell"]
+		
+	else if(href_list["saved_vars"])
+		if(!check_rights(0))	return
+		var/datum/D = locate(href_list["saved_vars"])
+		if(!istype(D))
+			to_chat(usr, "This can only be done to instances of type /datum")
+			return
+		D.add_saved_var(usr)
+
+	else if(href_list["Add_Var"])
+		if(!check_rights(0))	return
+		var/datum/D = locate(href_list["Varsx"])
+		D.add_saved(usr)
+		D.add_saved_var(usr)
+		return 0
+
+	else if(href_list["Remove_Var"])
+		if(!check_rights(0))	return
+		var/ind = text2num(href_list["Remove_Var"])
+		var/datum/D = locate(href_list["Varsx"])		
+		D.remove_saved(ind)
+		D.add_saved_var(usr)
+		return 0
+	return ..()
+

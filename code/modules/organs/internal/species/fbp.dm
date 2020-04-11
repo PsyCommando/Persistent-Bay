@@ -16,10 +16,6 @@
 	if(ispath(cell))
 		cell = new cell(src)
 	..()
-	ADD_SAVED_VAR(open)
-	ADD_SAVED_VAR(cell)
-
-	ADD_SKIP_EMPTY(cell)
 
 /obj/item/organ/internal/cell/proc/percent()
 	if(!cell)
@@ -31,18 +27,20 @@
 		return 0
 	if(status & ORGAN_DEAD)
 		return 0
-	return round(cell.charge*(1 - get_damages()/max_health))
+	return round(cell.charge*(1 - damage/max_damage))
 
-/obj/item/organ/internal/cell/proc/check_charge(var/amount)
-	return get_charge() >= amount
+/obj/item/organ/internal/cell/proc/checked_use(var/amount)
+	if(!is_usable())
+		return FALSE
+	return cell && cell.checked_use(amount)
 
 /obj/item/organ/internal/cell/proc/use(var/amount)
-	if(check_charge(amount))
-		cell.use(amount)
-		return 1
+	if(!is_usable())
+		return 0
+	return cell && cell.use(amount)
 
-/obj/item/organ/internal/cell/proc/get_servo_cost()
-	var/damage_factor = 1 + 10 * get_damages()/max_health
+/obj/item/organ/internal/cell/proc/get_power_drain()	
+	var/damage_factor = 1 + 10 * damage/max_damage
 	return servo_cost * damage_factor
 
 /obj/item/organ/internal/cell/Process()
@@ -51,13 +49,10 @@
 		return
 	if(owner.stat == DEAD)	//not a drain anymore
 		return
-	if(!is_usable())
-		owner.Paralyse(3)
-		return
-	var/cost = get_servo_cost()
+	var/cost = get_power_drain()
 	if(world.time - owner.l_move_time < 15)
 		cost *= 2
-	if(!use(cost))
+	if(!checked_use(cost) && owner.isSynthetic())
 		if(!owner.lying && !owner.buckled)
 			to_chat(owner, "<span class='warning'>You don't have enough energy to function!</span>")
 		owner.Paralyse(3)
@@ -105,7 +100,7 @@
 // Used for an MMI or posibrain being installed into a human.
 /obj/item/organ/internal/mmi_holder
 	name = "brain interface"
-	icon_state = "brain-prosthetic"
+	icon_state = "mmi-empty"
 	organ_tag = BP_BRAIN
 	parent_organ = BP_HEAD
 	vital = 1
@@ -126,14 +121,6 @@
 	persistantMind = owner.mind
 	ownerckey = owner.ckey
 
-	ADD_SAVED_VAR(stored_mmi)
-	ADD_SKIP_EMPTY(stored_mmi)
-
-/obj/item/organ/internal/mmi_holder/after_load()
-	. = ..()
-	if(stored_mmi)
-		update_from_mmi()
-
 /obj/item/organ/internal/mmi_holder/proc/update_from_mmi()
 
 	if(!stored_mmi.brainmob)
@@ -150,7 +137,7 @@
 	desc = stored_mmi.desc
 	icon = stored_mmi.icon
 
-	stored_mmi.icon_state = "mmi_full"
+	stored_mmi.icon_state = "mmi-full"
 	icon_state = stored_mmi.icon_state
 
 	if(owner && owner.stat == DEAD)

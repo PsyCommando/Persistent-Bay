@@ -13,7 +13,7 @@
 		SPECIES_HUMAN = /obj/item/weapon/storage/bag/cash/infinite,
 		SPECIES_VOX = /spell/targeted/shapeshift/true_form,
 		SPECIES_UNATHI = /spell/moghes_blessing,
-		//SPECIES_DIONA = /spell/aoe_turf/conjure/grove/gestalt,
+		SPECIES_DIONA = /spell/aoe_turf/conjure/grove/gestalt,
 		SPECIES_SKRELL = /obj/item/weapon/contract/apprentice/skrell,
 		SPECIES_IPC = /spell/camera_connection)
 
@@ -80,7 +80,7 @@
 	smoke_amt = 5
 	smoke_spread = 1
 
-	possible_transformations = list(/mob/living/simple_animal/parrot/space/lesser)
+	possible_transformations = list(/mob/living/simple_animal/hostile/retaliate/parrot/space/lesser)
 
 	hud_state = "wiz_vox"
 
@@ -115,9 +115,10 @@
 
 /spell/moghes_blessing/cast(var/list/targets, mob/user)
 	for(var/obj/item/I in targets)
-		set_extension(I, /datum/extension/moghes_blessing, /datum/extension/moghes_blessing)
+		set_extension(I, /datum/extension/moghes_blessing)
 
 /datum/extension/moghes_blessing
+	base_type = /datum/extension/moghes_blessing
 	expected_type = /obj/item
 	flags = EXTENSION_FLAG_IMMEDIATE
 
@@ -133,7 +134,6 @@
 	I.color = "#663300"
 
 //DIONA
-/*
 /spell/aoe_turf/conjure/grove/gestalt
 	name = "Convert Gestalt"
 	desc = "Converts the surrounding area into a diona gestalt."
@@ -152,7 +152,7 @@
 	seed_type = /datum/seed/diona
 
 	hud_state = "wiz_diona"
-*/
+
 //SKRELL
 /obj/item/weapon/contract/apprentice/skrell
 	name = "skrellian apprenticeship contract"

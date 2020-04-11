@@ -34,47 +34,28 @@ var/global/photo_count = 0
 	var/icon/img	//Big photo image
 	var/scribble	//Scribble on the back.
 	var/image/tiny
-	var/image/render
 	var/photo_size = 3
 
 /obj/item/weapon/photo/New()
 	id = photo_count++
-	
-/obj/item/weapon/photo/after_load()		
-	..()
-	queue_icon_update()
+
 /obj/item/weapon/photo/attack_self(mob/user as mob)
 	user.examinate(src)
 
 /obj/item/weapon/photo/on_update_icon()
-	if(!img && tiny)
-		render = image(tiny.icon)
-		overlays.Cut()
-		var/scale = 8/(photo_size*32)
-		var/image/small_img = image(tiny.icon)
-		small_img.transform *= scale
-		small_img.pixel_x = -32*(photo_size-1)/2 - 3
-		small_img.pixel_y = -32*(photo_size-1)/2
-		overlays |= small_img
+	overlays.Cut()
+	var/scale = 8/(photo_size*32)
+	var/image/small_img = image(img.icon)
+	small_img.transform *= scale
+	small_img.pixel_x = -32*(photo_size-1)/2 - 3
+	small_img.pixel_y = -32*(photo_size-1)/2
+	overlays |= small_img
 
-		tiny.transform *= 0.5*scale
-		tiny.underlays += image('icons/obj/bureaucracy.dmi',"photo")
-		tiny.pixel_x = -32*(photo_size-1)/2 - 3
-		tiny.pixel_y = -32*(photo_size-1)/2 + 3
-	else
-		overlays.Cut()
-		var/scale = 8/(photo_size*32)
-		var/image/small_img = image(img.icon)
-		small_img.transform *= scale
-		small_img.pixel_x = -32*(photo_size-1)/2 - 3
-		small_img.pixel_y = -32*(photo_size-1)/2
-		overlays |= small_img
-
-		tiny = image(img.icon)
-		tiny.transform *= 0.5*scale
-		tiny.underlays += image('icons/obj/bureaucracy.dmi',"photo")
-		tiny.pixel_x = -32*(photo_size-1)/2 - 3
-		tiny.pixel_y = -32*(photo_size-1)/2 + 3
+	tiny = image(img.icon)
+	tiny.transform *= 0.5*scale
+	tiny.underlays += image('icons/obj/bureaucracy.dmi',"photo")
+	tiny.pixel_x = -32*(photo_size-1)/2 - 3
+	tiny.pixel_y = -32*(photo_size-1)/2 + 3
 
 /obj/item/weapon/photo/attackby(obj/item/weapon/P as obj, mob/user as mob)
 	if(istype(P, /obj/item/weapon/pen))
@@ -83,32 +64,26 @@ var/global/photo_count = 0
 			scribble = txt
 	..()
 
-/obj/item/weapon/photo/examine(mob/user)
-	if(in_range(user, src))
+/obj/item/weapon/photo/examine(mob/user, distance)
+	. = TRUE
+	if(!img)
+		return
+	if(distance <= 1)
 		show(user)
 		to_chat(user, desc)
 	else
 		to_chat(user, "<span class='notice'>It is too far away.</span>")
 
 /obj/item/weapon/photo/proc/show(mob/user as mob)
-	if(img)
-		user << browse_rsc(img.icon, "tmp_photo_[id].png")
-		user << browse("<html><head><title>[name]</title></head>" \
-			+ "<body style='overflow:hidden;margin:0;text-align:center'>" \
-			+ "<img src='tmp_photo_[id].png' width='[64*photo_size]' style='-ms-interpolation-mode:nearest-neighbor' />" \
-			+ "[scribble ? "<br>Written on the back:<br><i>[scribble]</i>" : ""]"\
-			+ "</body></html>", "window=book;size=[64*photo_size]x[scribble ? 400 : 64*photo_size]")
-		onclose(user, "[name]")
-		return
-	else if(render)
-		user << browse_rsc(render.icon, "tmp_photo_[id].png")
-		user << browse("<html><head><title>[name]</title></head>" \
-			+ "<body style='overflow:hidden;margin:0;text-align:center'>" \
-			+ "<img src='tmp_photo_[id].png' width='[64*photo_size]' style='-ms-interpolation-mode:nearest-neighbor' />" \
-			+ "[scribble ? "<br>Written on the back:<br><i>[scribble]</i>" : ""]"\
-			+ "</body></html>", "window=book;size=[64*photo_size]x[scribble ? 400 : 64*photo_size]")
-		onclose(user, "[name]")
-		return
+	send_rsc(user, img, "tmp_photo_[id].png")
+	var/output = "<html><head><title>[name]</title></head>"
+	output += "<body style='overflow:hidden;margin:0;text-align:center'>"
+	output += "<img src='tmp_photo_[id].png' width='[64*photo_size]' style='-ms-interpolation-mode:nearest-neighbor' />"
+	output += "[scribble ? "<br>Written on the back:<br><i>[scribble]</i>" : ""]"
+	output += "</body></html>"
+	show_browser(user, output, "window=book;size=[64*photo_size]x[scribble ? 400 : 64*photo_size]")
+	onclose(user, "[name]")
+	return
 
 /obj/item/weapon/photo/verb/rename()
 	set name = "Rename photo"
@@ -117,8 +92,9 @@ var/global/photo_count = 0
 
 	var/n_name = sanitizeSafe(input(usr, "What would you like to label the photo?", "Photo Labelling", null)  as text, MAX_NAME_LEN)
 	//loc.loc check is for making possible renaming photos in clipboards
-	if(( (loc == usr || (loc.loc && loc.loc == usr)) && usr.stat == 0))
-		SetName("[(n_name ? text("[n_name]") : "photo")]")
+	if(!n_name || !CanInteract(usr, GLOB.deep_inventory_state))
+		return
+	SetName("[(n_name ? text("[n_name]") : "photo")]")
 	add_fingerprint(usr)
 	return
 
@@ -162,9 +138,6 @@ var/global/photo_count = 0
 /*********
 * camera *
 *********/
-/obj/item/device/camera/empty
-	pictures_left = 0
-
 /obj/item/device/camera
 	name = "camera"
 	icon = 'icons/obj/photography.dmi'
@@ -188,7 +161,7 @@ var/global/photo_count = 0
 	else
 		icon_state = "[bis.base_icon_state]_off"
 /obj/item/device/camera/Initialize()
-	set_extension(src, /datum/extension/base_icon_state, /datum/extension/base_icon_state, icon_state)
+	set_extension(src, /datum/extension/base_icon_state, icon_state)
 	update_icon()
 	. = ..()
 
@@ -250,12 +223,10 @@ var/global/photo_count = 0
 	to_chat(user, "<span class='notice'>[pictures_left] photos left.</span>")
 
 	on = 0
-	queue_icon_update()
+	update_icon()
 
 /obj/item/device/camera/examine(mob/user)
-	if(!..(user))
-		return
-
+	. = ..()
 	to_chat(user, "It has [pictures_left] photo\s left.")
 
 //Proc for capturing check
@@ -306,17 +277,15 @@ var/global/photo_count = 0
 
 	p.SetName(name) // Do this first, manually, to make sure listeners are alerted properly.
 	p.appearance = appearance
-	p.icon = icon(icon, icon_state)
-	p.tiny = icon(tiny)
-	p.desc = desc
-	p.pixel_x = pixel_x
-	p.pixel_y = pixel_y
+
+	p.tiny = new
+	p.tiny.appearance = tiny.appearance
+	p.img = icon(img)
+
 	p.photo_size = photo_size
 	p.scribble = scribble
+
 	if(copy_id)
 		p.id = id
-	if(img)
-		p.img = icon(img)
-	else
-		p.update_icon()
+
 	return p

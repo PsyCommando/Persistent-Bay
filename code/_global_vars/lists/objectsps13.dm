@@ -1,0 +1,3 @@
+GLOBAL_LIST_EMPTY(cryopods)
+GLOBAL_LIST_EMPTY(lace_storages)
+GLOBAL_LIST_EMPTY(frontierbeacons)

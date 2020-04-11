@@ -3,7 +3,7 @@
 	desc = "Dance my monkeys! DANCE!!!"
 	icon_state = "electropack0"
 	item_state = "electropack"
-	frequency = AIRLOCK_FREQ
+	frequency = 1449
 	obj_flags = OBJ_FLAG_CONDUCTIBLE
 	slot_flags = SLOT_BACK
 	w_class = ITEM_SIZE_HUGE
@@ -38,7 +38,6 @@
 		A.part2 = src
 
 		user.put_in_hands(A)
-		A.add_fingerprint(user)
 
 /obj/item/device/radio/electropack/Topic(href, href_list)
 	//..()
@@ -74,7 +73,7 @@
 					if(M.client)
 						attack_self(M)
 	else
-		usr << browse(null, "window=radio")
+		close_browser(usr, "window=radio")
 		return
 	return
 
@@ -99,7 +98,7 @@
 
 		M.Weaken(10)
 
-	if(master) //before: if(master && wires & 1) not sure what to do here but clearing these fixed some of the issues
+	if(master && wires & 1)
 		master.receive_signal()
 	return
 
@@ -123,6 +122,6 @@ Code:
 <A href='byond://?src=\ref[src];code=1'>+</A>
 <A href='byond://?src=\ref[src];code=5'>+</A><BR>
 </TT>"}
-	user << browse(dat, "window=radio")
+	show_browser(user, dat, "window=radio")
 	onclose(user, "radio")
 	return

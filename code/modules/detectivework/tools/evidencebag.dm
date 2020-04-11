@@ -9,10 +9,6 @@
 	w_class = ITEM_SIZE_SMALL
 	var/obj/item/stored_item = null
 
-/obj/item/weapon/evidencebag/New()
-	. = ..()
-	ADD_SAVED_VAR(stored_item)
-
 /obj/item/weapon/evidencebag/MouseDrop(var/obj/item/I as obj)
 	if (!ishuman(usr))
 		return
@@ -102,5 +98,5 @@
 	update_icon()
 
 /obj/item/weapon/evidencebag/examine(mob/user)
-	. = ..(user)
+	. = ..()
 	if (stored_item) user.examinate(stored_item)

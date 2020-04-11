@@ -1,30 +1,11 @@
 /obj/structure/dispenser
-	name = "air tank dispenser"	//Changed name, just made more sense with this one
+	name = "tank storage unit"
 	desc = "A simple yet bulky storage device for gas tanks. Has room for up to ten oxygen tanks, and ten phoron tanks."
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "dispenser"
 	density = 1
-	anchored = TRUE
-	atom_flags = ATOM_FLAG_CLIMBABLE
+	anchored = 1.0
 	w_class = ITEM_SIZE_NO_CONTAINER
-	mass = 50
-	max_health = 150
-	armor = list(
-		DAM_BLUNT  	= 40,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 30,
-		DAM_BOMB 	= 10,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
-	damthreshold_brute 	= 12
-	damthreshold_burn	= 5
 	var/oxygentanks = 10
 	var/phorontanks = 10
 	var/list/oxytanks = list()	//sorry for the similar var names
@@ -37,23 +18,9 @@
 /obj/structure/dispenser/phoron
 	oxygentanks = 0
 
-/obj/structure/dispenser/empty
-	oxygentanks = 0
-	phorontanks = 0
-
-/obj/structure/dispenser/New()
-	. = ..()
-	ADD_SAVED_VAR(oxygentanks)
-	ADD_SAVED_VAR(phorontanks)
-	ADD_SAVED_VAR(oxytanks)
-	ADD_SAVED_VAR(platanks)
-
-	ADD_SKIP_EMPTY(oxygentanks)
-	ADD_SKIP_EMPTY(platanks)
-
 /obj/structure/dispenser/Initialize()
 	. = ..()
-	queue_icon_update()
+	update_icon()
 
 /obj/structure/dispenser/on_update_icon()
 	overlays.Cut()
@@ -74,7 +41,7 @@
 	var/dat = "[src]<br><br>"
 	dat += "Oxygen tanks: [oxygentanks] - [oxygentanks ? "<A href='?src=\ref[src];oxygen=1'>Dispense</A>" : "empty"]<br>"
 	dat += "Phoron tanks: [phorontanks] - [phorontanks ? "<A href='?src=\ref[src];phoron=1'>Dispense</A>" : "empty"]"
-	user << browse(dat, "window=dispenser")
+	show_browser(user, dat, "window=dispenser")
 	onclose(user, "dispenser")
 	return
 
@@ -114,15 +81,6 @@
 			to_chat(user, "<span class='notice'>You wrench [src] into place.</span>")
 			anchored = 1
 		return
-	if(isWelder(I) && !anchored)
-		var/obj/item/weapon/tool/weldingtool/WT = I
-		if(WT.remove_fuel(0,user))
-			var/obj/item/stack/material/steel/new_item = new(usr.loc)
-			new_item.add_to_stacks(usr)
-			for (var/mob/M in viewers(src))
-				M.show_message("<span class='notice'>[src] is shaped into metal by [user.name] with the welding tool.</span>", 3, "<span class='notice'>You hear welding.</span>", 2)
-			qdel(src)
-		return
 
 /obj/structure/dispenser/Topic(href, href_list)
 	if(usr.stat || usr.restrained())
@@ -156,6 +114,6 @@
 		add_fingerprint(usr)
 		updateUsrDialog()
 	else
-		usr << browse(null, "window=dispenser")
+		close_browser(usr, "window=dispenser")
 		return
 	return

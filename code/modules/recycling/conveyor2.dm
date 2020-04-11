@@ -8,8 +8,7 @@
 	desc = "A conveyor belt."
 	layer = BELOW_OBJ_LAYER	// so they appear under stuff
 	anchored = 1
-	max_health = 25
-	active_power_usage = 20 //Watts
+
 	var/operating = 0	// 1 if running forward, -1 if backwards, 0 if off
 	var/operable = 1	// true if can operate (no broken segments in this belt run)
 	var/forwards		// this is the default (forward) direction, set by the map dir
@@ -18,10 +17,11 @@
 
 	var/list/affecting	// the list of all items that will be moved this ptick
 	var/id = ""			// the control ID	- must match controller ID
-	var/time_next_move = 1 //The time when to next move our load
 
+/obj/machinery/conveyor/centcom_auto
+	id = "round_end_belt"
 
-// create a conveyor
+	// create a conveyor
 /obj/machinery/conveyor/New(loc, newdir, on = 0)
 	..(loc)
 	if(newdir)
@@ -38,6 +38,8 @@
 		operating = 1
 		setmove()
 
+
+
 /obj/machinery/conveyor/proc/setmove()
 	if(operating == 1)
 		movedir = forwards
@@ -47,7 +49,7 @@
 	update_icon()
 
 /obj/machinery/conveyor/on_update_icon()
-	if(isbroken())
+	if(stat & BROKEN)
 		icon_state = "conveyor-broken"
 		operating = 0
 		return
@@ -60,19 +62,14 @@
 	// machine process
 	// move items to the target location
 /obj/machinery/conveyor/Process()
-	if(inoperable())
+	if(stat & (BROKEN | NOPOWER))
 		return
 	if(!operating)
 		return
 	use_power_oneoff(100)
-	if(!loc)
-		qdel(src)
-		operating = 0
-		stat = 1
-		return
 
 	affecting = loc.contents - src		// moved items will be all in loc
-	if(world.time > time_next_move)// slight delay to prevent infinite propagation due to map order	//TODO: please no spawn() in process(). It's a very bad idea
+	spawn(1)	// slight delay to prevent infinite propagation due to map order	//TODO: please no spawn() in process(). It's a very bad idea
 		var/items_moved = 0
 		for(var/atom/movable/A in affecting)
 			if(!A.anchored)
@@ -81,27 +78,11 @@
 					items_moved++
 			if(items_moved >= 10)
 				break
-		time_next_move = world.time + 1
 
 // attack with item, place item on conveyor
 /obj/machinery/conveyor/attackby(var/obj/item/I, mob/user)
-	if(isMultitool(I))
-		var/obj/item/device/multitool/mt = I
-		var/obj/machinery/conveyor/M = mt.get_buffer(/obj/machinery/conveyor)
-		var/obj/machinery/conveyor_switch/mach = mt.get_buffer(/obj/machinery/conveyor_switch)
-		if(mach)
-			mt.set_buffer(null)
-			src.id = mach.id
-			to_chat(user, "<span class='notice'>You connect \the [src] to \the [mach]!</span>")
-		else if(M == src)
-			mt.set_buffer(null)
-			to_chat(user, SPAN_NOTICE("You clear \the [mt]'s buffer."))
-		else
-			mt.set_buffer(src)
-			to_chat(user, "<span class='notice'>You set \the [mt]'s buffer to \the [src]!</span>")
-		return
 	if(isCrowbar(I))
-		if(!(isbroken()))
+		if(!(stat & BROKEN))
 			var/obj/item/conveyor_construct/C = new/obj/item/conveyor_construct(src.loc)
 			C.id = id
 			transfer_fingerprints_to(C)
@@ -111,35 +92,36 @@
 	user.unequip_item(get_turf(src))
 
 // attack with hand, move pulled object onto conveyor
-/obj/machinery/conveyor/attack_hand(mob/user as mob)
-	if ((user.incapacitated() || !( user.pulling )))
+/obj/machinery/conveyor/physical_attack_hand(mob/user)
+	if(!user.pulling)
 		return
-	if (user.pulling.anchored)
+	if(user.pulling.anchored)
 		return
-	if ((user.pulling.loc != user.loc && get_dist(user, user.pulling) > 1))
+	if((user.pulling.loc != user.loc && get_dist(user, user.pulling) > 1))
 		return
-	if (ismob(user.pulling))
+	if(ismob(user.pulling))
 		var/mob/M = user.pulling
 		M.stop_pulling()
 		step(user.pulling, get_dir(user.pulling.loc, src))
 		user.stop_pulling()
+		return TRUE
 	else
 		step(user.pulling, get_dir(user.pulling.loc, src))
 		user.stop_pulling()
-	return
-
+		return TRUE
 
 // make the conveyor broken
 // also propagate inoperability to any connected conveyor with the same ID
-/obj/machinery/conveyor/broken()
-	var/obj/machinery/conveyor/C = locate() in get_step(src, dir)
-	if(C)
-		C.set_operable(dir, id, 0)
+/obj/machinery/conveyor/set_broken(new_state)
+	. = ..()
+	if(. && new_state)
+		var/obj/machinery/conveyor/C = locate() in get_step(src, dir)
+		if(C)
+			C.set_operable(dir, id, 0)
 
-	C = locate() in get_step(src, turn(dir,180))
-	if(C)
-		C.set_operable(turn(dir,180), id, 0)
-	..()
+		C = locate() in get_step(src, turn(dir,180))
+		if(C)
+			C.set_operable(turn(dir,180), id, 0)
 
 //set the operable var if ID matches, propagating in the given direction
 
@@ -179,12 +161,11 @@
 		id = newid
 	update_icon()
 
-/obj/machinery/conveyor_switch/Initialize()
-	. = ..()
-	conveyors = list()
-	for(var/obj/machinery/conveyor/C in world)
-		if(C.id == id)
-			conveyors += C
+	spawn(5)		// allow map load
+		conveyors = list()
+		for(var/obj/machinery/conveyor/C in world)
+			if(C.id == id)
+				conveyors += C
 
 // update the icon depending on the position
 
@@ -210,11 +191,21 @@
 		C.setmove()
 
 // attack with hand, switch position
-/obj/machinery/conveyor_switch/attack_hand(mob/user)
-	if(!allowed(user))
-		to_chat(user, "<span class='warning'>Access denied.</span>")
-		return
+/obj/machinery/conveyor_switch/interface_interact(mob/user)
+	if(!CanInteract(user, DefaultTopicState()))
+		return FALSE
+	do_switch()
+	operated = 1
+	update_icon()
 
+	// find any switches with same id as this one, and set their positions to match us
+	for(var/obj/machinery/conveyor_switch/S in world)
+		if(S.id == src.id)
+			S.position = position
+			S.update_icon()
+	return TRUE
+
+/obj/machinery/conveyor_switch/proc/do_switch(mob/user)
 	if(position == 0)
 		if(last_pos < 0)
 			position = 1
@@ -226,16 +217,6 @@
 		last_pos = position
 		position = 0
 
-	operated = 1
-	update_icon()
-
-	// find any switches with same id as this one, and set their positions to match us
-	for(var/obj/machinery/conveyor_switch/S in world)
-		if(S.id == src.id)
-			S.position = position
-			S.update_icon()
-
-
 /obj/machinery/conveyor_switch/attackby(obj/item/I, mob/user, params)
 	if(isCrowbar(I))
 		var/obj/item/conveyor_switch_construct/C = new/obj/item/conveyor_switch_construct(src.loc)
@@ -243,44 +224,16 @@
 		transfer_fingerprints_to(C)
 		to_chat(user, "<span class='notice'>You deattach the conveyor switch.</span>")
 		qdel(src)
-	if(isMultitool(I))
-		var/obj/item/device/multitool/mt = I
-		var/obj/machinery/conveyor_switch/M = mt.get_buffer(/obj/machinery/conveyor_switch)
-		var/obj/machinery/conveyor/mach = mt.get_buffer(/obj/machinery/conveyor)
-		if(mach)
-			mach.id = src.id
-			conveyors |= mach
-			mt.set_buffer(null)
-			to_chat(user, SPAN_NOTICE("You connect \the [src] to \the [mach]!"))
-		else if(M == src)
-			mt.set_buffer(null)
-			to_chat(user, SPAN_NOTICE("You clear \the [mt]'s buffer."))
-		else
-			mt.set_buffer(src)
-			to_chat(user, SPAN_NOTICE("You set \the [mt]'s buffer to \the [src]!"))
-		return
 
 /obj/machinery/conveyor_switch/oneway
 	var/convdir = 1 //Set to 1 or -1 depending on which way you want the convayor to go. (In other words keep at 1 and set the proper dir on the belts.)
 	desc = "A conveyor control switch. It appears to only go in one direction."
 
-// attack with hand, switch position
-/obj/machinery/conveyor_switch/oneway/attack_hand(mob/user)
+/obj/machinery/conveyor_switch/oneway/do_switch(mob/user)
 	if(position == 0)
 		position = convdir
 	else
 		position = 0
-
-	operated = 1
-	update_icon()
-
-	// find any switches with same id as this one, and set their positions to match us
-	for(var/obj/machinery/conveyor_switch/S in world)
-		if(S.id == src.id)
-			S.position = position
-			S.update_icon()
-
-
 
 //
 // CONVEYOR CONSTRUCTION STARTS HERE
@@ -290,9 +243,10 @@
 	icon = 'icons/obj/recycling.dmi'
 	icon_state = "conveyor0"
 	name = "conveyor belt assembly"
-	desc = "A conveyor belt assembly."
+	desc = "A conveyor belt assembly. Must be linked to a conveyor control switch assembly before placement."
 	w_class = ITEM_SIZE_HUGE
 	var/id = "" //inherited by the belt
+	matter = list(MATERIAL_STEEL = 400, MATERIAL_PLASTIC = 200)
 
 /obj/item/conveyor_construct/attackby(obj/item/I, mob/user, params)
 	..()
@@ -324,6 +278,8 @@
 	icon_state = "switch-off"
 	w_class = ITEM_SIZE_HUGE
 	var/id = "" //inherited by the switch
+	matter = list(MATERIAL_STEEL = 200)
+
 
 /obj/item/conveyor_switch_construct/New()
 	..()
@@ -340,6 +296,25 @@
 	if(!found)
 		to_chat(user, "\icon[src]<span class=notice>The conveyor switch did not detect any linked conveyor belts in range.</span>")
 		return
-	var/obj/machinery/conveyor_switch/NC = new/obj/machinery/conveyor_switch(A, id)
+	var/obj/machinery/conveyor_switch/NC = new /obj/machinery/conveyor_switch(A, id)
+	transfer_fingerprints_to(NC)
+	qdel(src)
+
+/obj/item/conveyor_switch_construct/oneway
+	name = "one-way conveyor switch assembly"
+	desc = "An one-way conveyor control switch assembly."
+
+/obj/item/conveyor_switch_construct/oneway/afterattack(atom/A, mob/user, proximity)
+	if(!proximity || !istype(A, /turf/simulated/floor) || istype(A, /area/shuttle) || user.incapacitated())
+		return
+	var/found = 0
+	for(var/obj/machinery/conveyor/C in view())
+		if(C.id == src.id)
+			found = 1
+			break
+	if(!found)
+		to_chat(user, "\icon[src]<span class=notice>The conveyor switch did not detect any linked conveyor belts in range.</span>")
+		return
+	var/obj/machinery/conveyor_switch/oneway/NC = new /obj/machinery/conveyor_switch/oneway(A, id)
 	transfer_fingerprints_to(NC)
 	qdel(src)

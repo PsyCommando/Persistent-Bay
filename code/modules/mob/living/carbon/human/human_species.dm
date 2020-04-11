@@ -9,6 +9,11 @@
 	GLOB.human_mob_list -= src
 	delete_inventory()
 
+/mob/living/carbon/human/dummy/selfdress/Initialize()
+	. = ..()
+	for(var/obj/item/I in loc)
+		equip_to_appropriate_slot(I)
+
 /mob/living/carbon/human/corpse/Initialize(mapload, new_species, obj/effect/landmark/corpse/corpse)
 	. = ..(mapload, new_species)
 
@@ -45,10 +50,10 @@
 /mob/living/carbon/human/vox/New(var/new_loc)
 	h_style = "Long Vox Quills"
 	..(new_loc, SPECIES_VOX)
-/*
+
 /mob/living/carbon/human/diona/New(var/new_loc)
 	..(new_loc, SPECIES_DIONA)
-*/
+
 /mob/living/carbon/human/machine/New(var/new_loc)
 	..(new_loc, SPECIES_IPC)
 
@@ -56,24 +61,18 @@
 	pulling_punches = 1
 	..(new_loc, SPECIES_NABBER)
 
-/mob/living/carbon/human/phorosian/New(var/new_loc)
-	..(new_loc, SPECIES_PHOROSIAN)
-
 /mob/living/carbon/human/monkey/New(var/new_loc)
-	..(new_loc, SPECIES_MONKEY)
+	gender = pick(MALE, FEMALE)
+	..(new_loc, "Monkey")
 
 /mob/living/carbon/human/farwa/New(var/new_loc)
-	..(new_loc, SPECIES_FARWA)
+	..(new_loc, "Farwa")
 
 /mob/living/carbon/human/neaera/New(var/new_loc)
-	..(new_loc, SPECIES_NEAERA)
+	..(new_loc, "Neaera")
 
 /mob/living/carbon/human/stok/New(var/new_loc)
-	..(new_loc, SPECIES_STOK)
+	..(new_loc, "Stok")
 
 /mob/living/carbon/human/adherent/New(var/new_loc)
 	..(new_loc, SPECIES_ADHERENT)
-
-/mob/living/carbon/human/resomi/New(var/new_loc)
-	h_style = "Resomi Plumage"
-	..(new_loc, SPECIES_RESOMI)

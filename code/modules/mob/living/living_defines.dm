@@ -5,7 +5,6 @@
 
 	//Health and life related vars
 	var/maxHealth = 100 //Maximum health that should be possible.
-	var/minHealth = 0
 	var/health = 100 	//A mob's health
 
 	var/hud_updateflag = 0
@@ -50,10 +49,4 @@
 	var/job = null//Living
 	var/list/obj/aura/auras = null //Basically a catch-all aura/force-field thing.
 
-	var/obj/screen/cells = null
-
 	var/last_resist = 0
-
-	//For skinning mobs
-	var/hide_type = null
-	var/hide_amount = 0 

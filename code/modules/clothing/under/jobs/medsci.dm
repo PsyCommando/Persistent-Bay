@@ -2,24 +2,14 @@
  * Science
  */
 /obj/item/clothing/under/rank/research_director
-	desc = "It's a jumpsuit worn by those with the know-how to achieve the position of \"Research Director\". Its fabric provides minor protection from biological contaminants."
-	name = "research director's jumpsuit"
+	desc = "It's a jumpsuit worn by those with the know-how to achieve the position of \"Chief Science Officer\". Its fabric provides minor protection from biological contaminants."
+	name = "chief science officer's jumpsuit"
 	icon_state = "director"
 	item_state = "lb_suit"
 	worn_state = "director"
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/research_director/rdalt
 	desc = "A dress suit and slacks stained with hard work and dedication to science. Perhaps other things as well, but mostly hard work and dedication."
@@ -27,63 +17,32 @@
 	icon_state = "rdalt"
 	item_state = "lb_suit"
 	worn_state = "rdalt"
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/research_director/dress_rd
-	name = "research director dress uniform"
-	desc = "Feminine fashion for the style concious RD. Its fabric provides minor protection from biological contaminants."
+	name = "chief science officer dress uniform"
+	desc = "Feminine fashion for the style concious CSO. Its fabric provides minor protection from biological contaminants."
 	icon_state = "dress_rd"
 	item_state = "lb_suit"
 	worn_state = "dress_rd"
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
 
 /obj/item/clothing/under/rank/chemist
 	desc = "It's made of a special fiber that gives special protection against biohazards. It has a chemist rank stripe on it."
-	name = "chemist's jumpsuit"
+	name = "pharmacist's jumpsuit"
 	icon_state = "chemistry"
 	item_state = "w_suit"
 	worn_state = "chemistrywhite"
 	gender_icons = 1
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
-
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 /*
  * Medical
  */
@@ -94,19 +53,9 @@
 	item_state = "w_suit"
 	worn_state = "cmo"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/geneticist
 	desc = "It's made of a special fiber that gives special protection against biohazards. It has a genetics rank stripe on it."
@@ -115,19 +64,9 @@
 	item_state = "w_suit"
 	worn_state = "geneticswhite"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/virologist
 	desc = "It's made of a special fiber that gives special protection against biohazards. It has a virologist rank stripe on it."
@@ -137,19 +76,9 @@
 	worn_state = "virologywhite"
 	gender_icons = 1
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/nursesuit
 	desc = "It's a jumpsuit commonly worn by nursing staff in the medical department."
@@ -158,19 +87,9 @@
 	item_state = "nursesuit"
 	worn_state = "nursesuit"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO
 
 /obj/item/clothing/under/rank/nurse
@@ -180,19 +99,9 @@
 	item_state = "nursesuit"
 	worn_state = "nurse"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO
 
 /obj/item/clothing/under/rank/orderly
@@ -203,19 +112,9 @@
 	worn_state = "orderly"
 	gender_icons = 1
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/medical
 	desc = "It's made of a special fiber that provides minor protection against biohazards. It has a cross on the chest denoting that the wearer is trained medical personnel."
@@ -225,19 +124,9 @@
 	worn_state = "medical"
 	gender_icons = 1
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/medical/paramedic
 	name = "short sleeve medical jumpsuit"
@@ -312,19 +201,9 @@
 	item_state = "w_suit"
 	worn_state = "genetics_new"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/chemist_new
 	desc = "It's made of a special fiber which provides minor protection against biohazards."
@@ -333,19 +212,9 @@
 	item_state = "w_suit"
 	worn_state = "chemist_new"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/scientist_new
 	desc = "Made of a special fiber that gives special protection against biohazards and small explosions."
@@ -354,19 +223,9 @@
 	item_state = "w_suit"
 	worn_state = "scientist_new"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 10,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 
 /obj/item/clothing/under/rank/virologist_new
 	desc = "Made of a special fiber that gives increased protection against biohazards."
@@ -375,16 +234,6 @@
 	item_state = "w_suit"
 	worn_state = "virologist_new"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)

@@ -25,11 +25,11 @@
 		/obj/item/device/flash,
 		/obj/item/borg/sight/meson,
 		/obj/item/weapon/extinguisher,
-		/obj/item/weapon/tool/weldingtool/largetank,
-		/obj/item/weapon/tool/screwdriver,
-		/obj/item/weapon/tool/wrench,
-		/obj/item/weapon/tool/crowbar,
-		/obj/item/weapon/tool/wirecutters,
+		/obj/item/weapon/weldingtool/largetank,
+		/obj/item/weapon/screwdriver,
+		/obj/item/weapon/wrench,
+		/obj/item/weapon/crowbar,
+		/obj/item/weapon/wirecutters,
 		/obj/item/device/multitool,
 		/obj/item/device/t_scanner,
 		/obj/item/device/scanner/gas,
@@ -61,6 +61,13 @@
 		/datum/matter_synth/wire
 	)
 	emag = /obj/item/weapon/melee/baton/robot/electrified_arm
+	skills = list(
+		SKILL_ATMOS        = SKILL_PROF,
+		SKILL_ENGINES      = SKILL_PROF,
+		SKILL_CONSTRUCTION = SKILL_PROF,
+		SKILL_ELECTRICAL   = SKILL_PROF,
+		SKILL_COMPUTER     = SKILL_EXPERT
+	)
 
 /obj/item/weapon/robot_module/engineering/finalize_synths()
 

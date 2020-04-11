@@ -42,7 +42,7 @@
 	if(!H.reagents.has_reagent(/datum/reagent/dexalin))
 		for(var/organ_name in BP_ALL_LIMBS)
 			var/obj/item/organ/external/E = H.get_organ(organ_name)
-			E.take_damage(5, DAM_BURN)
+			E.take_external_damage(0, 5, 0)
 
 /datum/genetics/side_effect/bone_snap
 	name = "Bone Snap"
@@ -57,7 +57,7 @@
 	if(!H.reagents.has_reagent(/datum/reagent/bicaridine))
 		var/organ_name = pick(BP_ALL_LIMBS)
 		var/obj/item/organ/external/E = H.get_organ(organ_name)
-		E.take_damage(20, DAM_BLUNT)
+		E.take_external_damage(20, 0, 0)
 		E.fracture()
 
 /datum/genetics/side_effect/confuse
@@ -73,3 +73,4 @@
 	finish(mob/living/carbon/human/H)
 		if(!H.reagents.has_reagent(/datum/reagent/dylovene))
 			H.confused += 100
+

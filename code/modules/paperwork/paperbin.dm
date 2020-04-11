@@ -1,7 +1,7 @@
 /obj/item/weapon/paper_bin
 	name = "paper bin"
-	icon = 'icons/obj/items/paper.dmi'
-	icon_state = "paper_bin0"
+	icon = 'icons/obj/bureaucracy.dmi'
+	icon_state = "paper_bin1"
 	item_state = "sheet-metal"
 	randpixel = 0
 	throwforce = 1
@@ -9,16 +9,9 @@
 	throw_speed = 3
 	throw_range = 7
 	layer = BELOW_OBJ_LAYER
-	var/amount = 0				//How much paper is in the bin.
-	var/carbon_amount
+	var/amount = 30					//How much paper is in the bin.
 	var/list/papers = new/list()	//List of papers put in the bin for reference.
 
-/obj/item/weapon/paper_bin/New()
-	. = ..()
-	ADD_SAVED_VAR(amount)
-	ADD_SAVED_VAR(carbon_amount)
-	ADD_SAVED_VAR(papers)
-	ADD_SKIP_EMPTY(papers)
 
 /obj/item/weapon/paper_bin/MouseDrop(mob/user as mob)
 	if((user == usr && (!( usr.restrained() ) && (!( usr.stat ) && (usr.contents.Find(src) || in_range(src, usr))))))
@@ -83,15 +76,10 @@
 
 /obj/item/weapon/paper_bin/attackby(obj/item/weapon/i as obj, mob/user as mob)
 	if(istype(i, /obj/item/weapon/paper))
-		var/obj/item/weapon/paper/paper = i
-		if(paper.info && paper.info != "")
-			user.unEquip(i, src)
-			to_chat(user, "<span class='notice'>You put [i] in [src].</span>")
-			papers.Add(i)
-		else
-			user.unEquip(i, src)
-			to_chat(user, "<span class='notice'>You put [i] in [src].</span>")
-			qdel(i)
+		if(!user.unEquip(i, src))
+			return
+		to_chat(user, "<span class='notice'>You put [i] in [src].</span>")
+		papers.Add(i)
 		update_icon()
 		amount++
 	else if(istype(i, /obj/item/weapon/paper_bundle))
@@ -106,27 +94,18 @@
 				was_there_a_photo = 1
 				bundleitem.dropInto(user.loc)
 				bundleitem.reset_plane_and_layer()
-		user.drop_from_inventory(i)
 		qdel(i)
 		if(was_there_a_photo)
 			to_chat(user, "<span class='notice'>The photo cannot go into \the [src].</span>")
-	else if(istype(i, /obj/item/weapon/paper_package))
-		var/obj/item/weapon/paper_package/p = i
-		to_chat(user, "<span class='notice'>You open \the [i] and add its papers into \the [src].</span>")
-		amount += p.amount
-		qdel(i)
-
-	return
 
 
-/obj/item/weapon/paper_bin/examine(mob/user)
+/obj/item/weapon/paper_bin/examine(mob/user, distance)
 	. = ..()
-	if(get_dist(src, user) <= 1)
+	if(distance <= 1)
 		if(amount)
 			to_chat(user, "<span class='notice'>There " + (amount > 1 ? "are [amount] papers" : "is one paper") + " in the bin.</span>")
 		else
 			to_chat(user, "<span class='notice'>There are no papers in the bin.</span>")
-	return
 
 
 /obj/item/weapon/paper_bin/on_update_icon()

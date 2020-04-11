@@ -3,20 +3,13 @@
 	desc = "A lightweight support lattice."
 	icon = 'icons/obj/smoothlattice.dmi'
 	icon_state = "lattice0"
-	density = FALSE
-	anchored = TRUE
+	density = 0
+	anchored = 1
 	w_class = ITEM_SIZE_NORMAL
-	plane = ABOVE_PLATING_PLANE
 	layer = LATTICE_LAYER
 	color = COLOR_STEEL
 	var/init_material = MATERIAL_STEEL
-	//	obj_flags = OBJ_FLAG_CONDUCTIBLE
-	mass = 5
-	max_health = 40
-
-/obj/structure/lattice/New()
-	. = ..()
-	ADD_SAVED_VAR(init_material)
+	obj_flags = OBJ_FLAG_NOFALL
 
 /obj/structure/lattice/get_material()
 	return material
@@ -37,9 +30,9 @@
 
 	for(var/obj/structure/lattice/LAT in loc)
 		if(LAT != src)
-			log_debug("Found multiple lattices at '[log_info_line(loc)]'. Deleting extra lattices!")
+			crash_with("Found multiple lattices at '[log_info_line(loc)]'")
 			qdel(LAT)
-	queue_icon_update()
+	update_icon()
 	if(!mapload)
 		update_neighbors()
 
@@ -55,6 +48,14 @@
 		if(L)
 			L.update_icon()
 
+/obj/structure/lattice/ex_act(severity)
+	if(severity <= 2)
+		qdel(src)
+
+/obj/structure/lattice/proc/deconstruct(var/mob/user)
+	to_chat(user, "<span class='notice'>Slicing lattice joints ...</span>")
+	new /obj/item/stack/material/rods(loc, 1, material.name)
+	qdel(src)
 
 /obj/structure/lattice/attackby(obj/item/C as obj, mob/user as mob)
 
@@ -62,13 +63,17 @@
 		var/turf/T = get_turf(src)
 		T.attackby(C, user) //BubbleWrap - hand this off to the underlying turf instead
 		return
-
 	if(isWelder(C))
-		var/obj/item/weapon/tool/weldingtool/WT = C
+		var/obj/item/weapon/weldingtool/WT = C
 		if(WT.remove_fuel(0, user))
-			to_chat(user, "<span class='notice'>Slicing lattice joints ...</span>")
-		new /obj/item/stack/material/rods(loc, 1, material.name)
-		qdel(src)
+			deconstruct(user)
+		return
+	if(istype(C, /obj/item/weapon/gun/energy/plasmacutter))
+		var/obj/item/weapon/gun/energy/plasmacutter/cutter = C
+		if(!cutter.slice(user))
+			return
+		deconstruct(user)
+		return
 	if (istype(C, /obj/item/stack/material/rods))
 		var/obj/item/stack/material/rods/R = C
 		if(R.use(2))

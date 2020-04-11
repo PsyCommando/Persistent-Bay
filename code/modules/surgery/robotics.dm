@@ -8,8 +8,10 @@
 //////////////////////////////////////////////////////////////////
 /decl/surgery_step/robotics
 	can_infect = 0
-	core_skill = SKILL_DEVICES
 	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_FLESH | SURGERY_NO_STUMP
+
+decl/surgery_step/robotics/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
+	return SURGERY_SKILLS_ROBOTIC
 
 /decl/surgery_step/robotics/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = ..()
@@ -33,7 +35,7 @@
 /decl/surgery_step/robotics/unscrew_hatch
 	name = "Unscrew maintenance hatch"
 	allowed_tools = list(
-		/obj/item/weapon/tool/screwdriver = 100,
+		/obj/item/weapon/screwdriver = 100,
 		/obj/item/weapon/material/coin = 50,
 		/obj/item/weapon/material/knife = 50
 	)
@@ -68,7 +70,7 @@
 /decl/surgery_step/robotics/screw_hatch
 	name = "Secure maintenance hatch"
 	allowed_tools = list(
-		/obj/item/weapon/tool/screwdriver = 100,
+		/obj/item/weapon/screwdriver = 100,
 		/obj/item/weapon/material/coin = 50,
 		/obj/item/weapon/material/knife = 50
 	)
@@ -104,7 +106,7 @@
 	name = "Open maintenance hatch"
 	allowed_tools = list(
 		/obj/item/weapon/retractor = 100,
-		/obj/item/weapon/tool/crowbar = 100,
+		/obj/item/weapon/crowbar = 100,
 		/obj/item/weapon/material/kitchen/utensil = 50
 	)
 
@@ -140,7 +142,7 @@
 	name = "Close maintenance hatch"
 	allowed_tools = list(
 		/obj/item/weapon/retractor = 100,
-		/obj/item/weapon/tool/crowbar = 100,
+		/obj/item/weapon/crowbar = 100,
 		/obj/item/weapon/material/kitchen/utensil = 50
 	)
 
@@ -176,7 +178,7 @@
 /decl/surgery_step/robotics/repair_brute
 	name = "Repair damage to prosthetic"
 	allowed_tools = list(
-		/obj/item/weapon/tool/weldingtool = 100,
+		/obj/item/weapon/weldingtool = 100,
 		/obj/item/weapon/gun/energy/plasmacutter = 50,
 		/obj/item/psychic_power/psiblade/master = 100
 	)
@@ -199,8 +201,12 @@
 			to_chat(user, SPAN_WARNING("\The [target]'s [affected.name] is too brittle to be repaired normally."))
 			return FALSE
 		if(isWelder(tool))
-			var/obj/item/weapon/tool/weldingtool/welder = tool
+			var/obj/item/weapon/weldingtool/welder = tool
 			if(!welder.isOn() || !welder.remove_fuel(1,user))
+				return FALSE
+		if(istype(tool, /obj/item/weapon/gun/energy/plasmacutter))
+			var/obj/item/weapon/gun/energy/plasmacutter/cutter = tool
+			if(!cutter.slice(user))
 				return FALSE
 		return TRUE
 	return FALSE
@@ -227,7 +233,7 @@
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user]'s [tool.name] slips, damaging the internal structure of [target]'s [affected.name].</span>",
 	"<span class='warning'>Your [tool.name] slips, damaging the internal structure of [target]'s [affected.name].</span>")
-	target.apply_damage(rand(5,10), DAM_BURN, affected)
+	target.apply_damage(rand(5,10), BURN, affected)
 
 //////////////////////////////////////////////////////////////////
 //	robotic limb brittleness repair surgery step
@@ -264,7 +270,7 @@
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user] causes some of \the [target]'s [affected.name] to crumble!</span>",
 	"<span class='warning'>You cause some of \the [target]'s [affected.name] to crumble!</span>")
-	target.apply_damage(rand(5,10), DAM_BLUNT, affected)
+	target.apply_damage(rand(5,10), BRUTE, affected)
 
 //////////////////////////////////////////////////////////////////
 //	robotic limb burn damage repair surgery step
@@ -322,7 +328,7 @@
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user] causes a short circuit in [target]'s [affected.name]!</span>",
 	"<span class='warning'>You cause a short circuit in [target]'s [affected.name]!</span>")
-	target.apply_damage(rand(5,10), DAM_ELECTRIC, affected)
+	target.apply_damage(rand(5,10), BURN, affected)
 
 //////////////////////////////////////////////////////////////////
 //	 artificial organ repair surgery step
@@ -332,17 +338,23 @@
 	allowed_tools = list(
 		/obj/item/stack/nanopaste = 100,
 		/obj/item/weapon/bonegel = 30,
-		/obj/item/weapon/tool/screwdriver = 70,
+		/obj/item/weapon/screwdriver = 70,
 	)
 	min_duration = 70
 	max_duration = 90
-	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_STUMP
+	surgery_candidate_flags = SURGERY_NO_STUMP
+
+/decl/surgery_step/robotics/fix_organ_robotic/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
+	if(target.isSynthetic())
+		return SURGERY_SKILLS_ROBOTIC 
+	else
+		return SURGERY_SKILLS_ROBOTIC_ON_MEAT 
 
 /decl/surgery_step/robotics/fix_organ_robotic/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = ..()
 	if(affected)
 		for(var/obj/item/organ/internal/I in affected.internal_organs)
-			if(BP_IS_ROBOTIC(I) && !BP_IS_CRYSTAL(I) && I.isdamaged())
+			if(BP_IS_ROBOTIC(I) && !BP_IS_CRYSTAL(I) && I.damage > 0)
 				if(I.surface_accessible)
 					return affected
 				if(affected.how_open() >= (affected.encased ? SURGERY_ENCASED : SURGERY_RETRACTED) || affected.hatch_state == HATCH_OPENED)
@@ -351,7 +363,7 @@
 /decl/surgery_step/robotics/fix_organ_robotic/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	for(var/obj/item/organ/I in affected.internal_organs)
-		if(I && I.isdamaged())
+		if(I && I.damage > 0)
 			if(BP_IS_ROBOTIC(I))
 				user.visible_message("[user] starts mending the damage to [target]'s [I.name]'s mechanisms.", \
 				"You start mending the damage to [target]'s [I.name]'s mechanisms." )
@@ -360,18 +372,18 @@
 /decl/surgery_step/robotics/fix_organ_robotic/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	for(var/obj/item/organ/I in affected.internal_organs)
-		if(I && I.isdamaged())
+		if(I && I.damage > 0)
 			if(BP_IS_ROBOTIC(I))
 				user.visible_message("<span class='notice'>[user] repairs [target]'s [I.name] with [tool].</span>", \
 				"<span class='notice'>You repair [target]'s [I.name] with [tool].</span>" )
-				I.set_health(I.get_max_health())
+				I.damage = 0
 
 /decl/surgery_step/robotics/fix_organ_robotic/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user]'s hand slips, gumming up the mechanisms inside of [target]'s [affected.name] with \the [tool]!</span>", \
 	"<span class='warning'>Your hand slips, gumming up the mechanisms inside of [target]'s [affected.name] with \the [tool]!</span>")
 	target.adjustToxLoss(5)
-	affected.createwound(DAM_CUT, 5)
+	affected.createwound(CUT, 5)
 	for(var/internal in affected.internal_organs)
 		var/obj/item/organ/internal/I = internal
 		if(I)
@@ -425,7 +437,7 @@
 /decl/surgery_step/robotics/attach_organ_robotic
 	name = "Reattach prosthetic organ"
 	allowed_tools = list(
-		/obj/item/weapon/tool/screwdriver = 100,
+		/obj/item/weapon/screwdriver = 100,
 	)
 	min_duration = 100
 	max_duration = 120
@@ -495,7 +507,7 @@
 			to_chat(user, SPAN_WARNING("You're pretty sure [target.species.name_plural] don't normally have a brain."))
 		else if(target.internal_organs[BP_BRAIN])
 			to_chat(user, SPAN_WARNING("Your subject already has a brain."))
-		else 
+		else
 			return TRUE
 	return FALSE
 
@@ -534,13 +546,12 @@
 /decl/surgery_step/internal/remove_organ/robotic
 	name = "Remove robotic component"
 	can_infect = 0
-	core_skill = SKILL_DEVICES
 	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_FLESH | SURGERY_NO_STUMP | SURGERY_NEEDS_ENCASEMENT
 
 /decl/surgery_step/internal/replace_organ/robotic
 	name = "Replace robotic component"
 	can_infect = 0
-	core_skill = SKILL_DEVICES
+	robotic_surgery = TRUE
 	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_FLESH | SURGERY_NO_STUMP | SURGERY_NEEDS_ENCASEMENT
 
 /decl/surgery_step/remove_mmi
@@ -549,12 +560,14 @@
 	max_duration = 80
 	allowed_tools = list(
 		/obj/item/weapon/hemostat = 100,
-		/obj/item/weapon/tool/wirecutters = 75,
+		/obj/item/weapon/wirecutters = 75,
 		/obj/item/weapon/material/kitchen/utensil/fork = 20
 	)
 	can_infect = 0
-	core_skill = SKILL_DEVICES
 	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_FLESH | SURGERY_NO_STUMP | SURGERY_NEEDS_ENCASEMENT
+
+/decl/surgery_step/remove_mmi/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
+	return SURGERY_SKILLS_ROBOTIC
 
 /decl/surgery_step/remove_mmi/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = ..()
@@ -588,4 +601,4 @@
 	user.visible_message( \
 	SPAN_WARNING("\The [user]'s hand slips, damaging \the [target]'s [affected.name] with \the [tool]!"), \
 	SPAN_WARNING("Your hand slips, damaging \the [target]'s [affected.name] with \the [tool]!"))
-	affected.take_damage(3, DAM_BLUNT, used_weapon = tool)
+	affected.take_external_damage(3, 0, used_weapon = tool)

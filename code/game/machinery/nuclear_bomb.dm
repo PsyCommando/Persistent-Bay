@@ -7,7 +7,9 @@ var/bomb_set
 	icon_state = "idle"
 	density = 1
 	use_power = POWER_USE_OFF
+	uncreated_component_parts = null
 	unacidable = 1
+	interact_offline = TRUE
 
 	var/deployable = 0
 	var/extended = 0
@@ -22,17 +24,14 @@ var/bomb_set
 	var/removal_stage = 0 // 0 is no removal, 1 is covers removed, 2 is covers open, 3 is sealant open, 4 is unwrenched, 5 is removed from bolts.
 	var/lastentered
 	var/previous_level = ""
-	var/datum/wires/nuclearbomb/wires = null
+	wires = /datum/wires/nuclearbomb
 	var/decl/security_level/original_level
 
 /obj/machinery/nuclearbomb/New()
 	..()
 	r_code = "[rand(10000, 99999.0)]"//Creates a random code upon object spawn.
-	wires = new/datum/wires/nuclearbomb(src)
 
 /obj/machinery/nuclearbomb/Destroy()
-	qdel(wires)
-	wires = null
 	qdel(auth)
 	auth = null
 	return ..()
@@ -85,7 +84,7 @@ var/bomb_set
 		switch(removal_stage)
 			if(0)
 				if(isWelder(O))
-					var/obj/item/weapon/tool/weldingtool/WT = O
+					var/obj/item/weapon/weldingtool/WT = O
 					if(!WT.isOn()) return
 					if(WT.get_fuel() < 5) // uses up 5 fuel.
 						to_chat(user, "<span class='warning'>You need more fuel to complete this task.</span>")
@@ -111,7 +110,7 @@ var/bomb_set
 
 			if(2)
 				if(isWelder(O))
-					var/obj/item/weapon/tool/weldingtool/WT = O
+					var/obj/item/weapon/weldingtool/WT = O
 					if(!WT.isOn()) return
 					if (WT.get_fuel() < 5) // uses up 5 fuel.
 						to_chat(user, "<span class='warning'>You need more fuel to complete this task.</span>")
@@ -145,16 +144,9 @@ var/bomb_set
 				return
 	..()
 
-/obj/machinery/nuclearbomb/attack_ghost(mob/user as mob)
-	attack_hand(user)
-
-/obj/machinery/nuclearbomb/attack_hand(mob/user as mob)
-	if(extended)
-		if(panel_open)
-			wires.Interact(user)
-		else
-			ui_interact(user)
-	else if(deployable)
+/obj/machinery/nuclearbomb/physical_attack_hand(mob/user)
+	if(!extended && deployable)
+		. = TRUE
 		if(removal_stage < 5)
 			src.anchored = 1
 			visible_message("<span class='warning'>With a steely snap, bolts slide out of [src] and anchor it to the flooring!</span>")
@@ -163,8 +155,12 @@ var/bomb_set
 		extended = 1
 		if(!src.lighthack)
 			flick("lock", src)
-			update_icon()
-	return
+			update_icon()	
+
+/obj/machinery/nuclearbomb/interface_interact(mob/user as mob)
+	if(extended && !panel_open)
+		ui_interact(user)
+		return TRUE
 
 /obj/machinery/nuclearbomb/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	var/data[0]
@@ -371,25 +367,28 @@ var/bomb_set
 
 /obj/item/weapon/disk/nuclear/Initialize()
 	. = ..()
-//	LAZYDISTINCTADD(GLOB.nuke_disks, src)
+	nuke_disks |= src
 	// Can never be quite sure that a game mode has been properly initiated or not at this point, so always register
 	GLOB.moved_event.register(src, src, /obj/item/weapon/disk/nuclear/proc/check_z_level)
 
 /obj/item/weapon/disk/nuclear/proc/check_z_level()
+	if(!(istype(SSticker.mode, /datum/game_mode/nuclear)))
+		GLOB.moved_event.unregister(src, src, /obj/item/weapon/disk/nuclear/proc/check_z_level) // However, when we are certain unregister if necessary
+		return
 	var/turf/T = get_turf(src)
 	if(!T || isNotStationLevel(T.z))
 		qdel(src)
 
 /obj/item/weapon/disk/nuclear/Destroy()
 	GLOB.moved_event.unregister(src, src, /obj/item/weapon/disk/nuclear/proc/check_z_level)
-//	LAZYREMOVE(GLOB.nuke_disks, src)
-	// if(!LAZYLEN(GLOB.nuke_disks))
-	// 	var/turf/T = pick_area_turf(/area/maintenance, list(/proc/is_station_turf, /proc/not_turf_contains_dense_objects))
-	// 	if(T)
-	// 		var/obj/D = new /obj/item/weapon/disk/nuclear(T)
-	// 		log_and_message_admins("[src], the last authentication disk, has been destroyed. Spawning [D] at ([D.x], [D.y], [D.z]).", location = T)
-	// 	else
-	// 		log_and_message_admins("[src], the last authentication disk, has been destroyed. Failed to respawn disc!")
+	nuke_disks -= src
+	if(!nuke_disks.len)
+		var/turf/T = pick_area_turf(/area/maintenance, list(/proc/is_station_turf, /proc/not_turf_contains_dense_objects))
+		if(T)
+			var/obj/D = new /obj/item/weapon/disk/nuclear(T)
+			log_and_message_admins("[src], the last authentication disk, has been destroyed. Spawning [D] at ([D.x], [D.y], [D.z]).", location = T)
+		else
+			log_and_message_admins("[src], the last authentication disk, has been destroyed. Failed to respawn disc!")
 	return ..()
 
 //====the nuclear football (holds the disk and instructions)====
@@ -402,8 +401,8 @@ var/bomb_set
 		/obj/item/modular_computer/laptop/preset/custom_loadout/cheap/
 	)
 
-/obj/item/weapon/storage/secure/briefcase/nukedisk/examine(var/user)
-	..()
+/obj/item/weapon/storage/secure/briefcase/nukedisk/examine(mob/user)
+	. = ..()
 	to_chat(user,"On closer inspection, you see \a [GLOB.using_map.company_name] emblem is etched into the front of it.")
 
 /obj/item/weapon/folder/envelope/nuke_instructions
@@ -436,7 +435,7 @@ var/bomb_set
 	This concludes the instructions.", "vessel self-destruct instructions")
 
 	//stamp the paper
-	var/image/stampoverlay = image('icons/obj/items/paper.dmi')
+	var/image/stampoverlay = image('icons/obj/bureaucracy.dmi')
 	stampoverlay.icon_state = "paper_stamp-hos"
 	R.stamped += /obj/item/weapon/stamp
 	R.overlays += stampoverlay

@@ -118,22 +118,18 @@ ARMCHAIR(yellow)
 	title = "door"
 	result_type = /obj/machinery/door/unpowered/simple
 	req_amount = 10
-	time = 10 SECONDS
-	send_material_data = TRUE
-	difficulty = 3
+	time = 50
+	send_material_data = 0
 
 /datum/stack_recipe/furniture/barricade
 	title = "barricade"
 	result_type = /obj/structure/barricade
 	req_amount = 5
-	send_material_data = TRUE
-	time = 15 SECONDS
-	difficulty = 0
+	time = 50
 
 /datum/stack_recipe/furniture/stool
 	title = "stool"
 	result_type = /obj/item/weapon/stool
-	difficulty = 1
 
 /datum/stack_recipe/furniture/bar_stool
 	title = "bar stool"
@@ -143,6 +139,16 @@ ARMCHAIR(yellow)
 	title = "bed"
 	result_type = /obj/structure/bed
 	req_amount = 2
+
+/datum/stack_recipe/furniture/pew
+	title = "pew, right"
+	result_type = /obj/structure/bed/chair/pew
+	req_amount = 4
+
+/datum/stack_recipe/furniture/pew_left
+	title = "pew, left"
+	result_type = /obj/structure/bed/chair/pew/left
+	req_amount = 4
 
 /datum/stack_recipe/furniture/table_frame
 	title = "table frame"
@@ -166,9 +172,16 @@ ARMCHAIR(yellow)
 	time = 10
 	send_material_data = 0
 
+/datum/stack_recipe/furniture/tank
+	title = "Pressure Tank"
+	result_type = /obj/item/pipe/tank
+	req_amount = 30
+	time = 20
+	send_material_data = 0
+
 /datum/stack_recipe/furniture/computerframe
 	title = "computer frame"
-	result_type = /obj/structure/computerframe
+	result_type = /obj/machinery/constructable_frame/computerframe
 	req_amount = 5
 	time = 25
 
@@ -225,14 +238,6 @@ ARMCHAIR(yellow)
 /datum/stack_recipe/furniture/door_assembly/multi_tile
 	title = "multi-tile airlock assembly"
 	result_type = /obj/structure/door_assembly/multi_tile
-
-/datum/stack_recipe/furniture/door_assembly/door_assembly_keyp
-	title = "Keypad Airlock"
-	result_type = /obj/structure/door_assembly/door_assembly_keyp
-
-/datum/stack_recipe/furniture/door_assembly/door_assembly_personal
-	title = "Personal Airlock"
-	result_type = /obj/structure/door_assembly/door_assembly_personal
 
 /datum/stack_recipe/furniture/crate
 	title = "crate"
@@ -326,30 +331,3 @@ ARMCHAIR(yellow)
 
 /datum/stack_recipe/furniture/windoor/spawn_result(mob/user, location, amount)
 	return new result_type(user.loc, user.dir, 1, use_material, use_reinf_material)
-
-
-/datum/stack_recipe/furniture/cheval
-	title = "cheval-de-frise(spikey barricade)"
-	result_type = /obj/structure/barricade/spike
-	req_amount = 5
-	time = 10 SECONDS
-	one_per_turf = 1
-	difficulty = 1
-
-/datum/stack_recipe/furniture/wheelchair
-	title = "wheelchair"
-	result_type = /obj/structure/bed/chair/wheelchair
-	req_amount = 20
-	time = 25 SECONDS
-	on_floor = 1
-	one_per_turf = 1
-	difficulty = 3
-
-/datum/stack_recipe/furniture/water_cooler
-	title = "Water cooler"
-	result_type = /obj/structure/reagent_dispensers/water_cooler/empty
-	req_amount = 10
-	time = 50
-	one_per_turf = 1
-	on_floor = 1
-

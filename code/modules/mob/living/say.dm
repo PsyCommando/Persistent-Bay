@@ -10,7 +10,7 @@ var/list/department_radio_keys = list(
 	  ":e" = "Engineering", ".e" = "Engineering",
 	  ":s" = "Security",	".s" = "Security",
 	  ":w" = "whisper",		".w" = "whisper",
-	  ":t" = "Trauma Response",	".t" = "Trauma Response",
+	  ":t" = "Mercenary",	".t" = "Mercenary",
 	  ":x" = "Raider",		".x" = "Raider",
 	  ":u" = "Supply",		".u" = "Supply",
 	  ":v" = "Service",		".v" = "Service",
@@ -29,7 +29,7 @@ var/list/department_radio_keys = list(
 	  ":E" = "Engineering",	".E" = "Engineering",
 	  ":S" = "Security",	".S" = "Security",
 	  ":W" = "whisper",		".W" = "whisper",
-	  ":T" = "Trauma Response",	".T" = "Trauma Response",
+	  ":T" = "Mercenary",	".T" = "Mercenary",
 	  ":X" = "Raider",		".X" = "Raider",
 	  ":U" = "Supply",		".U" = "Supply",
 	  ":V" = "Service",		".V" = "Service",
@@ -49,7 +49,7 @@ var/list/department_radio_keys = list(
 	  ":ó" = "Engineering",	".ó" = "Engineering",
 	  ":û" = "Security",	".û" = "Security",
 	  ":ö" = "whisper",		".ö" = "whisper",
-	  ":å" = "Trauma Response",	".å" = "Trauma Response",
+	  ":å" = "Mercenary",	".å" = "Mercenary",
 	  ":é" = "Supply",		".é" = "Supply",
 )
 
@@ -175,8 +175,6 @@ proc/get_radio_key_from_channel(var/channel)
 	if (message_mode)
 		if (message_mode == MESSAGE_MODE_HEADSET)
 			message = copytext(message,2)	//it would be really nice if the parse procs could do this for us.
-		else if(message_mode == MESSAGE_MODE_RADIO_CUSTOM)
-			message = copytext(message, 4)
 		else
 			message = copytext(message,3)
 
@@ -210,6 +208,9 @@ proc/get_radio_key_from_channel(var/channel)
 	message = handle_autohiss(message, speaking)
 	message = format_say_message(message)
 
+	if(speaking && !speaking.can_be_spoken_properly_by(src))
+		message = speaking.muddle(message)
+
 	if(!(speaking && (speaking.flags & NO_STUTTER)))
 		var/list/message_data = list(message, verb, 0)
 		if(handle_speech_problems(message_data))
@@ -240,12 +241,8 @@ proc/get_radio_key_from_channel(var/channel)
 		message_range = 1
 		if(speaking)
 			message_range = speaking.get_talkinto_msg_range(message)
-		var/msg
 		if(!speaking || !(speaking.flags & NO_TALK_MSG))
-			msg = "<span class='notice'>\The [src] talks into \the [used_radios[1]]</span>"
-		for(var/mob/living/M in hearers(5, src))
-			if((M != src) && msg)
-				M.show_message(msg)
+			src.audible_message("<span class='notice'>\The [src] talks into \the [used_radios[1]].</span>", null, "<span class='notice'>You hear someone talk into their headset.</span>", 5)
 			if (speech_sound)
 				sound_vol *= 0.5
 
@@ -279,16 +276,17 @@ proc/get_radio_key_from_channel(var/channel)
 
 	var/speech_bubble_test = say_test(message)
 	var/image/speech_bubble = image('icons/mob/talk.dmi',src,"h[speech_bubble_test]")
+	speech_bubble.layer = layer
+	speech_bubble.plane = plane
+	// VOREStation Port - Attempt Multi-Z Talking
+	// for (var/atom/movable/AM in get_above_oo())
+	// 	var/turf/ST = get_turf(AM)
+	// 	if(ST)
+	// 		get_mobs_and_objs_in_view_fast(ST, world.view, listening, listening_obj, /datum/client_preference/ghost_ears)
+	// 		var/image/z_speech_bubble = image('icons/mob/talk.dmi', AM, "h[speech_bubble_test]")
+	// 		QDEL_IN(z_speech_bubble, 30)
 
-	var/mob/above = src.shadow
-	while(!QDELETED(above))
-		var/turf/ST = get_turf(above)
-		if(ST)
-
-			get_mobs_and_objs_in_view_fast(ST, world.view, listening, listening_obj, /datum/client_preference/ghost_ears)
-			var/image/z_speech_bubble = image('icons/mob/talk.dmi', above, "h[speech_bubble_test]")
-			spawn(30) qdel(z_speech_bubble)
-		above = above.shadow
+	// VOREStation Port End
 
 	var/list/speech_bubble_recipients = list()
 	for(var/mob/M in listening)

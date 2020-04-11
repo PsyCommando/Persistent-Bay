@@ -8,13 +8,13 @@
 	use_power = POWER_USE_ACTIVE
 	idle_power_usage = 10
 	active_power_usage = 2000
-	circuit_type = /obj/item/weapon/circuitboard/seed_extractor
+	construct_state = /decl/machine_construction/default/panel_closed
+	uncreated_component_parts = null
+	stat_immune = 0
 
-/obj/machinery/seed_extractor/New()
-	..()
-
-obj/machinery/seed_extractor/attackby(var/obj/item/O as obj, var/mob/user as mob)
-
+obj/machinery/seed_extractor/attackby(var/obj/item/O, var/mob/user)
+	if((. = component_attackby(O, user)))
+		return
 	// Fruits and vegetables.
 	if(istype(O, /obj/item/weapon/reagent_containers/food/snacks/grown) || istype(O, /obj/item/weapon/grown))
 		if(!user.unEquip(O))
@@ -30,8 +30,8 @@ obj/machinery/seed_extractor/attackby(var/obj/item/O as obj, var/mob/user as mob
 
 		if(new_seed_type)
 			to_chat(user, "<span class='notice'>You extract some seeds from [O].</span>")
-			var/produce = pick(1, 2)
-			for(var/i = 0; i <= produce; i++)
+			var/produce = rand(1,4)
+			for(var/i = 0;i<=produce;i++)
 				var/obj/item/seeds/seeds = new(get_turf(src))
 				seeds.seed_type = new_seed_type.name
 				seeds.update_seed()
@@ -53,15 +53,3 @@ obj/machinery/seed_extractor/attackby(var/obj/item/O as obj, var/mob/user as mob
 		qdel(O)
 
 	return
-
-
-obj/machinery/seed_extractor/attackby(var/obj/item/O as obj, var/mob/user as mob)
-
-	if(default_deconstruction_screwdriver(user, O))
-		updateUsrDialog()
-		return
-	if(default_deconstruction_crowbar(user, O))
-		return
-	if(default_part_replacement(user, O))
-		return
-	return ..()

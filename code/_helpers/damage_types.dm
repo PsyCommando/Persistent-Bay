@@ -25,25 +25,25 @@
 
 //Whether or not the given item counts as sharp in terms of dealing damage
 /proc/is_sharp(obj/O as obj)
-	return O? ISDAMTYPE(O.damtype, DAM_CUT) || O.sharpness : 0
+	return O? ISDAMTYPE(O.damage_type, DAM_CUT) || O.sharp : 0
 
 //Whether or not the given item counts as cutting with an edge in terms of removing limbs
 /proc/has_edge(obj/O as obj)
-	return O? O.mass >= DT_EDGE_MASS_THRESHOLD && ISDAMTYPE(O.damtype, DAM_CUT) : 0
+	return O? O.mass >= DT_EDGE_MASS_THRESHOLD && ISDAMTYPE(O.damage_type, DAM_CUT) : 0
 
 //
 // Puncture stuff
 //
-/obj/item/weapon/tool/screwdriver/can_puncture()
+/obj/item/weapon/screwdriver/can_puncture()
 	return 1
 
 /obj/item/weapon/pen/can_puncture()
 	return 1
 
-/obj/item/weapon/tool/weldingtool/can_puncture()
+/obj/item/weapon/weldingtool/can_puncture()
 	return 1
 
-/obj/item/weapon/tool/screwdriver/can_puncture()
+/obj/item/weapon/screwdriver/can_puncture()
 	return 1
 
 /obj/item/weapon/shovel/can_puncture() //includes spades

@@ -54,25 +54,15 @@
 	name = "light armor plate"
 	desc = "A basic armor plate made of steel-reinforced synthetic fibers. Attaches to a plate carrier."
 	icon = 'icons/obj/clothing/obj_suit_modular_armor.dmi'
-	accessory_icons = list(slot_wear_suit_str = 'icons/mob/onmob/onmob_modular_armor.dmi')
-	item_state_slots = list(
-		slot_wear_suit_str = "blank", //don't show an icon
-	)
 	icon_state = "armor_light"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 25,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 1)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_MINOR,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_MINOR
+		)
 	slot = ACCESSORY_SLOT_ARMOR_C
 
 /obj/item/clothing/accessory/armorplate/get_fibers()
@@ -82,57 +72,39 @@
 	name = "medium armor plate"
 	desc = "A plasteel-reinforced synthetic armor plate, providing good protection. Attaches to a plate carrier."
 	icon_state = "armor_medium"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 40,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 2)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_PADDED
+		)
 
 /obj/item/clothing/accessory/armorplate/tactical
 	name = "tactical armor plate"
 	desc = "A heavier armor plate with additional ablative coating. Attaches to a plate carrier."
 	icon_state = "armor_tactical"
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 60,
-		DAM_ENERGY 	= 35,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 2)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_RESISTANT,
+		laser = ARMOR_LASER_MAJOR,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	slowdown = 0.5
 
 /obj/item/clothing/accessory/armorplate/merc
 	name = "heavy armor plate"
 	desc = "A ceramics-reinforced synthetic armor plate, providing state of of the art protection. Attaches to a plate carrier."
 	icon_state = "armor_merc"
-	armor  = list(
-		DAM_BLUNT 	= 70,
-		DAM_PIERCE 	= 65,
-		DAM_CUT 	= 70,
-		DAM_BULLET 	= 70,
-		DAM_LASER 	= 60,
-		DAM_ENERGY 	= 40,
-		DAM_BURN 	= 35,
-		DAM_BOMB 	= 40,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 5)
-	slowdown = 1
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_RIFLE,
+		laser = ARMOR_LASER_MAJOR,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+		)
+	slowdown = 0.5
 
 //Arm guards
 /obj/item/clothing/accessory/armguards
@@ -144,19 +116,13 @@
 	icon_state = "armguards"
 	gender = PLURAL
 	body_parts_covered = ARMS
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 40,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 5)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	slot = ACCESSORY_SLOT_ARMOR_A
 
 /obj/item/clothing/accessory/armguards/blue
@@ -179,75 +145,51 @@
 	name = "heavy arm guards"
 	desc = "A pair of red-trimmed black arm pads reinforced with heavy armor plating. Attaches to a plate carrier."
 	icon_state = "armguards_merc"
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 55,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 60,
-		DAM_LASER 	= 60,
-		DAM_ENERGY 	= 40,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 40,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+		)
 
 /obj/item/clothing/accessory/armguards/riot
 	name = "riot arm guards"
 	desc = "A pair of armored arm pads with heavy padding to protect against melee attacks."
 	icon_state = "armguards_riot"
-	armor  = list(
-		DAM_BLUNT 	= 75,
-		DAM_PIERCE 	= 70,
-		DAM_CUT 	= 75,
-		DAM_BULLET 	= 33,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_VERY_HIGH,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.5
 
 /obj/item/clothing/accessory/armguards/ballistic
 	name = "ballistic arm guards"
 	desc = "A pair of armored arm pads with heavy plates to protect against ballistic projectiles."
 	icon_state = "armguards_ballistic"
-	armor  = list(
-		DAM_BLUNT 	= 42,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 42,
-		DAM_BULLET 	= 75,
-		DAM_LASER 	= 42,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_RIFLE,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.7
 
 /obj/item/clothing/accessory/armguards/ablative
 	name = "ablative arm guards"
 	desc = "A pair of armored arm pads with advanced shielding to protect against energy weapons."
 	icon_state = "armguards_ablative"
-	armor  = list(
-		DAM_BLUNT 	= 35,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 35,
-		DAM_BULLET 	= 35,
-		DAM_LASER 	= 75,
-		DAM_ENERGY 	= 50,
-		DAM_BURN 	= 50,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_RIFLES,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0
 
 //Leg guards
@@ -260,19 +202,13 @@
 	icon_state = "legguards"
 	gender = PLURAL
 	body_parts_covered = LEGS
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 40,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 5)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	slot = ACCESSORY_SLOT_ARMOR_L
 
 /obj/item/clothing/accessory/legguards/blue
@@ -295,37 +231,25 @@
 	name = "heavy leg guards"
 	desc = "A pair of heavily armored leg pads in red-trimmed black. Attaches to a plate carrier."
 	icon_state = "legguards_merc"
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 55,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 60,
-		DAM_LASER 	= 60,
-		DAM_ENERGY 	= 40,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 40,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+		)
 
 /obj/item/clothing/accessory/legguards/riot
 	name = "riot leg guards"
 	desc = "A pair of armored leg pads with heavy padding to protect against melee attacks. Looks like they might impair movement."
 	icon_state = "legguards_riot"
-	armor  = list(
-		DAM_BLUNT 	= 75,
-		DAM_PIERCE 	= 70,
-		DAM_CUT 	= 75,
-		DAM_BULLET 	= 33,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_VERY_HIGH,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.5
 	slowdown = 1
 
@@ -333,19 +257,13 @@
 	name = "ballistic leg guards"
 	desc = "A pair of armored leg pads with heavy plates to protect against ballistic projectiles. Looks like they might impair movement."
 	icon_state = "legguards_ballistic"
-	armor  = list(
-		DAM_BLUNT 	= 42,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 42,
-		DAM_BULLET 	= 75,
-		DAM_LASER 	= 42,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_RIFLE,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.7
 	slowdown = 1
 
@@ -353,19 +271,13 @@
 	name = "ablative leg guards"
 	desc = "A pair of armored leg pads with advanced shielding to protect against energy weapons. Looks like they might impair movement."
 	icon_state = "legguards_ablative"
-	armor  = list(
-		DAM_BLUNT 	= 35,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 35,
-		DAM_BULLET 	= 35,
-		DAM_LASER 	= 75,
-		DAM_ENERGY 	= 50,
-		DAM_BURN 	= 50,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_RIFLES,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0
 	slowdown = 1
 

@@ -7,27 +7,8 @@
 	icon = 'icons/obj/pipes/transit_tube.dmi'
 	icon_state = "E-W"
 	density = 1
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
 	anchored = 1.0
-	mass = 15
-	max_health = 200
-	armor = list(
-		DAM_BLUNT  	= 95,
-		DAM_PIERCE 	= 90,
-		DAM_CUT 	= MaxArmorValue,
-		DAM_BULLET 	= 95,
-		DAM_ENERGY 	= 90,
-		DAM_BURN 	= 80,
-		DAM_BOMB 	= 50,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
-	damthreshold_brute 	= 5
-	damthreshold_burn	= 5
 	var/list/tube_dirs = null
 	var/exit_delay = 2
 	var/enter_delay = 1
@@ -47,8 +28,6 @@
 	icon_state = "closed"
 	exit_delay = 2
 	enter_delay = 3
-	mass = 30
-	max_health = 400
 	var/pod_moving = 0
 	var/automatic_launch_time = 100
 
@@ -63,24 +42,6 @@
 	animate_movement = FORWARD_STEPS
 	anchored = 1.0
 	density = 1
-	mass = 50
-	max_health = 600
-	damthreshold_brute 	= 5
-	damthreshold_burn	= 5
-	armor = list(
-		DAM_BLUNT  	= 50,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 10,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 5,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
 	var/moving = 0
 	var/datum/gas_mixture/air_contents = new()
 
@@ -155,13 +116,13 @@ obj/structure/ex_act(severity)
 			if(pod.contents.len)
 				to_chat(AM, "<span class='notice'>The pod is already occupied.</span>")
 				return
-			else if(!pod.moving && pod.dir in directions())
+			else if(!pod.moving && (pod.dir in directions()))
 				AM.forceMove(pod)
 
 /obj/structure/transit_tube/station/attack_hand(mob/user as mob)
 	if(!pod_moving)
 		for(var/obj/structure/transit_tube_pod/pod in loc)
-			if(!pod.moving && pod.dir in directions())
+			if(!pod.moving && (pod.dir in directions()))
 				if(icon_state == "closed")
 					open_animation()
 
@@ -190,7 +151,7 @@ obj/structure/ex_act(severity)
 
 /obj/structure/transit_tube/station/proc/launch_pod()
 	for(var/obj/structure/transit_tube_pod/pod in loc)
-		if(!pod.moving && pod.dir in directions())
+		if(!pod.moving && (pod.dir in directions()))
 			spawn(5)
 				pod_moving = 1
 				close_animation()

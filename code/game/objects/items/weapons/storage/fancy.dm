@@ -5,7 +5,6 @@
  *
  * Contains:
  *		Egg Box
- *		Candle Box
  *		Crayon Box
  *		Cigarette Box
  */
@@ -22,8 +21,9 @@
 		var/key_count = count_by_type(contents, key_type)
 		src.icon_state = "[initial(icon_state)][key_count]"
 
-/obj/item/weapon/storage/fancy/examine(mob/user)
-	if(!..(user, 1))
+/obj/item/weapon/storage/fancy/examine(mob/user, distance)
+	. = ..()
+	if(distance > 1)
 		return
 
 	var/key_name = initial(key_type.name)
@@ -71,31 +71,6 @@
 	can_hold = list(/obj/item/weapon/reagent_containers/food/snacks/cracker)
 	startswith = list(/obj/item/weapon/reagent_containers/food/snacks/cracker = 6)
 
-/obj/item/weapon/storage/fancy/crackers/empty
-	startswith = null
-
-/*
- * Candle Box
- */
-
-/obj/item/weapon/storage/fancy/candle_box
-	name = "candle pack"
-	desc = "A pack of red candles."
-	icon = 'icons/obj/candle.dmi'
-	icon_state = "candlebox"
-	opened = 1 //no closed state
-	throwforce = 2
-	w_class = ITEM_SIZE_SMALL
-	max_w_class = ITEM_SIZE_TINY
-	max_storage_space = 5
-	slot_flags = SLOT_BELT
-
-	key_type = /obj/item/weapon/flame/candle
-	startswith = list(/obj/item/weapon/flame/candle = 5)
-
-/obj/item/weapon/storage/fancy/candle_box/empty
-	startswith = null
-
 /*
  * Crayon Box
  */
@@ -124,9 +99,6 @@
 	overlays += image('icons/obj/crayons.dmi',"crayonbox")
 	for(var/obj/item/weapon/pen/crayon/crayon in contents)
 		overlays += image('icons/obj/crayons.dmi',crayon.colourName)
-
-/obj/item/weapon/storage/fancy/crayons/blank
-	startswith = list()
 
 ////////////
 //CIG PACK//
@@ -189,20 +161,11 @@
 	else
 		..()
 
-/obj/item/weapon/storage/fancy/cigarettes/blank
-	name = "pack of cigarettes"
-	desc = "This is a nondescript pack for cigarettes. It looks like someone folded it by hand."
-	icon_state = "cigpacket"
-	startswith = list()
-
 /obj/item/weapon/storage/fancy/cigarettes/dromedaryco
 	name = "pack of Dromedary Co. cigarettes"
 	desc = "A packet of six imported Dromedary Company cancer sticks. A label on the packaging reads, \"Wouldn't a slow death make a change?\"."
 	icon_state = "Dpacket"
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/dromedaryco = 6)
-
-/obj/item/weapon/storage/fancy/cigarettes/dromedaryco/blank
-	startswith = list()
 
 /obj/item/weapon/storage/fancy/cigarettes/killthroat
 	name = "pack of Acme Co. cigarettes"
@@ -210,18 +173,18 @@
 	icon_state = "Bpacket"
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/killthroat = 6)
 
-/obj/item/weapon/storage/fancy/cigarettes/killthroat/blank
-	startswith = list()
+/obj/item/weapon/storage/fancy/cigarettes/killthroat/New()
+	..()
+	fill_cigarre_package(src,list(/datum/reagent/fuel = 4))
+
+// New exciting ways to kill your lungs! - Earthcrusher //
 
 /obj/item/weapon/storage/fancy/cigarettes/luckystars
 	name = "pack of Lucky Stars"
 	desc = "A mellow blend made from synthetic, pod-grown tobacco. The commercial jingle is guaranteed to get stuck in your head."
 	icon_state = "LSpacket"
-	item_state = "Dpacket"
+	item_state = "Dpacket" //I actually don't mind cig packs not showing up in the hand. whotf doesn't just keep them in their pockets/coats //
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/luckystars = 6)
-
-/obj/item/weapon/storage/fancy/cigarettes/luckystars/blank
-	startswith = list()
 
 /obj/item/weapon/storage/fancy/cigarettes/jerichos
 	name = "pack of Jerichos"
@@ -230,18 +193,14 @@
 	item_state = "Dpacket"
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/jerichos = 6)
 
-/obj/item/weapon/storage/fancy/cigarettes/jerichos/blank
-	startswith = list()
-
 /obj/item/weapon/storage/fancy/cigarettes/menthols
 	name = "pack of Temperamento Menthols"
 	desc = "With a sharp and natural organic menthol flavor, these Temperamentos are a favorite of NDV crews. Hardly anyone knows they make 'em in non-menthol!"
 	icon_state = "TMpacket"
 	item_state = "Dpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/menthol = 6)
 
-/obj/item/weapon/storage/fancy/cigarettes/menthols/blank
-	startswith = list()
+	key_type = /obj/item/clothing/mask/smokable/cigarette/menthol
+	startswith = list(/obj/item/clothing/mask/smokable/cigarette/menthol = 6)
 
 /obj/item/weapon/storage/fancy/cigarettes/carcinomas
 	name = "pack of Carcinoma Angels"
@@ -250,18 +209,12 @@
 	item_state = "Dpacket"
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/carcinomas = 6)
 
-/obj/item/weapon/storage/fancy/cigarettes/carcinomas/blank
-	startswith = list()
-
 /obj/item/weapon/storage/fancy/cigarettes/professionals
 	name = "pack of Professional 120s"
 	desc = "Let's face it - if you're smoking these, you're either trying to look upper-class or you're 80 years old. That's the only excuse. They taste disgusting, too."
 	icon_state = "P100packet"
 	item_state = "Dpacket"
 	startswith = list(/obj/item/clothing/mask/smokable/cigarette/professionals = 6)
-
-/obj/item/weapon/storage/fancy/cigarettes/professionals/blank
-	startswith = list()
 
 //cigarellos
 /obj/item/weapon/storage/fancy/cigarettes/cigarello
@@ -297,7 +250,6 @@
 	icon = 'icons/obj/cigarettes.dmi'
 	w_class = ITEM_SIZE_SMALL
 	max_w_class = ITEM_SIZE_TINY
-	max_storage_space = 6
 	throwforce = 2
 	slot_flags = SLOT_BELT
 	storage_slots = 7
@@ -316,16 +268,12 @@
 	reagents.trans_to_obj(C, (reagents.total_volume/contents.len))
 	..()
 
-/obj/item/weapon/storage/fancy/cigar/blank
-	startswith = list()
-
-
 /*
  * Vial Box
  */
 
 /obj/item/weapon/storage/fancy/vials
-	icon = 'icons/obj/items/storage/vialbox.dmi'
+	icon = 'icons/obj/vialbox.dmi'
 	icon_state = "vialbox"
 	name = "vial storage box"
 	w_class = ITEM_SIZE_NORMAL
@@ -339,23 +287,20 @@
 	var/key_count = count_by_type(contents, key_type)
 	src.icon_state = "[initial(icon_state)][Floor(key_count/2)]"
 
-/obj/item/weapon/storage/fancy/vials/empty
-	startswith = null
-
 /*
  * Not actually a "fancy" storage...
  */
 /obj/item/weapon/storage/lockbox/vials
 	name = "secure vial storage box"
 	desc = "A locked box for keeping things away from children."
-	icon = 'icons/obj/items/storage/vialbox.dmi'
+	icon = 'icons/obj/vialbox.dmi'
 	icon_state = "vialbox0"
 	item_state = "syringe_kit"
 	w_class = ITEM_SIZE_NORMAL
 	max_w_class = ITEM_SIZE_TINY
 	max_storage_space = null
 	storage_slots = 12
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_virology)
 
 /obj/item/weapon/storage/lockbox/vials/New()
 	..()

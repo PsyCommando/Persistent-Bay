@@ -6,42 +6,38 @@ var/list/floor_decals = list()
 /obj/effect/floor_decal
 	name = "floor decal"
 	icon = 'icons/turf/flooring/decals.dmi'
-	plane = ABOVE_TURF_PLANE
 	layer = DECAL_LAYER
 	appearance_flags = RESET_COLOR
-	anchored = TRUE
 	var/supplied_dir
+	var/detail_overlay
+	var/detail_color
 
-/obj/effect/floor_decal/New(var/newloc, var/newdir, var/newcolour)
-	if(!isnull(newdir))
-		supplied_dir = newdir
+/obj/effect/floor_decal/New(var/newloc, var/newdir, var/newcolour, var/newappearance)
+	supplied_dir = newdir
+	if(newappearance) appearance = newappearance
 	if(newcolour) color = newcolour
 	..(newloc)
-	ADD_SAVED_VAR(supplied_dir)
 
 /obj/effect/floor_decal/Initialize()
-	. = ..()
-	return INITIALIZE_HINT_LATELOAD //Gotta lateload since floors sometimes default to plating during init
-
-/obj/effect/floor_decal/LateInitialize()
-	. = ..()
 	if(supplied_dir) set_dir(supplied_dir)
 	var/turf/T = get_turf(src)
 	if(istype(T, /turf/simulated/floor) || istype(T, /turf/unsimulated/floor))
-		plane = T.is_plating() ? ABOVE_PLATING_PLANE : ABOVE_TURF_PLANE
-		var/cache_key = "[alpha]-[color]-[dir]-[icon_state]-[plane]-[layer]"
+		layer = T.is_plating() ? DECAL_PLATING_LAYER : DECAL_LAYER
+		var/cache_key = "[alpha]-[color]-[dir]-[icon_state]-[plane]-[layer]-[detail_overlay]-[detail_color]"
 		if(!floor_decals[cache_key])
 			var/image/I = image(icon = src.icon, icon_state = src.icon_state, dir = src.dir)
-			I.plane = plane
 			I.layer = layer
 			I.appearance_flags = appearance_flags
 			I.color = src.color
 			I.alpha = src.alpha
+			if(detail_overlay)
+				var/image/B = overlay_image(icon, "[detail_overlay]", flags=RESET_COLOR)
+				B.color = detail_color
+				I.overlays |= B
 			floor_decals[cache_key] = I
 		if(!T.decals) T.decals = list()
 		T.decals |= floor_decals[cache_key]
 		T.overlays |= floor_decals[cache_key]
-	loc = null
 	atom_flags |= ATOM_FLAG_INITIALIZED
 	return INITIALIZE_HINT_QDEL
 
@@ -809,19 +805,143 @@ var/list/floor_decals = list()
 
 /obj/effect/floor_decal/industrial/warning
 	name = "hazard stripes"
-	icon_state = "warning"
+	color = "#d2d53d"
+	icon_state = "stripe"
 
 /obj/effect/floor_decal/industrial/warning/corner
-	icon_state = "warningcorner"
+	icon_state = "stripecorner"
 
 /obj/effect/floor_decal/industrial/warning/full
-	icon_state = "warningfull"
+	icon_state = "stripefull"
+
 
 /obj/effect/floor_decal/industrial/warning/cee
-	icon_state = "warningcee"
+	icon_state = "stripecee"
 
 /obj/effect/floor_decal/industrial/warning/fulltile
-	icon_state = "warningfulltile"
+	icon_state = "stripefulltile"
+
+/obj/effect/floor_decal/industrial/custodial
+	name = "custodial stripes"
+	icon_state = "stripe"
+
+/obj/effect/floor_decal/industrial/custodial/corner
+	icon_state = "stripecorner"
+
+/obj/effect/floor_decal/industrial/custodial/full
+	icon_state = "stripefull"
+
+/obj/effect/floor_decal/industrial/custodial/cee
+	icon_state = "stripecee"
+
+/obj/effect/floor_decal/industrial/custodial/fulltile
+	icon_state = "stripefulltile"
+
+/obj/effect/floor_decal/industrial/fire
+	name = "fire safety stripes"
+	icon_state = "stripe"
+	detail_overlay = "overstripe"
+	detail_color = "#c90000"
+
+/obj/effect/floor_decal/industrial/fire/corner
+	icon_state = "stripecorner"
+	detail_overlay = "overstripecorner"
+
+/obj/effect/floor_decal/industrial/fire/full
+	icon_state = "stripefull"
+	detail_overlay = "overstripefull"
+
+/obj/effect/floor_decal/industrial/fire/cee
+	icon_state = "stripecee"
+	detail_overlay = "overstripecee"
+
+/obj/effect/floor_decal/industrial/fire/fulltile
+	icon_state = "stripefulltile"
+
+/obj/effect/floor_decal/industrial/radiation
+	name = "radiation hazard stripes"
+	icon_state = "stripe"
+	color = "#d2d53d"
+	detail_overlay = "overstripe"
+	detail_color =  "#c900fb"
+
+/obj/effect/floor_decal/industrial/radiation/corner
+	icon_state = "stripecorner"
+	detail_overlay = "overstripecorner"
+
+/obj/effect/floor_decal/industrial/radiation/full
+	icon_state = "stripefull"
+	detail_overlay = "overstripefull"
+
+/obj/effect/floor_decal/industrial/radiation/cee
+	icon_state = "stripecee"
+	detail_overlay = "overstripecee"
+
+/obj/effect/floor_decal/industrial/radiation/fulltile
+	icon_state = "stripefulltile"
+
+/obj/effect/floor_decal/industrial/firstaid
+	name = "first aid stripes"
+	icon_state = "stripe"
+	detail_overlay = "overstripe"
+	detail_color =  "#00cd00"
+
+/obj/effect/floor_decal/industrial/firstaid/corner
+	icon_state = "stripecorner"
+	detail_overlay = "overstripecorner"
+
+/obj/effect/floor_decal/industrial/firstaid/full
+	icon_state = "stripefull"
+	detail_overlay = "overstripefull"
+
+/obj/effect/floor_decal/industrial/firstaid/cee
+	icon_state = "stripecee"
+	detail_overlay = "overstripecee"
+
+/obj/effect/floor_decal/industrial/firstaid/fulltile
+	icon_state = "stripefulltile"
+
+/obj/effect/floor_decal/industrial/defective
+	name = "defective machinery stripes"
+	icon_state = "stripe"
+	detail_overlay = "overstripe"
+	detail_color = "#0000fb"
+
+/obj/effect/floor_decal/industrial/defective/corner
+	icon_state = "stripecorner"
+	detail_overlay = "overstripecorner"
+
+/obj/effect/floor_decal/industrial/defective/full
+	icon_state = "stripefull"
+	detail_overlay = "overstripefull"
+
+/obj/effect/floor_decal/industrial/defective/cee
+	icon_state = "stripecee"
+	detail_overlay = "overstripecee"
+
+/obj/effect/floor_decal/industrial/defective/fulltile
+	icon_state = "stripefulltile"
+
+/obj/effect/floor_decal/industrial/traffic
+	name = "traffic hazard stripes"
+	icon_state = "stripe"
+	detail_overlay = "overstripe"
+	detail_color = "#fb9700"
+
+/obj/effect/floor_decal/industrial/traffic/corner
+	icon_state = "stripecorner"
+	detail_overlay = "overstripecorner"
+
+/obj/effect/floor_decal/industrial/traffic/full
+	icon_state = "stripefull"
+	detail_overlay = "overstripefull"
+
+/obj/effect/floor_decal/industrial/traffic/cee
+	icon_state = "stripecee"
+	detail_overlay = "overstripecee"
+
+/obj/effect/floor_decal/industrial/traffic/fulltile
+	icon_state = "stripefulltile"
 
 /obj/effect/floor_decal/industrial/warning/dust
 	name = "hazard stripes"
@@ -1012,7 +1132,6 @@ var/list/floor_decals = list()
 	icon_state = "snowfloor"
 
 /obj/effect/floor_decal/floordetail
-	plane = TURF_PLANE
 	layer = TURF_DETAIL_LAYER
 	color = COLOR_GUNMETAL
 	icon_state = "manydot"

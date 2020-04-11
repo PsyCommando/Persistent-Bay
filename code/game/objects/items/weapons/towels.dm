@@ -4,14 +4,14 @@
 	icon_state = "towel"
 	item_flags = ITEM_FLAG_IS_BELT
 	slot_flags = SLOT_HEAD | SLOT_BELT | SLOT_OCLOTHING
-	force = 3.0
+	force = 0.5
 	w_class = ITEM_SIZE_NORMAL
 	attack_verb = list("whipped")
-	sound_hit = 'sound/weapons/towelwhip.ogg'
+	hitsound = 'sound/weapons/towelwhip.ogg'
 	desc = "A soft cotton towel."
 
 /obj/item/weapon/towel/attack_self(mob/living/user as mob)
-	user.visible_message(text("<span class='notice'>[] uses [] to towel themselves off.</span>", user, src))
+	user.visible_message("<span class='notice'>[user] uses [src] to towel themselves off.</span>")
 	playsound(user, 'sound/weapons/towelwipe.ogg', 25, 1)
 
 /obj/item/weapon/towel/random/New()

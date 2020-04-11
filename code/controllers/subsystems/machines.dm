@@ -32,10 +32,6 @@ if(Datum.is_processing) {\
 #define START_PROCESSING_POWER_OBJECT(Datum) START_PROCESSING_IN_LIST(Datum, power_objects)
 #define STOP_PROCESSING_POWER_OBJECT(Datum) STOP_PROCESSING_IN_LIST(Datum, power_objects)
 
-/datum/machine_count
-	var/amount = 0
-	var/usage = 0
-
 SUBSYSTEM_DEF(machines)
 	name = "Machines"
 	init_order = SS_INIT_MACHINES
@@ -57,15 +53,12 @@ SUBSYSTEM_DEF(machines)
 
 	var/list/processing  = list() // These are the machines which are processing.
 	var/list/current_run = list()
-	var/current_machine
-
-	var/list/machine_data = list()
 
 /datum/controller/subsystem/machines/Initialize(timeofday)
 	makepowernets()
 	setup_atmos_machinery(machinery)
 	fire()
-	return ..()
+	..()
 
 #define INTERNAL_PROCESS_STEP(this_step, check_resumed, proc_to_call, cost_var, next_step)\
 if(current_step == this_step || (check_resumed && !resumed)) {\
@@ -107,30 +100,15 @@ if(current_step == this_step || (check_resumed && !resumed)) {\
 /datum/controller/subsystem/machines/proc/setup_atmos_machinery(list/machines)
 	set background=1
 
-	var/pretime = REALTIMEOFDAY
 	report_progress("Initializing atmos machinery")
 	for(var/obj/machinery/atmospherics/A in machines)
-		if(!(QDELETED(A) || QDELING(A)))
-			A.atmos_init()
+		A.atmos_init()
 		CHECK_TICK
-	report_progress("Done in [(REALTIMEOFDAY - pretime) / 10] second\s")
 
-//Those are already initialized in their atmos_init
-	// for(var/obj/machinery/atmospherics/unary/U in machines)
-	// 	if(istype(U, /obj/machinery/atmospherics/unary/vent_pump))
-	// 		var/obj/machinery/atmospherics/unary/vent_pump/T = U
-	// 		T.broadcast_status()
-	// 	else if(istype(U, /obj/machinery/atmospherics/unary/vent_scrubber))
-	// 		var/obj/machinery/atmospherics/unary/vent_scrubber/T = U
-	// 		T.broadcast_status()
-	// 	CHECK_TICK
-
-	pretime = REALTIMEOFDAY
 	report_progress("Initializing pipe networks")
 	for(var/obj/machinery/atmospherics/machine in machines)
 		machine.build_network()
 		CHECK_TICK
-	report_progress("Done in [(REALTIMEOFDAY - pretime) / 10] second\s")
 
 /datum/controller/subsystem/machines/stat_entry()
 	var/msg = list()
@@ -156,7 +134,6 @@ if(current_step == this_step || (check_resumed && !resumed)) {\
 		var/datum/pipe_network/PN = current_run[current_run.len]
 		current_run.len--
 		if(istype(PN) && !QDELETED(PN))
-			current_machine = "PipeNet[PN]\ref[PN]"
 			PN.Process(wait)
 		else
 			pipenets.Remove(PN)
@@ -169,46 +146,32 @@ if(current_step == this_step || (check_resumed && !resumed)) {\
 		src.current_run = processing.Copy()
 
 	var/list/current_run = src.current_run
-	machine_data = list()
 	while(current_run.len)
 		var/obj/machinery/M = current_run[current_run.len]
-		current_machine = "Machinery[M]\ref[M]"
 		current_run.len--
-		if(!QDELETED(M) && (M.Process(wait) == PROCESS_KILL))
+
+		if(!istype(M)) // Below is a debugging and recovery effort. This should never happen, but has been observed recently.
+			if(!M)
+				continue // Hard delete; unlikely but possible. Soft deletes are handled below and expected.
+			if(M in processing)
+				processing.Remove(M)
+				M.is_processing = null
+				crash_with("[log_info_line(M)] was found illegally queued on SSmachines.")
+				continue
+			else if(resumed)
+				current_run.Cut() // Abandon current run; assuming that we were improperly resumed with the wrong process queue.
+				crash_with("[log_info_line(M)] was in the wrong subqueue on SSmachines on a resumed fire.")
+				process_machinery(0)
+				return
+			else // ??? possibly dequeued by another machine or something ???
+				crash_with("[log_info_line(M)] was in the wrong subqueue on SSmachines on an unresumed fire.")
+				continue
+
+		if(!QDELETED(M) && (M.ProcessAll(wait) == PROCESS_KILL))
 			processing.Remove(M)
 			M.is_processing = null
 		if(MC_TICK_CHECK)
 			return
-
-/datum/controller/subsystem/machines/proc/profile_machinery(resumed = 0)
-	if (!resumed)
-		src.current_run = processing.Copy()
-
-	var/list/current_run = src.current_run
-	machine_data = list()
-	while(current_run.len)
-		var/obj/machinery/M = current_run[current_run.len]
-		var/start_time = round_duration_in_ticks
-		current_machine = "Machinery[M]\ref[M]"
-		current_run.len--
-		if(!QDELETED(M) && (M.Process(wait) == PROCESS_KILL))
-			processing.Remove(M)
-			M.is_processing = null
-		if("[M.type]" in machine_data)
-			var/datum/machine_count/count = machine_data["[M.type]"]
-			count.amount++
-			count.usage += round_duration_in_ticks - start_time
-		else
-			var/datum/machine_count/count = new()
-			machine_data["[M.type]"] = count
-			count.amount++
-			count.usage = round_duration_in_ticks - start_time
-
-		if(MC_TICK_CHECK)
-			return
-	for(var/x in machine_data)
-		var/datum/machine_count/count = machine_data[x]
-		message_admins("[x] COUNT:[count.amount] COST:[count.usage]")
 
 /datum/controller/subsystem/machines/proc/process_powernets(resumed = 0)
 	if (!resumed)
@@ -219,7 +182,6 @@ if(current_step == this_step || (check_resumed && !resumed)) {\
 		var/datum/powernet/PN = current_run[current_run.len]
 		current_run.len--
 		if(istype(PN) && !QDELETED(PN))
-			current_machine = "PowerNet[PN]\ref[PN]"
 			PN.reset(wait)
 		else
 			powernets.Remove(PN)
@@ -236,7 +198,6 @@ if(current_step == this_step || (check_resumed && !resumed)) {\
 		var/obj/item/I = current_run[current_run.len]
 		current_run.len--
 		if(!I.pwr_drain(wait)) // 0 = Process Kill, remove from processing list.
-			current_machine = "PowerObject[I]\ref[I]"
 			power_objects.Remove(I)
 			I.is_processing = null
 		if(MC_TICK_CHECK)

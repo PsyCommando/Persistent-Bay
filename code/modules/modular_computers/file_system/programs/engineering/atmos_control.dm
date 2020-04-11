@@ -6,8 +6,8 @@
 	program_key_state = "atmos_key"
 	program_menu_icon = "shuffle"
 	extended_desc = "This program allows remote control of air alarms. This program can not be run on tablet computers."
-	required_access = core_access_engineering_programs
-	requires_ntnet = TRUE
+	required_access = access_atmospherics
+	requires_ntnet = 1
 	network_destination = "atmospheric control system"
 	requires_ntnet_feature = NTNET_SYSTEMCONTROL
 	usage_flags = PROGRAM_LAPTOP | PROGRAM_CONSOLE
@@ -21,7 +21,7 @@
 	var/ui_ref
 	var/list/monitored_alarms = list()
 
-/datum/nano_module/atmos_control/New(atmos_computer, var/list/req_access, var/list/req_one_access, monitored_alarm_ids)
+/datum/nano_module/atmos_control/New(atmos_computer, var/list/req_access, monitored_alarm_ids)
 	..()
 
 	if(istype(req_access))
@@ -29,14 +29,9 @@
 	else if(req_access)
 		log_debug("\The [src] was given an unepxected req_access: [req_access]")
 
-	if(istype(req_one_access))
-		access.req_one_access = req_one_access
-	else if(req_one_access)
-		log_debug("\The [src] given an unepxected req_one_access: [req_one_access]")
-
 	if(monitored_alarm_ids)
 		for(var/obj/machinery/alarm/alarm in SSmachines.machinery)
-			if(alarm.id_tag && alarm.id_tag in monitored_alarm_ids)
+			if(alarm.alarm_id && (alarm.alarm_id in monitored_alarm_ids))
 				monitored_alarms += alarm
 		// machines may not yet be ordered at this point
 		monitored_alarms = dd_sortedObjectList(monitored_alarms)
@@ -56,12 +51,22 @@
 /datum/nano_module/atmos_control/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
 	var/list/data = host.initial_data()
 	var/alarms[0]
+	var/alarmsAlert[0]
+	var/alarmsDanger[0]
 
 	// TODO: Move these to a cache, similar to cameras
 	for(var/obj/machinery/alarm/alarm in (monitored_alarms.len ? monitored_alarms : SSmachines.machinery))
-		if(!alarm.alarm_area) continue
-		alarms[++alarms.len] = list("name" = sanitize(alarm.name), "ref"= "\ref[alarm]", "danger" = max(alarm.danger_level, alarm.alarm_area.atmosalm))
+		var/danger_level = max(alarm.danger_level, alarm.alarm_area.atmosalm)
+		if(danger_level == 2)
+			alarmsAlert[++alarmsAlert.len] = list("name" = sanitize(alarm.name), "ref"= "\ref[alarm]", "danger" = danger_level)
+		else if(danger_level == 1)
+			alarmsDanger[++alarmsDanger.len] = list("name" = sanitize(alarm.name), "ref"= "\ref[alarm]", "danger" = danger_level)
+		else
+			alarms[++alarms.len] = list("name" = sanitize(alarm.name), "ref"= "\ref[alarm]", "danger" = danger_level)
+	
 	data["alarms"] = alarms
+	data["alarmsAlert"] = alarmsAlert
+	data["alarmsDanger"] = alarmsDanger
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if(!ui)

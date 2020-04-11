@@ -1,7 +1,9 @@
 /obj/machinery/portable_atmospherics
 	name = "atmoalter"
 	use_power = POWER_USE_OFF
-	var/datum/gas_mixture/air_contents
+	construct_state = /decl/machine_construction/default/panel_closed
+
+	var/datum/gas_mixture/air_contents = new
 
 	var/obj/machinery/atmospherics/portables_connector/connected_port
 	var/obj/item/weapon/tank/holding
@@ -15,8 +17,11 @@
 
 /obj/machinery/portable_atmospherics/New()
 	..()
-	ADD_SAVED_VAR(holding)
-	ADD_SKIP_EMPTY(holding)
+
+	air_contents.volume = volume
+	air_contents.temperature = T20C
+
+	return 1
 
 /obj/machinery/portable_atmospherics/Destroy()
 	QDEL_NULL(air_contents)
@@ -25,30 +30,20 @@
 
 /obj/machinery/portable_atmospherics/Initialize()
 	..()
-	if(!air_contents)
-		init_air_content()
 	return INITIALIZE_HINT_LATELOAD
 
 /obj/machinery/portable_atmospherics/LateInitialize()
-	. = ..()
 	var/obj/machinery/atmospherics/portables_connector/port = locate() in loc
 	if(port)
 		connect(port)
 		update_icon()
-
-// Override this to change the initial air content!
-//
-/obj/machinery/portable_atmospherics/proc/init_air_content()
-	air_contents = new
-	air_contents.volume = volume
-	air_contents.temperature = T20C
 
 /obj/machinery/portable_atmospherics/Process()
 	if(!connected_port) //only react when pipe_network will ont it do it for you
 		//Allow for reactions
 		air_contents.react()
 	else
-		queue_icon_update()
+		update_icon()
 
 /obj/machinery/portable_atmospherics/proc/StandardAirMix()
 	return list(
@@ -136,62 +131,31 @@
 					return
 			else
 				to_chat(user, "<span class='notice'>Nothing happens.</span>")
-				return
+				return ..()
 
 	else if (istype(W, /obj/item/device/scanner/gas))
 		return
 
-	return
+	return ..()
 
 /obj/machinery/portable_atmospherics/return_air()
 	return air_contents
 
 /obj/machinery/portable_atmospherics/powered
+	uncreated_component_parts = null
+	stat_immune = 0
+	use_power = POWER_USE_IDLE
 	var/power_rating
 	var/power_losses
 	var/last_power_draw = 0
-	var/obj/item/weapon/cell/cell
 
-/obj/machinery/portable_atmospherics/powered/Initialize()
+/obj/machinery/portable_atmospherics/powered/power_change()
 	. = ..()
-	if(!map_storage_loaded)
-		cell = make_cell()
+	if(. && (stat & NOPOWER))
+		update_use_power(POWER_USE_IDLE)
 
-//Override this
-/obj/machinery/portable_atmospherics/powered/proc/make_cell()
-	return null
-
-/obj/machinery/portable_atmospherics/powered/powered()
-	if(use_power) //using area power
-		return ..()
-	if(cell && cell.charge)
-		return 1
-	return 0
-
-/obj/machinery/portable_atmospherics/powered/attackby(obj/item/I, mob/user)
-	if(istype(I, /obj/item/weapon/cell))
-		if(cell)
-			to_chat(user, "There is already a power cell installed.")
-			return
-		if(!user.unEquip(I, src))
-			return
-		cell = I
-		user.visible_message("<span class='notice'>[user] opens the panel on \the [src] and inserts \the [I].</span>", "<span class='notice'>You open the panel on \the [src] and insert \the [I].</span>")
-		power_change()
-		return
-
-	if(isScrewdriver(I))
-		if(!cell)
-			to_chat(user, "<span class='warning'>There is no power cell installed.</span>")
-			return
-
-		user.visible_message("<span class='notice'>[user] opens the panel on \the [src] and removes \the [cell].</span>", "<span class='notice'>You open the panel on \the [src] and remove \the [cell].</span>")
-		cell.add_fingerprint(user)
-		cell.dropInto(loc)
-		cell = null
-		power_change()
-		return
-	..()
+/obj/machinery/portable_atmospherics/powered/components_are_accessible(path)
+	return panel_open
 
 /obj/machinery/portable_atmospherics/proc/log_open()
 	if(air_contents.gas.len == 0)
@@ -203,5 +167,10 @@
 			gases += ", [gas]"
 		else
 			gases = gas
-	log_admin("[usr] ([usr.ckey]) opened '[src.name]' containing [gases].")
-	message_admins("[usr] ([usr.ckey]) opened '[src.name]' containing [gases].")
+	log_and_message_admins("opened [src.name], containing [gases].")
+
+/obj/machinery/portable_atmospherics/powered/dismantle()
+	if(isturf(loc))
+		playsound(loc, 'sound/effects/spray.ogg', 10, 1, -3)
+		loc.assume_air(air_contents)
+	. = ..()

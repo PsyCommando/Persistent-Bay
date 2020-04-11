@@ -66,11 +66,17 @@
 
 #define RECOMMENDED_VERSION 512
 /world/New()
+
+	enable_debugger()
 	//set window title
 	name = "[server_name] - [GLOB.using_map.full_name]"
 
 	//logs
 	SetupLogs()
+	var/date_string = time2text(world.realtime, "YYYY/MM/DD")
+	href_logfile = file("data/logs/[date_string] hrefs.htm")
+	diary = file("data/logs/[date_string].log")
+	diary << "[log_end]\n[log_end]\nStarting up. (ID: [game_id]) [time2text(world.timeofday, "hh:mm.ss")][log_end]\n---------------------[log_end]"
 	changelog_hash = md5('html/changelog.html')					//used for telling if the changelog has changed recently
 
 	if(config && config.server_name != null && config.server_suffix && world.port > 0)
@@ -78,10 +84,12 @@
 		config.server_name += " #[(world.port % 1000) / 100]"
 
 	if(config && config.log_runtime)
-		log_world("Game [game_id] starting up at [time2text(world.timeofday, "hh:mm.ss")]")
+		var/runtime_log = file("data/logs/runtime/[date_string]_[time2text(world.timeofday, "hh:mm")]_[game_id].log")
+		runtime_log << "Game [game_id] starting up at [time2text(world.timeofday, "hh:mm.ss")]"
+		log = runtime_log // Note that, as you can see, this is misnamed: this simply moves world.log into the runtime log file.
 
 	if(byond_version < RECOMMENDED_VERSION)
-		log_world("Your server's byond version does not meet the recommended requirements for this server. Please update BYOND")
+		to_world_log("Your server's byond version does not meet the recommended requirements for this server. Please update BYOND")
 
 	callHook("startup")
 	//Emergency Fix
@@ -96,18 +104,13 @@
 #endif
 	Master.Initialize(10, FALSE)
 
-#ifdef UNIT_TEST
-	spawn(1)
-		initialize_unit_tests()
-#endif
-
 #undef RECOMMENDED_VERSION
 
 var/world_topic_spam_protect_ip = "0.0.0.0"
 var/world_topic_spam_protect_time = world.timeofday
 
 /world/Topic(T, addr, master, key)
-	game_log("TOPIC", "\"[T]\", from:[addr], master:[master], key:[key]")
+	diary << "TOPIC: \"[T]\", from:[addr], master:[master], key:[key][log_end]"
 
 	if (T == "ping")
 		var/x = 1
@@ -217,6 +220,11 @@ var/world_topic_spam_protect_time = world.timeofday
 			var/info = list()
 			info["name"] = S.name
 			info["key"] = S.key
+
+			if(istype(S, /mob/living/silicon/robot))
+				var/mob/living/silicon/robot/R = S
+				info["master"] = R.connected_ai?.name
+				info["sync"] = R.lawupdate
 
 			if(!S.laws)
 				info["laws"] = null
@@ -348,7 +356,7 @@ var/world_topic_spam_protect_time = world.timeofday
 		C.received_irc_pm = world.time
 		C.irc_admin = input["sender"]
 
-		sound_to(C, 'sound/effects/pleasant.ogg')
+		sound_to(C, 'sound/effects/adminhelp.ogg')
 		to_chat(C, message)
 
 		for(var/client/A in GLOB.admins)
@@ -482,13 +490,13 @@ var/world_topic_spam_protect_time = world.timeofday
 	var/list/Lines = file2list("data/mode.txt")
 	if(Lines.len)
 		if(Lines[1])
-			master_mode = Lines[1]
-			log_misc("Saved mode is '[master_mode]'")
+			SSticker.master_mode = Lines[1]
+			log_misc("Saved mode is '[SSticker.master_mode]'")
 
 /world/proc/save_mode(var/the_mode)
 	var/F = file("data/mode.txt")
 	fdel(F)
-	to_file(F, the_mode)
+	F << the_mode
 
 /hook/startup/proc/loadMOTD()
 	world.load_motd()
@@ -507,7 +515,6 @@ var/world_topic_spam_protect_time = world.timeofday
 
 /hook/startup/proc/loadMods()
 	world.load_mods()
-	world.load_mentors() // no need to write another hook.
 	return 1
 
 /world/proc/load_mods()
@@ -533,13 +540,36 @@ var/world_topic_spam_protect_time = world.timeofday
 
 /world/proc/update_status()
 	var/s = ""
-	if (config && config.hub_link)
-		s += "<a href='" + config.hub_link + "'>"
-	if (config && config.hub_name)
-		s += config.hub_name + "</a> "
-	if (config && config.hub_desc)
-		s += ("| " + config.hub_desc + "<br>")
+
+	if (config && config.server_name)
+		s += "<b>[config.server_name]</b> &#8212; "
+
+	s += "<b>[station_name()]</b>";
+	s += " ("
+	s += "<a href=\"https://persistent13.com/\">" //Change this to wherever you want the hub to link to.
+	s += "[game_version]"
+//	s += "Forums"  //Replace this with something else. Or ever better, delete it and uncomment the game version.
+	s += "</a>"
+	s += ")"
+
 	var/list/features = list()
+
+	if(SSticker.master_mode)
+		features += SSticker.master_mode
+	else
+		features += "<b>STARTING</b>"
+
+	if (!config.enter_allowed)
+		features += "closed"
+
+//	features += config.abandon_allowed ? "respawn" : "no respawn"
+//
+//	if (config && config.allow_vote_mode)
+//		features += "vote"
+//
+//	if (config && config.allow_ai)
+//		features += "AI allowed"
+
 	var/n = 0
 	for (var/mob/M in GLOB.player_list)
 		if (M.client)
@@ -557,43 +587,19 @@ var/world_topic_spam_protect_time = world.timeofday
 	if (features)
 		s += ": [jointext(features, ", ")]"
 
-	src.status = s
+	/* does this help? I do not know */
+	if (src.status != s)
+		src.status = s
 
-/world/proc/load_mentors()
-	if(config.admin_legacy_system)
-		var/text = file2text("config/mentors.txt")
-		if (!text)
-			error("Failed to load config/mentors.txt")
-		else
-			var/list/lines = splittext(text, "\n")
-			for(var/line in lines)
-				if (!line)
-					continue
-				if (copytext(line, 1, 2) == ";")
-					continue
-
-				var/title = "Mentor"
-				var/rights = admin_ranks[title]
-
-				var/ckey = copytext(line, 1, length(line)+1)
-				var/datum/admins/D = new /datum/admins(title, rights, ckey)
-				D.associate(GLOB.ckey_directory[ckey])
-
-#define WORLD_LOG_START(X) WRITE_FILE(GLOB.world_##X##_log, "\n\nStarting up round ID [game_id]. [time_stamp()]\n---------------------")
-#define WORLD_SETUP_LOG(X) GLOB.world_##X##_log = file("[GLOB.log_directory]/[#X]-[game_id].log") ; WORLD_LOG_START(X)
 /world/proc/SetupLogs()
-	GLOB.log_directory = LOGS_PATH_FOLDER_NOW
-	//WORLD_SETUP_LOG(runtime)
-	WORLD_SETUP_LOG(qdel)
-	WORLD_SETUP_LOG(attack)
-	if(config && config.log_runtime)
-		src.log = file(PATH_RUNTIME_LOG_NOW)
-	href_logfile = file(PATH_HREF_LOG_NOW)
-	diary = file(PATH_GAME_LOG_NOW)
-	WRITE_FILE(diary, "[log_end]\n[log_end]\nStarting up. (ID: [game_id]) [time2text(world.timeofday, "hh:mm.ss")][log_end]\n---------------------[log_end]")
+	GLOB.log_directory = "data/logs/[time2text(world.realtime, "YYYY/MM/DD")]/round-"
+	if(game_id)
+		GLOB.log_directory += "[game_id]"
+	else
+		GLOB.log_directory += "[replacetext(time_stamp(), ":", ".")]"
 
-#undef WORLD_SETUP_LOG
-#undef WORLD_LOG_START
+	GLOB.world_qdel_log = file("[GLOB.log_directory]/qdel.log")
+	WRITE_FILE(GLOB.world_qdel_log, "\n\nStarting up round ID [game_id]. [time_stamp()]\n---------------------")
 
 #define FAILED_DB_CONNECTION_CUTOFF 5
 var/failed_db_connections = 0
@@ -601,9 +607,9 @@ var/failed_old_db_connections = 0
 
 /hook/startup/proc/connectDB()
 	if(!setup_database_connection())
-		log_world("Your server failed to establish a connection with the feedback database.")
+		to_world_log("Your server failed to establish a connection with the feedback database.")
 	else
-		log_world("Feedback database connection established.")
+		to_world_log("Feedback database connection established.")
 	return 1
 
 proc/setup_database_connection()
@@ -626,8 +632,7 @@ proc/setup_database_connection()
 		failed_db_connections = 0	//If this connection succeeded, reset the failed connections counter.
 	else
 		failed_db_connections++		//If it failed, increase the failed connections counter.
-		log_world(dbcon.ErrorMsg())
-
+		to_world_log(dbcon.ErrorMsg())
 	return .
 
 //This proc ensures that the connection to the feedback database (global variable dbcon) is established
@@ -643,9 +648,9 @@ proc/establish_db_connection()
 
 /hook/startup/proc/connectOldDB()
 	if(!setup_old_database_connection())
-		log_world("Your server failed to establish a connection with the SQL database.")
+		to_world_log("Your server failed to establish a connection with the SQL database.")
 	else
-		log_world("SQL database connection established.")
+		to_world_log("SQL database connection established.")
 	return 1
 
 //These two procs are for the old database, while it's being phased out. See the tgstation.sql file in the SQL folder for more information.
@@ -669,7 +674,7 @@ proc/setup_old_database_connection()
 		failed_old_db_connections = 0	//If this connection succeeded, reset the failed connections counter.
 	else
 		failed_old_db_connections++		//If it failed, increase the failed connections counter.
-		log_world(dbcon.ErrorMsg())
+		to_world_log(dbcon.ErrorMsg())
 
 	return .
 
@@ -684,3 +689,8 @@ proc/establish_old_db_connection()
 		return 1
 
 #undef FAILED_DB_CONNECTION_CUTOFF
+
+/world/proc/enable_debugger()
+	var/dll = world.GetConfig("env", "EXTOOLS_DLL")
+	if (dll)
+		call(dll, "debug_initialize")()

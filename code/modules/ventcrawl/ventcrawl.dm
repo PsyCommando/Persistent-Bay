@@ -10,8 +10,11 @@ var/list/ventcrawl_machinery = list(
 	/obj/item/weapon/holder,
 	/obj/machinery/camera,
 	/mob/living/simple_animal/borer,
+	/obj/item/clothing/head/culthood,
+	/obj/item/clothing/suit/cultrobes,
 	/obj/item/weapon/book/tome,
 	/obj/item/weapon/paper/,
+	/obj/item/weapon/melee/cultblade
 	)
 
 /mob/living/var/list/icon/pipes_shown = list()
@@ -60,11 +63,6 @@ var/list/ventcrawl_machinery = list(
 		return TRUE
 	if(carried_item in list(l_hand,r_hand))
 		return carried_item.w_class <= ITEM_SIZE_NORMAL
-	return ..()
-
-/mob/living/simple_animal/spiderbot/is_allowed_vent_crawl_item(var/obj/item/carried_item)
-	if(carried_item in list(held_item, radio, connected_ai, cell, camera, lmi))
-		return 1
 	return ..()
 
 /mob/living/proc/ventcrawl_carry()

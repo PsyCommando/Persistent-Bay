@@ -10,19 +10,16 @@
 		slot_l_hand_str = "eng_helm",
 		slot_r_hand_str = "eng_helm",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 80,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_RESISTANT
+		)
+	max_pressure_protection = ENG_VOIDSUIT_MAX_PRESSURE
+	siemens_coefficient = 0.3
 
 /obj/item/clothing/suit/space/void/engineering
 	name = "engineering voidsuit"
@@ -32,19 +29,16 @@
 		slot_l_hand_str = "eng_voidsuit",
 		slot_r_hand_str = "eng_voidsuit",
 	)
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 80,
-		DAM_STUN 	= 0)
+	max_pressure_protection = ENG_VOIDSUIT_MAX_PRESSURE
+	siemens_coefficient = 0.3
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_RESISTANT
+		)
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/toolbox,/obj/item/weapon/storage/briefcase/inflatable,/obj/item/device/t_scanner,/obj/item/weapon/rcd)
 
 /obj/item/clothing/suit/space/void/engineering/New()
@@ -65,20 +59,16 @@
 		slot_l_hand_str = "mining_helm",
 		slot_r_hand_str = "mining_helm",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 40,
-		DAM_STUN 	= 2)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_RESISTANT,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
 	light_overlay = "helmet_light_dual"
+	max_pressure_protection = ENG_VOIDSUIT_MAX_PRESSURE
 
 /obj/item/clothing/suit/space/void/mining
 	icon_state = "rig-mining"
@@ -88,24 +78,19 @@
 		slot_l_hand_str = "mining_voidsuit",
 		slot_r_hand_str = "mining_voidsuit",
 	)
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 40,
-		DAM_STUN 	= 2)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_RESISTANT,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
+	max_pressure_protection = ENG_VOIDSUIT_MAX_PRESSURE
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/stack/flag,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/ore,/obj/item/device/t_scanner,/obj/item/weapon/pickaxe, /obj/item/weapon/rcd)
 
 /obj/item/clothing/suit/space/void/mining/prepared
 	helmet = /obj/item/clothing/head/helmet/space/void/mining
-	boots = /obj/item/clothing/shoes/magboots
 
 //Medical
 /obj/item/clothing/head/helmet/space/void/medical
@@ -117,19 +102,13 @@
 		slot_l_hand_str = "medical_helm",
 		slot_r_hand_str = "medical_helm",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 20,
-		DAM_PIERCE 	= 10,
-		DAM_CUT 	= 20,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 5,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 60,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SMALL
+		)
 
 /obj/item/clothing/suit/space/void/medical
 	icon_state = "rig-medical"
@@ -140,19 +119,13 @@
 		slot_r_hand_str = "medical_voidsuit",
 	)
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/firstaid,/obj/item/device/scanner/health,/obj/item/stack/medical)
-	armor  = list(
-		DAM_BLUNT 	= 20,
-		DAM_PIERCE 	= 10,
-		DAM_CUT 	= 20,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 5,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 60,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SMALL
+		)
 
 /obj/item/clothing/suit/space/void/medical/prepared
 	helmet = /obj/item/clothing/head/helmet/space/void/medical
@@ -168,20 +141,15 @@
 		slot_l_hand_str = "sec_helm",
 		slot_r_hand_str = "sec_helm",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 65,
-		DAM_PIERCE 	= 55,
-		DAM_CUT 	= 65,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 5)
-	siemens_coefficient = 0.7
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
+	siemens_coefficient = 0.3
 	light_overlay = "helmet_light_dual"
 
 /obj/item/clothing/suit/space/void/security
@@ -192,21 +160,16 @@
 		slot_l_hand_str = "sec_voidsuit",
 		slot_r_hand_str = "sec_voidsuit",
 	)
-	armor  = list(
-		DAM_BLUNT 	= 65,
-		DAM_PIERCE 	= 55,
-		DAM_CUT 	= 65,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 5)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
 	allowed = list(/obj/item/weapon/gun,/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/melee/baton)
-	siemens_coefficient = 0.7
+	siemens_coefficient = 0.3
 
 /obj/item/clothing/suit/space/void/security/prepared
 	helmet = /obj/item/clothing/head/helmet/space/void/security
@@ -222,21 +185,17 @@
 		slot_l_hand_str = "atmos_helm",
 		slot_r_hand_str = "atmos_helm",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 50,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SMALL
+		)
 	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
 	light_overlay = "helmet_light_dual"
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
 
 /obj/item/clothing/suit/space/void/atmos
 	desc = "A durable voidsuit with advanced temperature-regulation systems as well as minor radiation protection. Well worth the price."
@@ -246,20 +205,16 @@
 		slot_l_hand_str = "atmos_voidsuit",
 		slot_r_hand_str = "atmos_voidsuit",
 	)
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 50,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SMALL
+		)
 	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/toolbox,/obj/item/weapon/storage/briefcase/inflatable,/obj/item/device/t_scanner,/obj/item/weapon/rcd)
 
 /obj/item/clothing/suit/space/void/atmos/prepared
@@ -274,38 +229,28 @@
 	desc = "A heavy, radiation-shielded voidsuit helmet with a surprisingly comfortable interior."
 	icon_state = "rig0-engineeringalt"
 	item_state = "engalt_helm"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 45,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 100,
-		DAM_STUN 	= 1)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SHIELDED
+		)
 	light_overlay = "helmet_light_dual"
 
 /obj/item/clothing/suit/space/void/engineering/alt
 	name = "reinforced engineering voidsuit"
 	desc = "A bulky industrial voidsuit. It's a few generations old, but a reliable design and radiation shielding make up for the lack of climate control."
 	icon_state = "rig-engineeringalt"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 45,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 100,
-		DAM_STUN 	= 1)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SHIELDED
+		)
 
 /obj/item/clothing/suit/space/void/engineering/alt/New()
 	..()
@@ -317,85 +262,46 @@
 
 //Mining
 /obj/item/clothing/head/helmet/space/void/mining/alt
-	name = "reinforced mining voidsuit helmet"
-	desc = "An armored voidsuit helmet. Someone must have thought they were pretty cool when they designed a mohawk on it."
+	name = "frontier mining voidsuit helmet"
+	desc = "An armored voidsuit helmet. Someone must have through they were pretty cool when they painted a mohawk on it."
 	icon_state = "rig0-miningalt"
 	item_state = "miningalt_helm"
-	armor  = list(
-		DAM_BLUNT 	= 65,
-		DAM_PIERCE 	= 55,
-		DAM_CUT 	= 65,
-		DAM_BULLET 	= 20,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 30,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 40,
-		DAM_STUN 	= 5)
 
 /obj/item/clothing/suit/space/void/mining/alt
+	name = "frontier mining voidsuit"
 	icon_state = "rig-miningalt"
-	name = "reinforced mining voidsuit"
-	desc = "A heavily armored prospecting voidsuit. What it lacks in comfort it makes up for in armor plating and reliability."
-	armor  = list(
-		DAM_BLUNT 	= 65,
-		DAM_PIERCE 	= 55,
-		DAM_CUT 	= 65,
-		DAM_BULLET 	= 20,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 30,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 40,
-		DAM_STUN 	= 5)
+	desc = "A cheap prospecting voidsuit. What it lacks in comfort it makes up for in armor plating and street cred."
 
 /obj/item/clothing/suit/space/void/mining/alt/prepared
 	helmet = /obj/item/clothing/head/helmet/space/void/mining/alt
-	boots = /obj/item/clothing/shoes/magboots
 
 //Medical
 /obj/item/clothing/head/helmet/space/void/medical/alt
 	name = "streamlined medical voidsuit helmet"
-	desc = "A lightweight, radiation-shielded voidsuit helmet trimmed in a fetching blue."
+	desc = "A trendy, lightly radiation-shielded voidsuit helmet trimmed in a fetching blue."
 	icon_state = "rig0-medicalalt"
 	item_state = "medicalalt_helm"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 15,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 5,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 70,
-		DAM_STUN 	= 1)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_RESISTANT
+		)
 	light_overlay = "helmet_light_dual_green"
 
 /obj/item/clothing/suit/space/void/medical/alt
-	icon_state = "rig-medicalalt"
 	name = "streamlined medical voidsuit"
-	desc = "A very sleekly designed voidsuit, featuring the latest in radiation shielding technology, without sacrificing comfort or style."
+	icon_state = "rig-medicalalt"
+	desc = "A more recent and stylish model of Vey-Med voidsuit, with a minor upgrade to radiation shielding."
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/firstaid,/obj/item/device/scanner/health,/obj/item/stack/medical)
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 15,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 5,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 70,
-		DAM_STUN 	= 1)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		laser = ARMOR_LASER_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_RESISTANT
+		)
 
 /obj/item/clothing/suit/space/void/medical/alt/New()
 	..()
@@ -411,37 +317,25 @@
 	desc = "A somewhat tacky voidsuit helmet, a fact mitigated by heavy armor plating."
 	icon_state = "rig0-secalt"
 	item_state = "secalt_helm"
-	armor  = list(
-		DAM_BLUNT 	= 70,
-		DAM_PIERCE 	= 60,
-		DAM_CUT 	= 70,
-		DAM_BULLET 	= 40,
-		DAM_LASER 	= 45,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 5)
+	armor = list(
+		melee = ARMOR_MELEE_VERY_HIGH,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR)
 
 /obj/item/clothing/suit/space/void/security/alt
-	icon_state = "rig-secalt"
 	name = "riot security voidsuit"
+	icon_state = "rig-secalt"
 	desc = "A heavily armored voidsuit, designed to intimidate people who find black intimidating. Surprisingly slimming."
-	armor  = list(
-		DAM_BLUNT 	= 70,
-		DAM_PIERCE 	= 60,
-		DAM_CUT 	= 70,
-		DAM_BULLET 	= 40,
-		DAM_LASER 	= 45,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 5)
+	armor = list(
+		melee = ARMOR_MELEE_VERY_HIGH,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR)
 	allowed = list(/obj/item/weapon/gun,/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/melee/baton)
 
 /obj/item/clothing/suit/space/void/security/alt/prepared
@@ -450,141 +344,58 @@
 
 //Atmospherics
 /obj/item/clothing/head/helmet/space/void/atmos/alt
-	desc = "A voidsuit helmet plated with an expensive heat and radiation resistant ceramic."
 	name = "heavy duty atmospherics voidsuit helmet"
+	desc = "A voidsuit helmet plated with an expensive heat and radiation resistant ceramic."
 	icon_state = "rig0-atmosalt"
 	item_state = "atmosalt_helm"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 25,
-		DAM_ENERGY 	= 30,
-		DAM_BURN 	= 80,
-		DAM_BOMB 	= 45,
-		DAM_EMP 	= 20,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 55,
-		DAM_STUN 	= 1)
-	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
 	light_overlay = "hardhat_light"
 
 /obj/item/clothing/suit/space/void/atmos/alt
+	name = "heavy duty atmos voidsuit"
 	desc = "An expensive voidsuit, rated to withstand extreme heat and even minor radiation without exceeding room temperature within."
 	icon_state = "rig-atmosalt"
-	name = "heavy duty atmos voidsuit"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 25,
-		DAM_ENERGY 	= 30,
-		DAM_BURN 	= 80,
-		DAM_BOMB 	= 45,
-		DAM_EMP 	= 20,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 55,
-		DAM_STUN 	= 1)
-	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
 
 /obj/item/clothing/suit/space/void/atmos/alt/prepared
 	helmet = /obj/item/clothing/head/helmet/space/void/atmos/alt
 	boots = /obj/item/clothing/shoes/magboots
 
-//Exploration
-/obj/item/clothing/head/helmet/space/void/exploration
-	name = "purple voidsuit helmet"
-	desc = "A lightweight helmet designed to accommodate only the most opulent space explorers."
-	icon_state = "helm_explorer"
-	item_state = "helm_explorer"
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 25,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 20,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
-	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
-	light_overlay = "explorer_light"
-
-/obj/item/clothing/suit/space/void/exploration
-	name = "purple voidsuit"
-	desc = "A lightweight, general use voidsuit padded with soft cushioning to provide maximum comfort in the depths of space."
-	icon_state = "void_explorer"
-	item_state = "void_explorer"
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 25,
-		DAM_ENERGY 	= 20,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 20,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
-	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
-	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/stack/flag,/obj/item/device/scanner/health,/obj/item/device/gps,/obj/item/weapon/pinpointer/radio,/obj/item/device/radio/beacon,/obj/item/weapon/material/hatchet/machete,/obj/item/weapon/shovel)
-
-/obj/item/clothing/suit/space/void/exploration/prepared
-	helmet = /obj/item/clothing/head/helmet/space/void/exploration
-	boots = /obj/item/clothing/shoes/magboots
-
 //Misc
 /obj/item/clothing/head/helmet/space/void/engineering/salvage
-	name = "salvaged voidsuit helmet"
-	desc = "A hand-me-down salvage voidsuit helmet. It has obviously had a lot of repair work done to it, and is fitted with radiation shielding."
+	name = "salvage voidsuit helmet"
+	desc = "A heavily modified salvage voidsuit helmet. It has been fitted with radiation-resistant plating."
 	icon_state = "rig0-salvage"
 	item_state = "salvage_helm"
 	item_state_slots = list(
 		slot_l_hand_str = "eng_helm",
 		slot_r_hand_str = "eng_helm",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 25,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 25,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 15,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_RESISTANT
+		)
 
 /obj/item/clothing/suit/space/void/engineering/salvage
-	name = "salvaged voidsuit"
-	desc = "A hand-me-down salvage voidsuit. It has obviously had a lot of repair work done to it, and is fitted with radiation shielding."
+	name = "salvage voidsuit"
+	desc = "A hand-me-down salvage voidsuit. It has obviously had a lot of repair work done to its radiation shielding."
 	icon_state = "rig-salvage"
 	item_state_slots = list(
 		slot_l_hand_str = "eng_voidsuit",
 		slot_r_hand_str = "eng_voidsuit",
 	)
-	armor  = list(
-		DAM_BLUNT 	= 25,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 25,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 15,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_RESISTANT
+		)
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/toolbox,/obj/item/weapon/storage/briefcase/inflatable,/obj/item/device/t_scanner,/obj/item/weapon/rcd)
 
 /obj/item/clothing/suit/space/void/engineering/salvage/prepared
@@ -593,45 +404,30 @@
 
 //Pilot
 /obj/item/clothing/head/helmet/space/void/pilot
-	desc = "A general use voidsuit helmet for space exploration."
-	name = "red voidsuit helmet"
+	desc = "An atmos resistant helmet for space and planet exploration."
+	name = "pilot voidsuit helmet"
 	icon_state = "rig0_pilot"
 	item_state = "pilot_helm"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
-	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SMALL
+		)
 	light_overlay = "helmet_light_dual"
 
 /obj/item/clothing/suit/space/void/pilot
-	desc = "A general use voidsuit for space exploration."
+	desc = "An atmos resistant voidsuit for space and planet exploration."
 	icon_state = "rig-pilot"
-	item_state = "rig-pilot"
-	name = "red voidsuit"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
-	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	name = "pilot voidsuit"
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SMALL
+		)
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/toolbox,/obj/item/weapon/storage/briefcase/inflatable,/obj/item/device/t_scanner,/obj/item/weapon/rcd)
 
 /obj/item/clothing/suit/space/void/pilot/prepared

@@ -3,9 +3,6 @@
 /obj/item/weapon/rcd
 	name = "rapid construction device"
 	desc = "Small, portable, and far, far heavier than it looks, this gun-shaped device has a port into which one may insert compressed matter cartridges."
-	description_info = "On use, this device will toggle between various types of structures (or their removal). You can examine it to see its current mode. It must be loaded with compressed matter cartridges, which can be obtained from an autolathe. Click an adjacent tile to use the device."
-	description_fluff = "Advents in material printing and synthesis technology have produced everyday miracles, such as the RCD, which in certain industries has single-handedly put entire construction crews out of a job."
-	description_antag = "RCDs can be incredibly dangerous in the wrong hands. Use them to swiftly block off corridors, or instantly breach the ship wherever you want."
 	icon = 'icons/obj/tools.dmi'
 	icon_state = "rcd"
 	opacity = 0
@@ -47,7 +44,7 @@
 /obj/item/weapon/rcd/proc/can_use(var/mob/user,var/turf/T)
 	return (user.Adjacent(T) && user.get_active_hand() == src && !user.incapacitated())
 
-/obj/item/weapon/rcd/examine(var/user)
+/obj/item/weapon/rcd/examine(mob/user)
 	. = ..()
 	if(src.type == /obj/item/weapon/rcd && loc == user)
 		to_chat(user, "The current mode is '[work_mode]'")
@@ -58,7 +55,7 @@
 	src.spark_system = new /datum/effect/effect/system/spark_spread
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
-	queue_icon_update()	//Initializes the ammo counter
+	update_icon()	//Initializes the ammo counter
 
 /obj/item/weapon/rcd/Destroy()
 	qdel(spark_system)
@@ -79,8 +76,6 @@
 		update_icon()
 		return
 
-	//Rapid Crossbow Device crafting memes
-
 	if(isScrewdriver(W))
 		crafting = !crafting
 		if(!crafting)
@@ -90,20 +85,6 @@
 		src.add_fingerprint(user)
 		return
 
-	if((crafting) && (istype(W,/obj/item/weapon/crossbowframe)))
-		var/obj/item/weapon/crossbowframe/F = W
-		if(F.buildstate == 5)
-			if(!user.unEquip(src))
-				return
-			qdel(F)
-			var/obj/item/weapon/gun/launcher/crossbow/rapidcrossbowdevice/CB = new(get_turf(user))
-			forceMove(CB)
-			CB.stored_matter = src.stored_matter
-			add_fingerprint(user)
-			return
-		else
-			to_chat(user, "<span class='notice'>You need to fully assemble the crossbow frame first!</span>")
-			return
 	..()
 
 /obj/item/weapon/rcd/attack_self(mob/user)
@@ -152,9 +133,9 @@
 	matter = list(MATERIAL_STEEL = 15000,MATERIAL_GLASS = 7500)
 	var/remaining = 30
 
-/obj/item/weapon/rcd_ammo/examine(var/mob/user)
-	. = ..(user,1)
-	if(.)
+/obj/item/weapon/rcd_ammo/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1)
 		to_chat(user, "<span class='notice'>It has [remaining] unit\s of matter left.</span>")
 
 /obj/item/weapon/rcd_ammo/large
@@ -187,12 +168,15 @@
 
 /obj/item/weapon/rcd/mounted/useResource(var/amount, var/mob/user)
 	var/cost = amount*70 //Arbitary number that hopefully gives it as many uses as a plain RCD.
+	var/obj/item/weapon/cell/cell
 	if(istype(loc,/obj/item/rig_module))
 		var/obj/item/rig_module/module = loc
 		if(module.holder && module.holder.cell)
-			if(module.holder.cell.charge >= cost)
-				module.holder.cell.use(cost)
-				return 1
+			cell = module.holder.cell
+	else if(loc) cell = loc.get_cell()
+	if(cell && cell.charge >= cost)
+		cell.use(cost)
+		return 1
 	return 0
 
 /obj/item/weapon/rcd/mounted/attackby()

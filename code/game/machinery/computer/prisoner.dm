@@ -6,8 +6,7 @@
 	icon_keyboard = "security_key"
 	icon_screen = "explosive"
 	light_color = "#a91515"
-	req_access = list(core_access_security_programs)
-	circuit = /obj/item/weapon/circuitboard/prisoner
+	req_access = list(access_armory)
 	var/id = 0.0
 	var/temp = null
 	var/status = 0
@@ -56,7 +55,7 @@
 				dat += "********************************<BR>"
 			dat += "<HR><A href='?src=\ref[src];lock=1'>Lock Console</A>"
 
-		user << browse(dat, "window=computer;size=400x500")
+		show_browser(user, dat, "window=computer;size=400x500")
 		onclose(user, "computer")
 		return
 

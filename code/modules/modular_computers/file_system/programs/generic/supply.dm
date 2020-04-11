@@ -20,7 +20,7 @@
 	..()
 	var/datum/nano_module/supply/SNM = NM
 	if(istype(SNM))
-		SNM.emagged = computer_emagged
+		SNM.emagged = computer.emagged()
 		if(SNM.notifications_enabled)
 			if(SSsupply.requestlist.len)
 				ui_header = "supply_new_order.gif"
@@ -33,7 +33,7 @@
 
 /datum/nano_module/supply
 	name = "Supply Management program"
-	var/screen = 1		// 0: Ordering menu, 1: Statistics 2: Shuttle control, 3: Orders menu
+	var/screen = 1		// 1: Ordering menu, 2: Statistics, 3: Shuttle control, 4: Orders menu
 	var/selected_category
 	var/list/category_names = list()
 	var/list/category_contents = list()
@@ -47,7 +47,7 @@
 
 /datum/nano_module/supply/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, state = GLOB.default_state)
 	var/list/data = host.initial_data()
-	var/is_admin = check_access(user, access_cargo)
+	var/is_admin = check_access(user, admin_access)
 	var/decl/security_state/security_state = decls_repository.get_decl(GLOB.using_map.security_state)
 	if(!LAZYLEN(category_names) || !LAZYLEN(category_contents) || current_security_level != security_state.current_security_level || emagged_memory != emagged )
 		generate_categories()
@@ -148,7 +148,7 @@
 	if(href_list["order"])
 		clear_order_contents()
 		var/decl/hierarchy/supply_pack/P = locate(href_list["order"]) in SSsupply.master_supply_list
-		if(!istype(P) || P.is_category())
+		if(!istype(P))
 			return 1
 
 		if(P.hidden && !emagged)
@@ -203,7 +203,7 @@
 				shuttle.launch(user)
 		else
 			shuttle.launch(user)
-			var/datum/radio_frequency/frequency = radio_controller.return_frequency(STATUS_FREQ)
+			var/datum/radio_frequency/frequency = radio_controller.return_frequency(1435)
 			if(!frequency)
 				return
 
@@ -366,10 +366,10 @@
 		))
 
 /datum/nano_module/supply/proc/can_print()
-	var/obj/item/modular_computer/MC = nano_host()
-	if(!istype(MC) || !istype(MC.nano_printer))
-		return 0
-	return 1
+	var/datum/extension/interactive/ntos/os = get_extension(nano_host(), /datum/extension/interactive/ntos)
+	if(os)
+		return os.has_component(PART_PRINTER)
+	return 0
 
 /datum/nano_module/supply/proc/print_order(var/datum/supply_order/O, var/mob/user)
 	if(!O)

@@ -1,3 +1,14 @@
+/obj/item/weapon/stock_parts/circuitboard/antibodyanalyser
+	name = T_BOARD("Antibody Analyzer")
+	build_path = /obj/machinery/disease2/antibodyanalyser
+	board_type = "machine"
+	origin_tech = list(TECH_DATA = 3, TECH_BIO = 3)
+	req_components = list(
+		/obj/item/weapon/stock_parts/computer/hard_drive/portable = 1,
+		/obj/item/weapon/stock_parts/scanning_module = 1,
+		/obj/item/weapon/stock_parts/console_screen = 1,
+		)
+
 /obj/machinery/disease2/antibodyanalyser
 	name = "antibody analyser"
 	desc = "An advanced machine that analyses pure antibody samples and stores the structure of them on the ExoNet in exchange for cargo points."
@@ -5,7 +16,6 @@
 	icon_state = "analyser"
 	anchored = 1
 	density = 1
-	circuit_type = /obj/item/weapon/circuitboard/antibodyanalyser
 
 	var/scanning = 0
 	var/list/known_antibodies = list()
@@ -48,11 +58,7 @@
 		icon_state = "analyser"
 
 /obj/machinery/disease2/antibodyanalyser/attackby(var/obj/I as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, I))
-		return 1
-	else if(default_deconstruction_crowbar(user, I))
-		return 1
-	else if(istype(I,/obj/item/weapon/reagent_containers))
+	if(istype(I,/obj/item/weapon/reagent_containers))
 		if(!container && user.unEquip(I))
 			container = I
 			I.forceMove(src)

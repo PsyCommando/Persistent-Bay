@@ -3,51 +3,44 @@
 /obj/item/clothing/suit/space/vox
 	w_class = ITEM_SIZE_NORMAL
 	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/melee/energy/sword,/obj/item/weapon/handcuffs,/obj/item/weapon/tank)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR, 
+		bullet = ARMOR_BALLISTIC_PISTOL, 
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED, 
+		bio = ARMOR_BIO_SMALL, 
+		rad = ARMOR_RAD_MINOR
+		)
 	siemens_coefficient = 0.6
 	heat_protection = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
 	max_heat_protection_temperature = SPACE_SUIT_MAX_HEAT_PROTECTION_TEMPERATURE
 	species_restricted = list(SPECIES_VOX, SPECIES_VOX_ARMALIS)
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 30,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 2)
 
 /obj/item/clothing/suit/space/vox/New()
 	..()
 	slowdown_per_slot[slot_wear_suit] = 1
 
 /obj/item/clothing/head/helmet/space/vox
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR, 
+		bullet = ARMOR_BALLISTIC_PISTOL, 
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED, 
+		bio = ARMOR_BIO_SMALL, 
+		rad = ARMOR_RAD_MINOR
+		)
 	siemens_coefficient = 0.6
-	item_flags = ITEM_FLAG_STOPPRESSUREDAMAGE
+	item_flags = 0
 	flags_inv = 0
 	species_restricted = list(SPECIES_VOX, SPECIES_VOX_ARMALIS)
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 30,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 0)
 
 /obj/item/clothing/head/helmet/space/vox/pressure
 	name = "alien helmet"
 	icon_state = "vox-pressure"
-	desc = "Hey, wasn't this a prop in \'The Abyss\'?"
+	desc = "A huge, armoured, pressurized helmet. Looks like an ancient human diving suit."
+	light_overlay = "invis_light"
 
 /obj/item/clothing/suit/space/vox/pressure
 	name = "alien pressure suit"
@@ -57,7 +50,8 @@
 /obj/item/clothing/head/helmet/space/vox/carapace
 	name = "alien visor"
 	icon_state = "vox-carapace"
-	desc = "A glowing visor, perhaps stolen from a depressed Cylon."
+	desc = "A glowing visor. The light slowly pulses, and seems to follow you."
+	light_overlay = "invis_light"
 
 /obj/item/clothing/suit/space/vox/carapace
 	name = "alien carapace armour"
@@ -68,6 +62,7 @@
 	name = "alien stealth helmet"
 	icon_state = "vox-stealth"
 	desc = "A smoothly contoured, matte-black alien helmet."
+	light_overlay = "invis_light"
 
 /obj/item/clothing/suit/space/vox/stealth
 	name = "alien stealth suit"
@@ -78,6 +73,7 @@
 	name = "alien goggled helmet"
 	icon_state = "vox-medic"
 	desc = "An alien helmet with enormous goggled lenses."
+	light_overlay = "invis_light"
 
 /obj/item/clothing/suit/space/vox/medic
 	name = "alien armour"
@@ -152,7 +148,7 @@
 		canremove = 1
 
 /obj/item/clothing/shoes/magboots/vox/examine(mob/user)
-	. = ..(user)
+	. = ..()
 	if (magpulse)
 		to_chat(user, "It would be hard to take these off without relaxing your grip first.")//theoretically this message should only be seen by the wearer when the claws are equipped.
 

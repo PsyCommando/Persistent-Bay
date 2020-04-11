@@ -5,7 +5,7 @@
 	icon_state = "sliver1"
 	randpixel = 8
 	w_class = ITEM_SIZE_TINY
-	sharpness = 1
+	sharp = 1
 	var/datum/geosample/geological_data
 
 /obj/item/weapon/rocksliver/New()
@@ -23,14 +23,6 @@
 
 /datum/geosample/New(var/turf/simulated/mineral/container)
 	UpdateTurf(container)
-	ADD_SAVED_VAR(age)
-	ADD_SAVED_VAR(age_thousand)
-	ADD_SAVED_VAR(age_million)
-	ADD_SAVED_VAR(age_billion)
-	ADD_SAVED_VAR(artifact_id)
-	ADD_SAVED_VAR(artifact_distance)
-	ADD_SAVED_VAR(source_mineral)
-	ADD_SAVED_VAR(find_presence)
 
 /datum/geosample/proc/UpdateTurf(var/turf/simulated/mineral/container)
 	if(!istype(container))
@@ -98,8 +90,9 @@
 	var/num_stored_bags = 10
 	var/obj/item/weapon/evidencebag/filled_bag
 
-/obj/item/device/core_sampler/examine(var/mob/user)
-	if(..(user, 2))
+/obj/item/device/core_sampler/examine(mob/user, distance)
+	. = ..(user)
+	if(distance <= 2)
 		to_chat(user, "<span class='notice'>Used to extract geological core samples - this one is [sampled_turf ? "full" : "empty"], and has [num_stored_bags] bag[num_stored_bags != 1 ? "s" : ""] remaining.</span>")
 
 /obj/item/device/core_sampler/attackby(var/obj/item/I, var/mob/living/user)

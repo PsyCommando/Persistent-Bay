@@ -2,23 +2,24 @@
 	name = "computer"
 	icon = 'icons/obj/computer.dmi'
 	icon_state = "computer"
-	density = TRUE
-	anchored = TRUE
-	use_power = POWER_USE_IDLE
+	density = 1
+	anchored = 1.0
 	idle_power_usage = 300
 	active_power_usage = 300
-	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
-	clicksound = "keyboard"
-	frame_type = /obj/structure/computerframe
+	construct_state = /decl/machine_construction/default/panel_closed/computer
+	uncreated_component_parts = null
+	stat_immune = 0
+	frame_type = /obj/machinery/constructable_frame/computerframe/deconstruct
+	var/processing = 0
 
-	var/circuit = null //The path to the circuit board type. If circuit==null, the computer can't be disassembled.
-	var/processing = FALSE
 	var/icon_keyboard = "generic_key"
 	var/icon_screen = "generic"
 	var/light_max_bright_on = 0.2
 	var/light_inner_range_on = 0.1
 	var/light_outer_range_on = 2
 	var/overlay_layer
+	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
+	clicksound = "keyboard"
 
 /obj/machinery/computer/New()
 	overlay_layer = layer
@@ -26,12 +27,54 @@
 
 /obj/machinery/computer/Initialize()
 	. = ..()
-	power_change()
-	queue_icon_update()
+	update_icon()
+
+/obj/machinery/computer/emp_act(severity)
+	if(prob(20/severity)) set_broken(TRUE)
+	..()
+
+/obj/machinery/computer/ex_act(severity)
+	switch(severity)
+		if(1.0)
+			qdel(src)
+			return
+		if(2.0)
+			if (prob(25))
+				qdel(src)
+				return
+			if (prob(50))
+				for(var/x in verbs)
+					verbs -= x
+				set_broken(TRUE)
+		if(3.0)
+			if (prob(25))
+				for(var/x in verbs)
+					verbs -= x
+				set_broken(TRUE)
+
+/obj/machinery/computer/bullet_act(var/obj/item/projectile/Proj)
+	if(prob(Proj.get_structure_damage()))
+		set_broken(TRUE)
+	..()
 
 /obj/machinery/computer/on_update_icon()
 	overlays.Cut()
-	if(!ispowered() || isoff())
+	icon = initial(icon)
+	icon_state = initial(icon_state)
+
+	if(reason_broken & MACHINE_BROKEN_NO_PARTS)
+		set_light(0)
+		icon = 'icons/obj/computer.dmi'
+		icon_state = "wired"
+		var/screen = get_component_of_type(/obj/item/weapon/stock_parts/console_screen)
+		var/keyboard = get_component_of_type(/obj/item/weapon/stock_parts/keyboard)
+		if(screen)
+			overlays += "comp_screen"
+		if(keyboard)
+			overlays += icon_keyboard ? "[icon_keyboard]_off" : "keyboard"
+		return
+
+	if(stat & NOPOWER)
 		set_light(0)
 		if(icon_keyboard)
 			overlays += image(icon,"[icon_keyboard]_off", overlay_layer)
@@ -39,11 +82,17 @@
 	else
 		set_light(light_max_bright_on, light_inner_range_on, light_outer_range_on, 2, light_color)
 
-	if(isbroken())
+	if(stat & BROKEN)
 		overlays += image(icon,"[icon_state]_broken", overlay_layer)
 	else
-		overlays += image(icon,icon_screen, overlay_layer)
+		overlays += get_screen_overlay()
 
+	overlays += get_keyboard_overlay()
+
+/obj/machinery/computer/proc/get_screen_overlay()
+	return image(icon,icon_screen, overlay_layer)
+
+/obj/machinery/computer/proc/get_keyboard_overlay()
 	if(icon_keyboard)
 		overlays += image(icon, icon_keyboard, overlay_layer)
 
@@ -52,35 +101,12 @@
 	text = replacetext(text, "\n", "<BR>")
 	return text
 
-/obj/machinery/computer/attackby(var/obj/item/weapon/tool/I, var/mob/user)
-	if(isScrewdriver(I) && circuit)
-		to_chat(user, SPAN_NOTICE("You begin disassembling the computer monitor.."))
-		if(I.use_tool(user, src, 20))
-			to_chat(user, SPAN_NOTICE("You disconnect the monitor."))
-			dismantle()
-		return TRUE
-	return ..()
-
-
-/obj/machinery/computer/dismantle()
-	var/obj/structure/computerframe/A = new frame_type(src.loc)
-	var/obj/item/weapon/circuitboard/M = new circuit(A)
-	A.set_dir(dir)
-	A.circuit = M
-	A.anchored = TRUE
-	for (var/obj/C in src)
-		C.dropInto(src.loc)
-	if (src.isbroken())
-		to_chat(usr, SPAN_NOTICE("The broken glass falls out."))
-		new /obj/item/weapon/material/shard(src.loc)
-		A.state = 3
-		A.icon_state = "3"
+/obj/machinery/computer/dismantle(mob/user)
+	if(stat & BROKEN)
+		to_chat(user, "<span class='notice'>The broken glass falls out.</span>")
+		for(var/obj/item/weapon/stock_parts/console_screen/screen in component_parts)
+			qdel(screen)
+			new /obj/item/weapon/material/shard(loc)
 	else
-		A.state = 4
-		A.icon_state = "4"
-	M.deconstruct(src)
-	qdel(src)
-
-
-/obj/machinery/computer/attack_ghost(var/mob/ghost)
-	attack_hand(ghost)
+		to_chat(user, "<span class='notice'>You disconnect the monitor.</span>")
+	return ..()

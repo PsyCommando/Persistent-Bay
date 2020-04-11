@@ -2,10 +2,9 @@
 	name = "electronic cigarette"
 	desc = "Device with modern approach to smoking."
 	icon = 'icons/obj/ecig.dmi'
-	matter = list(MATERIAL_STEEL = 200, MATERIAL_GLASS = 50)
 	var/active = 0
-	var/obj/item/weapon/cell/device/cigcell = null	//cell slot empty by default
-	var/cartridge_type = null	//empty by default
+	var/obj/item/weapon/cell/cigcell
+	var/cartridge_type = /obj/item/weapon/reagent_containers/ecig_cartridge/med_nicotine
 	var/obj/item/weapon/reagent_containers/ecig_cartridge/ec_cartridge
 	var/cell_type = /obj/item/weapon/cell/device/standard
 	w_class = ITEM_SIZE_TINY
@@ -17,37 +16,19 @@
 	item_state = "ecigoff"
 	var/icon_off
 	var/icon_empty
-	var/power_usage = 112	//450 = 1% per second on 25Wh device cells, which would be exactly enough to process a 20 unit cartridge
+	var/power_usage = 450 //value for simple ecig, enough for about 1 cartridge, in JOULES!
 	var/ecig_colors = list(null, COLOR_DARK_GRAY, COLOR_RED_GRAY, COLOR_BLUE_GRAY, COLOR_GREEN_GRAY, COLOR_PURPLE_GRAY)
 	var/idle = 0
 	var/idle_treshold = 30
 
 /obj/item/clothing/mask/smokable/ecig/New()
 	..()
-	ADD_SAVED_VAR(cigcell)
-	ADD_SAVED_VAR(ec_cartridge)
-
-	ADD_SKIP_EMPTY(cigcell)
-	ADD_SKIP_EMPTY(ec_cartridge)
-
-/obj/item/clothing/mask/smokable/ecig/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		if(ispath(cell_type))
-			cigcell = new cell_type
-		if(cartridge_type)
-			ec_cartridge = new cartridge_type(src)
+	if(ispath(cell_type))
+		cigcell = new cell_type
+	ec_cartridge = new cartridge_type(src)
 
 /obj/item/clothing/mask/smokable/ecig/get_cell()
 	return cigcell
-
-/obj/item/clothing/mask/smokable/ecig/lathed
-	name = "electronic cigarette"
-	desc = "A cheap electronic cigarette. The metal still has a few shavings from being rolled in an autolathe."
-	icon_state = "ccigoff"
-	icon_off = "ccigoff"
-	icon_empty = "ccigoff"
-	icon_on = "ccigon"
 
 /obj/item/clothing/mask/smokable/ecig/simple
 	name = "cheap electronic cigarette"
@@ -58,7 +39,7 @@
 	icon_on = "ccigon"
 
 /obj/item/clothing/mask/smokable/ecig/simple/examine(mob/user)
-	..()
+	. = ..()
 	if(ec_cartridge)
 		to_chat(user,"<span class='notice'>There are [round(ec_cartridge.reagents.total_volume, 1)] units of liquid remaining.</span>")
 	else
@@ -75,15 +56,10 @@
 
 /obj/item/clothing/mask/smokable/ecig/util/New()
 	..()
-	ADD_SAVED_VAR(color) //Save the random color
-
-/obj/item/clothing/mask/smokable/ecig/util/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		color = pick(ecig_colors)
+	color = pick(ecig_colors)
 
 obj/item/clothing/mask/smokable/ecig/util/examine(mob/user)
-	..()
+	. = ..()
 	if(ec_cartridge)
 		to_chat(user,"<span class='notice'>There are [round(ec_cartridge.reagents.total_volume, 1)] units of liquid remaining.</span>")
 	else
@@ -103,7 +79,7 @@ obj/item/clothing/mask/smokable/ecig/util/examine(mob/user)
 	cell_type = /obj/item/weapon/cell/device/high //enough for four catridges
 
 /obj/item/clothing/mask/smokable/ecig/deluxe/examine(mob/user)
-	..()
+	. = ..()
 	if(ec_cartridge)
 		to_chat(user,"<span class='notice'>There are [round(ec_cartridge.reagents.total_volume, 1)] units of liquid remaining.</span>")
 	else
@@ -180,7 +156,8 @@ obj/item/clothing/mask/smokable/ecig/util/examine(mob/user)
 			ec_cartridge = I
 			update_icon()
 			to_chat(user, "<span class='notice'>You insert \the [I] into \the [src].</span> ")
-	if(istype(I, /obj/item/weapon/tool/screwdriver))
+
+	if(istype(I, /obj/item/weapon/screwdriver))
 		if(cigcell) //if contains powercell
 			cigcell.update_icon()
 			cigcell.dropInto(loc)
@@ -243,9 +220,9 @@ obj/item/clothing/mask/smokable/ecig/util/examine(mob/user)
 	volume = 20
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_OPEN_CONTAINER
 
-/obj/item/weapon/reagent_containers/ecig_cartridge/examine(mob/user as mob)//to see how much left
-	if(..(user, 0))
-		to_chat(user, "The cartridge has [reagents.total_volume] units of liquid remaining.")
+/obj/item/weapon/reagent_containers/ecig_cartridge/examine(mob/user)//to see how much left
+	. = ..()
+	to_chat(user, "The cartridge has [reagents.total_volume] units of liquid remaining.")
 
 //flavours
 /obj/item/weapon/reagent_containers/ecig_cartridge/blank

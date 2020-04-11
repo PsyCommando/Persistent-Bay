@@ -2,7 +2,7 @@
 	category_text = "Input"
 	power_draw_per_use = 5
 
-/obj/item/integrated_circuit/input/external_examine(var/mob/user)
+/obj/item/integrated_circuit/input/external_examine(mob/user)
 	var/initial_name = initial(name)
 	var/message
 	if(initial_name == name)
@@ -314,7 +314,7 @@
 		set_pin_data(IC_OUTPUT, 13, H.nutrilevel)
 		set_pin_data(IC_OUTPUT, 14, H.harvest)
 		set_pin_data(IC_OUTPUT, 15, H.dead)
-		set_pin_data(IC_OUTPUT, 16, H.health)
+		set_pin_data(IC_OUTPUT, 16, H.plant_health)
 	push_data()
 	activate_pin(2)
 
@@ -809,7 +809,7 @@
 	. += "Please select a teleporter to lock in on:"
 	for(var/obj/machinery/teleport/hub/R in SSmachines.machinery)
 		var/obj/machinery/computer/teleporter/com = R.com
-		if (istype(com, /obj/machinery/computer/teleporter) && com.locked && !com.one_time_use && com.operable())
+		if (istype(com, /obj/machinery/computer/teleporter) && com.locked && !com.one_time_use && com.operable() && AreConnectedZLevels(get_z(src), get_z(com)))
 			.["[com.id] ([R.icon_state == "tele1" ? "Active" : "Inactive"])"] = "tport=[any2ref(com)]"
 	.["None (Dangerous)"] = "tport=random"
 
@@ -853,9 +853,9 @@
 /obj/item/integrated_circuit/input/microphone
 	name = "microphone"
 	desc = "Useful for spying on people, or for voice-activated machines."
-	extended_desc = "This will automatically translate most languages it hears to Galactic Common. \
+	extended_desc = "This will automatically translate most languages it hears to Zurich Accord Common. \
 	The first activation pin is always pulsed when the circuit hears someone talk, while the second one \
-	is only triggered if it hears someone speaking a language other than Galactic Common."
+	is only triggered if it hears someone speaking a language other than Zurich Accord Common."
 	icon_state = "recorder"
 	complexity = 8
 	inputs = list()
@@ -887,7 +887,7 @@
 
 	push_data()
 	activate_pin(1)
-	if(translated && !(speaking.name == LANGUAGE_GALCOM))
+	if(translated && !(speaking.name == LANGUAGE_HUMAN_EURO))
 		activate_pin(2)
 
 /obj/item/integrated_circuit/input/sensor
@@ -1076,7 +1076,6 @@
 	power_draw_per_use = 40
 	var/list/mtypes = list(MATERIAL_STEEL, MATERIAL_GLASS, MATERIAL_SILVER, MATERIAL_GOLD, MATERIAL_DIAMOND, MATERIAL_PHORON, MATERIAL_URANIUM, MATERIAL_PLASTEEL, MATERIAL_TITANIUM, MATERIAL_GLASS, MATERIAL_PLASTIC)
 
-
 /obj/item/integrated_circuit/input/matscan/do_work()
 	var/obj/O = get_pin_data_as_type(IC_INPUT, 1, /obj)
 	if(!O || !O.matter) //Invalid input
@@ -1179,7 +1178,7 @@
 	)
 
 /obj/item/integrated_circuit/input/data_card_reader/attackby_react(obj/item/I, mob/living/user, intent)
-	var/obj/item/weapon/card/data/card = I.GetIdCard()
+	var/obj/item/weapon/card/data/card = I?.GetIdCard()
 	var/write_mode = get_pin_data(IC_INPUT, 3)
 	if(istype(card))
 		if(write_mode == TRUE)

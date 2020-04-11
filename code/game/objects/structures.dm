@@ -1,13 +1,9 @@
 /obj/structure
-	icon 				= 'icons/obj/structures.dmi'
-	w_class 			= ITEM_SIZE_NO_CONTAINER
-	layer 				= STRUCTURE_LAYER
-	obj_flags 			= OBJ_FLAG_DAMAGEABLE
-	damthreshold_brute 	= 5
-	damthreshold_burn 	= 5
-	max_health 			= 100
-	min_health 			= 0
+	icon = 'icons/obj/structures.dmi'
+	w_class = ITEM_SIZE_NO_CONTAINER
+	layer = STRUCTURE_LAYER
 
+	var/breakable
 	var/parts
 	var/list/connections = list("0", "0", "0", "0")
 	var/list/other_connections = list("0", "0", "0", "0")
@@ -15,55 +11,58 @@
 	var/list/noblend_objects = newlist() //Objects to avoid blending with (such as children of listed blend objects.
 	var/material/material = null
 	var/footstep_type
+	var/mob_offset = 0 //used for on_structure_offset mob animation
 
-/obj/structure/New()
-	..()
-	ADD_SAVED_VAR(anchored)
-	//Material is saved below
+/obj/structure/attack_generic(var/mob/user, var/damage, var/attack_verb, var/wallbreaker)
+	if(wallbreaker && damage && breakable)
+		visible_message("<span class='danger'>\The [user] smashes the \[src] to pieces!</span>")
+		attack_animation(user)
+		qdel(src)
+		return 1
+	visible_message("<span class='danger'>\The [user] [attack_verb] \the [src]!</span>")
+	attack_animation(user)
+	take_damage(damage)
+	return 1
 
-/obj/structure/Write(savefile/f)
-	. = ..()
-	if(istype(material))
-		to_file(f["material"], material.name)
-	
-/obj/structure/Read(savefile/f)
-	. = ..()
-	var/material/mat 
-	from_file(f["material"], mat)
-	if(mat && istext(mat))
-		material = SSmaterials.get_material_by_name(mat)
-	else if(istype(mat, /material)) //Backward compatibility
-		material = SSmaterials.get_material_by_name(mat.name)		
+/obj/structure/proc/mob_breakout(var/mob/living/escapee)
+	set waitfor = FALSE
+	return FALSE
 
-///obj/structure/after_load()
-	//update_connections(1) //Causes a whole lot of recomputations for nothing
-//	..()
+/obj/structure/proc/take_damage(var/damage)
+	return
 
 /obj/structure/Destroy()
-	verbs -= /obj/proc/rotate
+	reset_mobs_offset()
 	var/turf/T = get_turf(src)
-	material = null
+	if(T && parts)
+		new parts(T)
 	. = ..()
 	if(istype(T))
 		T.fluid_update()
 
-/obj/structure/Initialize(mapload)
+/obj/structure/Crossed(mob/living/M)
+	if(istype(M))
+		M.on_structure_offset(mob_offset)
+	..()
+
+/obj/structure/proc/reset_mobs_offset()
+	for(var/mob/living/M in loc)
+		M.on_structure_offset(0)
+
+/obj/structure/Initialize()
 	. = ..()
-	verbs += /obj/proc/rotate
 	if(!CanFluidPass())
 		fluid_update()
-	if(!mapload)
-		update_connections(TRUE)
-	else
-		update_connections(FALSE) //Don't propagate during init!!!
 
 /obj/structure/Move()
 	. = ..()
 	if(. && !CanFluidPass())
 		fluid_update()
 
+
 /obj/structure/attack_hand(mob/user)
-	if(isdamageable())
+	..()
+	if(breakable)
 		if(MUTATION_HULK in user.mutations)
 			user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
 			attack_generic(user,1,"smashes")
@@ -73,19 +72,16 @@
 				attack_generic(user,1,"slices")
 	return ..()
 
-/obj/structure/attack_tk()
-	return
-
 /obj/structure/grab_attack(var/obj/item/grab/G)
 	if (!G.force_danger())
 		to_chat(G.assailant, "<span class='danger'>You need a better grip to do that!</span>")
 		return TRUE
 	if (G.assailant.a_intent == I_HURT)
 		// Slam their face against the table.
-		var/blocked = G.affecting.get_blocked_ratio(BP_HEAD, DAM_BLUNT)
+		var/blocked = G.affecting.get_blocked_ratio(BP_HEAD, BRUTE, damage = 8)
 		if (prob(30 * (1 - blocked)))
 			G.affecting.Weaken(5)
-		G.affecting.apply_damage(8, DAM_BLUNT, BP_HEAD)
+		G.affecting.apply_damage(8, BRUTE, BP_HEAD)
 		visible_message("<span class='danger'>[G.assailant] slams [G.affecting]'s face against \the [src]!</span>")
 		if (material)
 			playsound(loc, material.tableslam_noise, 50, 1)
@@ -93,7 +89,7 @@
 			playsound(loc, 'sound/weapons/tablehit1.ogg', 50, 1)
 		var/list/L = take_damage(rand(1,5))
 		for(var/obj/item/weapon/material/shard/S in L)
-			if(S.sharpness && prob(50))
+			if(S.sharp && prob(50))
 				G.affecting.visible_message("<span class='danger'>\The [S] slices into [G.affecting]'s face!</span>", "<span class='danger'>\The [S] slices into your face!</span>")
 				G.affecting.standard_weapon_hit_effects(S, G.assailant, S.force*2, BP_HEAD)
 		qdel(G)
@@ -108,18 +104,32 @@
 		qdel(G)
 		return TRUE
 
+/obj/structure/ex_act(severity)
+	switch(severity)
+		if(1.0)
+			qdel(src)
+			return
+		if(2.0)
+			if(prob(50))
+				qdel(src)
+				return
+		if(3.0)
+			return
+
 /obj/structure/proc/can_visually_connect()
 	return anchored
 
 /obj/structure/proc/can_visually_connect_to(var/obj/structure/S)
 	return istype(S, src)
 
-/obj/structure/proc/update_connections(propagate = FALSE)
+/obj/structure/proc/refresh_neighbors()
+	for(var/thing in RANGE_TURFS(src, 1))
+		var/turf/T = thing
+		T.update_icon()
+
+/obj/structure/proc/update_connections(propagate = 0)
 	var/list/dirs = list()
 	var/list/other_dirs = list()
-
-	if(!anchored)
-		return
 
 	for(var/obj/structure/S in orange(src, 1))
 		if(can_visually_connect_to(S))
@@ -132,7 +142,7 @@
 	if(!can_visually_connect())
 		connections = list("0", "0", "0", "0")
 		other_connections = list("0", "0", "0", "0")
-		return
+		return FALSE
 
 	for(var/direction in GLOB.cardinal)
 		var/turf/T = get_step(src, direction)
@@ -144,7 +154,6 @@
 					var/turf/simulated/wall/W = T
 					if(istype(W))
 						W.update_connections(1)
-						W.update_icon()
 				if(success)
 					break
 			if(success)
@@ -170,49 +179,8 @@
 			dirs += get_dir(src, T)
 			other_dirs += get_dir(src, T)
 
-	for(var/thing in RANGE_TURFS(src, 1))
-		var/turf/T = thing
-		T.update_icon()
+	refresh_neighbors()
 
 	connections = dirs_to_corner_states(dirs)
 	other_connections = dirs_to_corner_states(other_dirs)
-
-/obj/structure/proc/dismantle()
-	if(parts)
-		new parts(loc)
-	else if(matter && matter.len)
-		refund_matter()
-	qdel(src)
-
-/obj/structure/proc/default_deconstruction_screwdriver(var/obj/item/weapon/tool/screwdriver/S, var/mob/living/user, var/deconstruct_time = null)
-	if(!istype(S))
-		return FALSE
-	src.add_fingerprint(user)
-	user.visible_message(SPAN_NOTICE("You begin to unscrew \the [src]."), SPAN_NOTICE("[user] begins to unscrew \the [src]."))
-	if(S.use_tool(user, src, deconstruct_time? deconstruct_time : 6 SECONDS) && src)
-		user.visible_message(SPAN_NOTICE("You finish unscrewing \the [src]."), SPAN_NOTICE("[user] finishes unscrewing \the [src]."))
-		dismantle()
-		return TRUE
-	return FALSE
-
-/obj/structure/proc/default_deconstruction_wrench(var/obj/item/weapon/tool/wrench/W, var/mob/living/user, var/deconstruct_time = null)
-	if(!istype(W))
-		return FALSE
-	src.add_fingerprint(user)
-	user.visible_message(SPAN_NOTICE("You begin to dismantle \the [src]."), SPAN_NOTICE("[user] begins to dismantle \the [src]."))
-	if(W.use_tool(user, src, deconstruct_time? deconstruct_time : 4 SECONDS) && src)
-		user.visible_message(SPAN_NOTICE("You finish dismantling \the [src]."), SPAN_NOTICE("[user] finishes dismantling \the [src]."))
-		dismantle()
-		return TRUE
-	return FALSE
-
-/obj/structure/proc/default_deconstruction_welder(var/obj/item/weapon/tool/weldingtool/W, var/mob/living/user, var/deconstruct_time = null)
-	if(!istype(W))
-		return FALSE
-	src.add_fingerprint(user)
-	user.visible_message(SPAN_NOTICE("You begin to dismantle \the [src]."), SPAN_NOTICE("[user] begins to dismantle \the [src]."))
-	if(W.use_tool(user, src, deconstruct_time? deconstruct_time : (2 * w_class) SECONDS) && src)
-		user.visible_message(SPAN_NOTICE("You finish dismantling \the [src]."), SPAN_NOTICE("[user] finishes dismantling \the [src]."))
-		dismantle()
-		return TRUE
-	return FALSE
+	return TRUE

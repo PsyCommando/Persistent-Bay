@@ -2,58 +2,39 @@
 	set name = "Move Upwards"
 	set category = "IC"
 
-	if(zMove(UP))
-		to_chat(src, "<span class='notice'>You move upwards.</span>")
-		zPull(UP)
+	move_up()
 
 /mob/verb/down()
 	set name = "Move Down"
 	set category = "IC"
 
-	if(zMove(DOWN))
-		to_chat(src, "<span class='notice'>You move down.</span>")
-		zPull(DOWN)
+	SelfMove(DOWN)
 
-/mob/proc/zMove(direction)
-	if(eyeobj)
-		return eyeobj.zMove(direction)
-	if(!can_ztravel())
-		to_chat(src, "<span class='warning'>You lack means of travel in that direction.</span>")
+/mob/proc/move_up()
+	SelfMove(UP)
+
+/mob/living/carbon/human/move_up()
+	var/turf/old_loc = loc
+	..()
+	if(loc != old_loc)
 		return
 
-	var/turf/start = loc
-	if(!istype(start))
-		to_chat(src, "<span class='notice'>You are unable to move from here.</span>")
-		return 0
+	var/turf/simulated/open/O = GetAbove(src)
+	var/atom/climb_target
+	if(istype(O))
+		for(var/turf/T in trange(1,O))
+			if(!isopenspace(T) && T.is_floor())
+				climb_target = T
+			else
+				for(var/obj/I in T)
+					if(I.obj_flags & OBJ_FLAG_NOFALL)
+						climb_target = I
+						break
+			if(climb_target)
+				break
 
-	var/turf/destination = (direction == UP) ? GetAbove(src) : GetBelow(src)
-	if(!destination)
-		to_chat(src, "<span class='notice'>There is nothing of interest in this direction.</span>")
-		return 0
-
-	if(!start.CanZPass(src, direction))
-		to_chat(src, "<span class='warning'>\The [start] is in the way.</span>")
-		return 0
-	if(!destination.CanZPass(src, direction))
-		to_chat(src, "<span class='warning'>You bump against \the [destination].</span>")
-		return 0
-
-	var/area/area = get_area(src)
-	if(direction == UP && area.has_gravity() && !can_overcome_gravity())
-		to_chat(src, "<span class='warning'>Gravity stops you from moving upward.</span>")
-		return 0
-
-	for(var/atom/A in destination)
-		if(!A.CanMoveOnto(src, start, 1.5, direction))
-			to_chat(src, "<span class='warning'>\The [A] blocks you.</span>")
-			return 0
-
-	if(direction == UP && area.has_gravity() && can_fall(FALSE, destination))
-		to_chat(src, "<span class='warning'>You see nothing to hold on to.</span>")
-		return 0
-
-	forceMove(destination)
-	return 1
+	if(climb_target)
+		climb_up(climb_target)
 
 /mob/proc/zPull(direction)
 	//checks and handles pulled items across z levels
@@ -81,8 +62,6 @@
 
 	pulling.forceMove(destination)
 	return 1
-
-
 
 /atom/proc/CanMoveOnto(atom/movable/mover, turf/target, height=1.5, direction = 0)
 	//Purpose: Determines if the object can move through this
@@ -112,30 +91,10 @@
 				return 1
 	return 0
 
-/mob/observer/zMove(direction)
-	var/turf/destination = (direction == UP) ? GetAbove(src) : GetBelow(src)
-	if(destination)
-		forceMove(destination)
-	else
-		to_chat(src, "<span class='notice'>There is nothing of interest in this direction.</span>")
-
-/mob/observer/eye/zMove(direction)
-	var/turf/destination = (direction == UP) ? GetAbove(src) : GetBelow(src)
-	if(destination)
-		setLoc(destination)
-	else
-		to_chat(src, "<span class='notice'>There is nothing of interest in this direction.</span>")
-
 /mob/proc/can_ztravel()
 	return 0
 
-/mob/observer/can_ztravel()
-	return 1
-
 /mob/living/carbon/human/can_ztravel()
-	if(incapacitated())
-		return 0
-
 	if(Allow_Spacemove())
 		return 1
 
@@ -145,9 +104,6 @@
 				return 1
 
 /mob/living/silicon/robot/can_ztravel()
-	if(incapacitated() || is_dead())
-		return 0
-
 	if(Allow_Spacemove()) //Checks for active jetpack
 		return 1
 
@@ -204,8 +160,9 @@
 
 	//Override will make checks from different location used for prediction
 	if(location_override)
-		if(locate(/obj/structure/lattice, location_override) || locate(/obj/structure/catwalk, location_override) || locate(/obj/structure/ladder, location_override))
-			return FALSE
+		for(var/obj/O in location_override)
+			if(O.obj_flags & OBJ_FLAG_NOFALL)
+				return FALSE
 
 		var/turf/below = GetBelow(location_override)
 		for(var/atom/A in below)
@@ -254,6 +211,8 @@
 		visible_message("\The [src] slams into \the [landing]!", "You hear something slam into the deck.")
 		if(fall_damage())
 			for(var/mob/living/M in landing.contents)
+				if(M == src)
+					continue
 				visible_message("\The [src] hits \the [M.name]!")
 				M.take_overall_damage(fall_damage())
 
@@ -265,21 +224,25 @@
 		return 0
 	if(w_class == ITEM_SIZE_NO_CONTAINER)
 		return 100
-	return base_storage_cost(w_class)
+	return BASE_STORAGE_COST(w_class)
 
 /mob/living/carbon/human/handle_fall_effect(var/turf/landing)
 	if(species && species.handle_fall_special(src, landing))
 		return
 
 	..()
-	var/damage = 10
-	apply_damage(rand(0, damage), DAM_BLUNT, BP_HEAD)
-	apply_damage(rand(0, damage), DAM_BLUNT, BP_CHEST)
-	apply_damage(rand(0, damage), DAM_BLUNT, BP_L_LEG)
-	apply_damage(rand(0, damage), DAM_BLUNT, BP_R_LEG)
-	apply_damage(rand(0, damage), DAM_BLUNT, BP_L_ARM)
-	apply_damage(rand(0, damage), DAM_BLUNT, BP_R_ARM)
-	weakened = max(weakened,2)
+	var/min_damage = 7
+	var/max_damage = 14
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_HEAD, armor_pen = 50)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_CHEST, armor_pen = 50)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_GROIN, armor_pen = 75)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_L_LEG, armor_pen = 100)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_R_LEG, armor_pen = 100)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_L_FOOT, armor_pen = 100)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_R_FOOT, armor_pen = 100)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_L_ARM, armor_pen = 75)
+	apply_damage(rand(min_damage, max_damage), BRUTE, BP_R_ARM, armor_pen = 75)
+	weakened = max(weakened, 3)
 	if(prob(skill_fail_chance(SKILL_HAULING, 40, SKILL_EXPERT, 2)))
 		var/list/victims = list()
 		for(var/tag in list(BP_L_FOOT, BP_R_FOOT, BP_L_ARM, BP_R_ARM))
@@ -291,3 +254,23 @@
 			victim.dislocate()
 			to_chat(src, "<span class='warning'>You feel a sickening pop as your [victim.joint] is wrenched out of the socket.</span>")
 	updatehealth()
+
+
+/mob/living/carbon/human/proc/climb_up(atom/A)
+	if(!isturf(loc) || !bound_overlay || bound_overlay.destruction_timer || is_physically_disabled())	// This destruction_timer check ideally wouldn't be required, but I'm not awake enough to refactor this to not need it.
+		return FALSE
+
+	var/turf/T = get_turf(A)
+	var/turf/above = GetAbove(src)
+	if(above && T.Adjacent(bound_overlay) && above.CanZPass(src, UP)) //Certain structures will block passage from below, others not
+		var/area/location = get_area(loc)
+		if(location.has_gravity && !can_overcome_gravity())
+			return FALSE
+
+		visible_message("<span class='notice'>[src] starts climbing onto \the [A]!</span>", "<span class='notice'>You start climbing onto \the [A]!</span>")
+		if(do_after(src, 50, A))
+			visible_message("<span class='notice'>[src] climbs onto \the [A]!</span>", "<span class='notice'>You climb onto \the [A]!</span>")
+			src.Move(T)
+		else
+			visible_message("<span class='warning'>[src] gives up on trying to climb onto \the [A]!</span>", "<span class='warning'>You give up on trying to climb onto \the [A]!</span>")
+		return TRUE

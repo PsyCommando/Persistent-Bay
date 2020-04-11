@@ -13,14 +13,12 @@
 
 /datum/nano_module/records_lookup
 	name = "Forensic Records"
-	var/datum/computer_file/report/crew_record/active_record
+	var/datum/computer_file/report/crew_record/faction/active_record
 	var/message = null
 
 /datum/nano_module/records_lookup/proc/get_connected_faction()
-	if(host)
-		var/obj/item/modular_computer/comp = host
-		return comp.ConnectedFaction()
-	return null
+	var/atom/movable/A = host
+	return A && A.get_faction()
 
 /datum/nano_module/records_lookup/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, state = GLOB.default_state)
 	var/list/data = host.initial_data()
@@ -67,14 +65,13 @@
 	return user_access
 
 /datum/nano_module/records_lookup/proc/edit_field(var/mob/user, var/field_ID)
-	var/datum/computer_file/report/crew_record/R = active_record
-	if(!R)
+	if(!active_record)
 		return
-	var/datum/report_field/F = R.field_from_ID(field_ID)
+	var/datum/report_field/F = active_record.field_from_ID(field_ID)
 	if(!F)
 		return
 	if(!F.verify_access_edit(get_record_access(user)))
-		to_chat(user, "<span class='notice'>\The [nano_host()] flashes an \"Access Denied\" warning.</span>")
+		to_chat(user, SPAN_NOTICE("\The [nano_host()] flashes an \"Access Denied\" warning."))
 		return
 	F.ask_value(user)
 
@@ -96,16 +93,15 @@
 		var/search = sanitize(input("Enter the value for search for.") as null|text)
 		if(!search)
 			return
-		for(var/datum/computer_file/report/crew_record/R in GLOB.all_crew_records)
-			var/datum/report_field/field = R.field_from_name(field_name)
-			if(lowertext(field.get_value()) == lowertext(search))
-				active_record = R
-				return 1
-		if(!active_record)
-			active_record = Retrieve_Record(search)
-			if(active_record)
-				return 1
-		message = "Unable to find record containing '[search]'"
+		var/datum/world_faction/F = get_connected_faction()
+		CRASH("#TODO: implement a safe way to look into the DB for the values we want") //
+		// var/list/datum/computer_file/report/crew_record/faction/CRs = F.get_records()
+		// for(var/datum/computer_file/report/crew_record/faction/R in CRs)
+		// 	var/datum/report_field/field = R.field_from_name(field_name)
+		// 	if(lowertext(field.get_value()) == lowertext(search))
+		// 		active_record = R
+		// 		return 1
+		message = "No records found in [F]'s network databases containing '[search]'"
 		return 1
 
 /datum/nano_module/records_lookup/proc/get_photo(var/mob/user)

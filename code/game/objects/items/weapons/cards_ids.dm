@@ -11,18 +11,12 @@
 /*
  * DATA CARDS - Used for the IC data card reader
  */
-
-GLOBAL_LIST_EMPTY(all_id_cards)
-GLOBAL_LIST_EMPTY(all_expense_cards)
-
 /obj/item/weapon/card
 	name = "card"
 	desc = "Does card things."
 	icon = 'icons/obj/card.dmi'
 	w_class = ITEM_SIZE_TINY
 	slot_flags = SLOT_EARS
-	var/list/files = list()
-	var/associated_account_number = 0
 
 /obj/item/weapon/card/union
 	name = "union card"
@@ -31,13 +25,12 @@ GLOBAL_LIST_EMPTY(all_expense_cards)
 	slot_flags = SLOT_ID
 	var/signed_by
 
-/obj/item/weapon/card/union/examine(var/mob/user)
+/obj/item/weapon/card/union/examine(mob/user)
 	. = ..()
-	if(.)
-		if(signed_by)
-			to_chat(user, "It has been signed by [signed_by].")
-		else
-			to_chat(user, "It has a blank space for a signature.")
+	if(signed_by)
+		to_chat(user, "It has been signed by [signed_by].")
+	else
+		to_chat(user, "It has a blank space for a signature.")
 
 /obj/item/weapon/card/union/attackby(var/obj/item/thing, var/mob/user)
 	if(istype(thing, /obj/item/weapon/pen))
@@ -59,15 +52,15 @@ GLOBAL_LIST_EMPTY(all_expense_cards)
 	var/function = "storage"
 	var/data = "null"
 	var/special = null
-	files = list(  )
+	var/list/files = list(  )
 
 /obj/item/weapon/card/data/Initialize()
 	.=..()
-	queue_icon_update()
+	update_icon()
 
 /obj/item/weapon/card/data/on_update_icon()
 	overlays.Cut()
-	var/image/detail_overlay = image(icon, src,"[icon_state]-color")
+	var/image/detail_overlay = image('icons/obj/card.dmi', src,"[icon_state]-color")
 	detail_overlay.color = detail_color
 	overlays += detail_overlay
 
@@ -80,7 +73,7 @@ GLOBAL_LIST_EMPTY(all_expense_cards)
 
 /obj/item/weapon/card/data/clown
 	name = "\proper the coordinates to clown planet"
-	icon_state = "data_1"
+	icon_state = "data"
 	item_state = "card-id"
 	level = 2
 	desc = "This card contains coordinates to the fabled Clown Planet. Handle with care."
@@ -104,14 +97,14 @@ GLOBAL_LIST_EMPTY(all_expense_cards)
 	name = "broken cryptographic sequencer"
 	icon_state = "emag"
 	item_state = "card-id"
-	origin_tech = list(TECH_MAGNET = 2, TECH_ILLEGAL = 2)
+	origin_tech = list(TECH_MAGNET = 2, TECH_ESOTERIC = 2)
 
 /obj/item/weapon/card/emag
 	desc = "It's a card with a magnetic strip attached to some circuitry."
 	name = "cryptographic sequencer"
 	icon_state = "emag"
 	item_state = "card-id"
-	origin_tech = list(TECH_MAGNET = 2, TECH_ILLEGAL = 2)
+	origin_tech = list(TECH_MAGNET = 2, TECH_ESOTERIC = 2)
 	var/uses = 10
 
 	var/static/list/card_choices = list(
@@ -142,20 +135,6 @@ var/const/NO_EMAG_ACT = -50
 
 	return 1
 
-/obj/item/weapon/card/emag/proc/generate_emag_choices(var/card_choices)
-	. = list()
-
-	var/i = 1 //in case there is a collision with both name AND icon_state
-	for(var/typepath in card_choices)
-		var/obj/O = typepath
-		if(initial(O.icon) && initial(O.icon_state))
-			var/name = initial(O.name)
-			if(name in .)
-				name += " ([initial(O.icon_state)])"
-			if(name in .)
-				name += " \[[i++]\]"
-			.[name] = typepath
-
 /obj/item/weapon/card/emag/Initialize()
 	. = ..()
 	if(length(card_choices) && !card_choices[card_choices[1]])
@@ -166,167 +145,16 @@ var/const/NO_EMAG_ACT = -50
 	set category = "Chameleon Items"
 	set src in usr
 
-	if(!ispath(card_choices[picked]))
-		return
+	if (!(usr.incapacitated()))
+		if(!ispath(card_choices[picked]))
+			return
 
-	disguise(card_choices[picked], usr)
-	update_icon()
+		disguise(card_choices[picked], usr)
 
 /obj/item/weapon/card/emag/examine(mob/user)
 	. = ..()
-	if(. && user.skill_check(SKILL_DEVICES,SKILL_ADEPT))
-		to_chat(user, SPAN_WARNING("This ID card has some non-standard modifications commonly used to gain illicit access to computer systems."))
-
-
-/obj/item/weapon/card/expense // the fabled expense card
-	desc = "This card is used to expense invoices."
-	name = "expense card"
-	icon_state = "expense"
-	item_state = "card-id"
-	var/ctype = 1 // 1 = faction, 2 = business
-	var/linked = "" // either business or faction
-	var/valid = 1
-	var/detail_color = COLOR_SILVER
-	var/stripe_color = COLOR_BLUE
-
-/obj/item/weapon/card/expense/New()
-	..()
-	GLOB.all_expense_cards |= src
-
-/obj/item/weapon/card/expense/Destroy()
-	GLOB.all_expense_cards -= src
-	..()
-
-/obj/item/weapon/card/expense/on_update_icon()
-	overlays.Cut()
-	var/image/detail_overlay = image(icon, src,"[icon_state]-color")
-	var/image/stripe_overlay = image(icon, src,"[icon_state]-color-stripe")
-	detail_overlay.color = detail_color
-	stripe_overlay.color = stripe_color
-	overlays += detail_overlay
-	overlays += stripe_overlay
-
-/obj/item/weapon/card/expense/proc/pay(var/amount, var/mob/user, var/obj/item/weapon/paper/invoice/invoice)
-	if(!user || !invoice || !valid)
-		return 0
-
-	var/username = user.get_id_name("NULL!@#")
-	if(username == "NULL!@#")
-		to_chat(user, "Invalid ID!")
-		return 0
-
-
-	var/linked_name
-	if(istype(invoice, /obj/item/weapon/paper/invoice/business))
-		var/obj/item/weapon/paper/invoice/business/buis_invoice = invoice
-		var/datum/small_business/business = get_business(buis_invoice.linked_business)
-		linked_name = business.name
-	else
-		var/datum/world_faction/linked_faction = get_faction(invoice.linked_faction)
-		linked_name = linked_faction.name
-
-	if(ctype == 1)
-		var/datum/world_faction/faction = get_faction(linked)
-		if(!faction)
-			message_admins("expense card without valid faction at [loc]")
-			return 0
-		var/datum/computer_file/report/crew_record/record = faction.get_record(username)
-		if(!record)
-			return 0
-		var/datum/assignment/assignment = faction.get_assignment(record.assignment_uid, record.get_name())
-		if(!assignment)
-			return 0
-		var/datum/accesses/copy = assignment.accesses[record.rank]
-		if(!copy)
-			return 0
-		var/available = copy.expense_limit - record.expenses
-		if(available < amount)
-			to_chat(user, "This exceeds your expense limit.")
-			return 0
-		if(faction.central_account.money < amount)
-			to_chat(user, "Insufficent funds.")
-			return 0
-
-		var/datum/transaction/T = new("[linked_name] (via [username] expense card)", invoice.purpose, -amount, "Digital Invoice")
-		faction.central_account.do_transaction(T)
-		record.expenses += amount
-		return 1
-	else
-		var/datum/small_business/business = get_business(linked)
-		if(!business)
-			message_admins("expense card without valid business at [loc]")
-			return 0
-		var/expenses = business.get_expenses(username)
-		var/expense_limit = business.get_expense_limit(username)
-		var/available = expense_limit - expenses
-		if(available < amount)
-			to_chat(user, "This exceeds your expense limit.")
-			return 0
-		if(business.central_account.money < amount)
-			to_chat(user, "Insufficent funds.")
-			return 0
-		var/datum/transaction/T = new("[linked_name] (via [username] expense card)", invoice.purpose, -amount, "Digital Invoice")
-		business.central_account.do_transaction(T)
-		business.add_expenses(username, amount)
-		return 1
-
-
-
-/proc/devalidate_expense_cards(var/stype = 1, var/name)
-	for(var/obj/item/weapon/card/expense/expense in GLOB.all_expense_cards)
-		if(expense.ctype == stype && expense.linked == name)
-			expense.name = "devalidated expense card"
-			expense.linked = ""
-			expense.valid = 0
-
-/proc/update_ids(var/name)
-	var/datum/computer_file/report/crew_record/record
-	for(var/datum/computer_file/report/crew_record/record2 in GLOB.all_crew_records)
-		if(record2.get_name() == name)
-			record = record2
-			break
-	if(!record)
-		record = Retrieve_Record(name)
-	if(!record)
-		message_admins("no record found for [name]")
-		return
-
-	for(var/obj/item/weapon/card/id/id in GLOB.all_id_cards)
-		if(id.registered_name == name)
-			if(id.validate_time < record.validate_time)
-				id.devalidate()
-				continue
-			if(id.selected_faction)
-				var/datum/world_faction/faction = get_faction(id.selected_faction)
-				if(faction)
-					var/datum/computer_file/report/crew_record/record2 = faction.get_record(id.registered_name)
-					if(record2)
-						id.sync_from_record(record2)
-					else
-						continue
-				else
-					continue
-			else if(id.selected_business)
-				if(id.valid)
-					var/datum/small_business/business = get_business(id.selected_business)
-					if(business)
-						if(id.registered_name == business.ceo_name)
-							id.assignment = business.ceo_title
-							id.rank = 2	//actual job
-							id.name = text("[id.registered_name]'s Name Tag ([id.assignment])")
-						else
-							var/datum/employee_data/employee = business.get_employee_data(id.registered_name)
-							if(employee)
-								id.assignment = employee.job_title
-								id.rank = 1	//actual job
-							else
-								id.assignment = "Non-employee"
-								id.rank = 0	//actual job
-							id.name = text("[id.registered_name]'s Name Tag ([id.assignment])")
-				else
-					id.assignment = "DEVALIDATED"
-					id.rank = 0	//actual job
-					id.name = text("Devalidated Name Tag")
+	if(user.skill_check(SKILL_DEVICES,SKILL_ADEPT))
+		to_chat(user, SPAN_WARNING("This ID card has some form of non-standard modifications."))
 
 /obj/item/weapon/card/id
 	name = "identification card"
@@ -335,12 +163,9 @@ var/const/NO_EMAG_ACT = -50
 	item_state = "card-id"
 	slot_flags = SLOT_ID
 
-	sprite_sheets = list(
-	SPECIES_RESOMI = 'icons/mob/species/resomi/id.dmi'
-	)
-
-	var/access = list()
+	var/list/access = list()
 	var/registered_name = "Unknown" // The name registered_name on the card
+	var/associated_account_number = 0
 	var/list/associated_email_login = list("login" = "", "password" = "")
 
 	var/age = "\[UNSET\]"
@@ -348,7 +173,6 @@ var/const/NO_EMAG_ACT = -50
 	var/dna_hash = "\[UNSET\]"
 	var/fingerprint_hash = "\[UNSET\]"
 	var/sex = "\[UNSET\]"
-	var/species = "\[UNSET\]"
 	var/icon/front
 	var/icon/side
 
@@ -364,18 +188,12 @@ var/const/NO_EMAG_ACT = -50
 
 	var/formal_name_prefix
 	var/formal_name_suffix
-	var/selected_faction // faction this ID syncs to.. where should this be set?
-	var/selected_business
 
-	var/list/approved_factions = list() // factions that have approved this card for use on their machines. format-- list("[faction.uid]")
-	var/validate_time = 0 // this should be set at the time of creation to check if the card is valid
-	var/valid = 1
 	var/detail_color
 	var/extra_details
 
 /obj/item/weapon/card/id/Initialize()
 	.=..()
-	GLOB.all_id_cards |= src
 	if(job_access_type)
 		var/datum/job/j = SSjobs.get_by_path(job_access_type)
 		if(j)
@@ -407,65 +225,21 @@ var/const/NO_EMAG_ACT = -50
 			user.examinate(src)
 			return TOPIC_HANDLED
 
-/obj/item/weapon/card/id/examine(mob/user)
-	set src in oview(1)
+/obj/item/weapon/card/id/examine(mob/user, distance)
 	. = ..()
-	if(in_range(usr, src))
-		show(usr)
-		to_chat(usr, desc)
-	else
-		to_chat(usr, "<span class='warning'>It is too far away.</span>")
-
-/obj/item/weapon/card/id/proc/sync_from_record(var/datum/computer_file/report/crew_record/record)
-	age = record.get_age()
-	blood_type = record.get_bloodtype()
-	dna_hash = record.get_dna()
-	fingerprint_hash = record.get_fingerprint()
-	sex = record.get_sex()
-	species = record.get_species()
-	front = record.photo_front
-	side = record.photo_side
-	if(record.terminated)
-		assignment = "Terminated"
-		rank = 0
-	if(record.custom_title)
-		assignment = record.custom_title	//can be alt title or the actual job
-	else
-		var/datum/world_faction/faction = get_faction(selected_faction)
-		if(!faction) return
-		var/datum/assignment/job = faction.get_assignment(record.assignment_uid, record.get_name())
-		if(!job)
-			assignment = "Unassigned"
-			rank = 0
-			name = text("[registered_name]'s ID Card [get_faction_tag(selected_faction)]-([assignment])")
-			return
-		assignment = job.get_title(record.rank)
-	rank = record.rank	//actual job
-	name = text("[registered_name]'s ID Card [get_faction_tag(selected_faction)]-([assignment])")
+	to_chat(user, "It says '[get_display_name()]'.")
+	if(distance <= 1)
+		show(user)
 
 /obj/item/weapon/card/id/proc/prevent_tracking()
 	return 0
 
-/obj/item/weapon/card/id/after_load()
-	if(!selected_faction)
-		selected_faction = "nexus"
-
-/obj/item/weapon/card/id/proc/devalidate()
-	rank = "Devalidated"
-	assignment = "Devalidated"
-	registered_name = "Devalidated"
-	valid = 0
-	update_name()
-
 /obj/item/weapon/card/id/proc/show(mob/user as mob)
 	if(front && side)
-		user << browse_rsc(front, "front.png")
-		user << browse_rsc(side, "side.png")
+		send_rsc(user, front, "front.png")
+		send_rsc(user, side, "side.png")
 	var/datum/browser/popup = new(user, "idcard", name, 600, 250)
-	if(user.real_name == registered_name)
-		popup.set_content(self_dat())
-	else
-		popup.set_content(dat())
+	popup.set_content(dat())
 	popup.set_title_image(usr.browse_rsc_icon(src.icon, src.icon_state))
 	popup.open()
 	return
@@ -479,18 +253,6 @@ var/const/NO_EMAG_ACT = -50
 	if(assignment)
 		. += ", [assignment]"
 
-/obj/item/weapon/card/id/proc/update_name()
-	if(!selected_business || selected_business == "")
-
-		name = "[registered_name]'s ID Card"
-		if(military_rank && military_rank.name_short)
-			name = military_rank.name_short + " " + name
-		if(assignment)
-			name = name + " ([assignment])"
-	else
-		name = "[registered_name]'s Name Tag"
-		if(assignment)
-			name = name + " ([assignment])"
 /obj/item/weapon/card/id/proc/set_id_photo(var/mob/M)
 	front = getFlatIcon(M, SOUTH, always_use_defdir = 1)
 	side = getFlatIcon(M, WEST, always_use_defdir = 1)
@@ -520,7 +282,6 @@ var/const/NO_EMAG_ACT = -50
 		id_card.blood_type		= dna.b_type
 		id_card.dna_hash		= dna.unique_enzymes
 		id_card.fingerprint_hash= md5(dna.uni_identity)
-	id_card.update_name()
 
 /mob/living/carbon/human/set_id_info(var/obj/item/weapon/card/id/id_card)
 	..()
@@ -529,22 +290,6 @@ var/const/NO_EMAG_ACT = -50
 		id_card.military_branch = char_branch
 	if(GLOB.using_map.flags & MAP_HAS_RANK)
 		id_card.military_rank = char_rank
-
-	//Set details for money account and loaded records
-	if(mind)
-		var/datum/money_account/M = get_account_record(real_name)
-		if(istype(M))
-			id_card.associated_account_number = M.account_number
-		else
-			log_warning("human.set_id_info(): there is no bank account for [ckey], [src]\ref[src]. Skipping adding it to the id card!")
-	else
-		log_warning("human.set_id_info(): there is no mind for [src]\ref[src]. Skipping adding bank account to the id card!")
-
-	var/datum/computer_file/report/crew_record/record = get_crewmember_record(real_name)
-	if(record)
-		id_card.sync_from_record(record)
-	else
-		log_warning("human.set_id_info(): there is no existing record for [src]\ref[src]. Skipping syncyng to record!")
 
 /obj/item/weapon/card/id/proc/dat()
 	var/list/dat = list("<table><tr><td>")
@@ -556,11 +301,8 @@ var/const/NO_EMAG_ACT = -50
 		dat += text("Branch: []</A><BR>\n", military_branch ? military_branch.name : "\[UNSET\]")
 	if(GLOB.using_map.flags & MAP_HAS_RANK)
 		dat += text("Rank: []</A><BR>\n", military_rank ? military_rank.name : "\[UNSET\]")
-	var/datum/world_faction/faction = get_faction(selected_faction)
-	if(faction)
-		dat += text("Connected Organization: []</A><BR>\n", faction.name)
-		dat += text("Title: []</A><BR>\n", assignment)
 
+	dat += text("Assignment: []</A><BR>\n", assignment)
 	dat += text("Fingerprint: []</A><BR>\n", fingerprint_hash)
 	dat += text("Blood Type: []<BR>\n", blood_type)
 	dat += text("DNA Hash: []<BR><BR>\n", dna_hash)
@@ -568,112 +310,16 @@ var/const/NO_EMAG_ACT = -50
 		dat +="<td align = center valign = top>Photo:<br><img src=front.png height=80 width=80 border=4><img src=side.png height=80 width=80 border=4></td>"
 	dat += "</tr></table>"
 	return jointext(dat,null)
-
-/obj/item/weapon/card/id/proc/self_dat()
-	var/list/dat = list("<table><tr><td>")
-	dat += text("Name: []</A><BR>", "[formal_name_prefix][registered_name][formal_name_suffix]")
-	dat += text("Sex: []</A><BR>\n", sex)
-	dat += text("Age: []</A><BR>\n", age)
-
-	if(GLOB.using_map.flags & MAP_HAS_BRANCH)
-		dat += text("Branch: []</A><BR>\n", military_branch ? military_branch.name : "\[UNSET\]")
-	if(GLOB.using_map.flags & MAP_HAS_RANK)
-		dat += text("Rank: []</A><BR>\n", military_rank ? military_rank.name : "\[UNSET\]")
-	var/datum/world_faction/faction = get_faction(selected_faction)
-	if(faction)
-		dat += text("Connected Organization: []</A><BR>\n", faction.name)
-		dat += text("Title: []</A><BR>\n", assignment)
-		dat  += "<A href='byond://?src=\ref[src];changeorg=1'>Connect to different organization.</A><BR>"
-	dat += text("Fingerprint: []</A><BR>\n", fingerprint_hash)
-	dat += text("Blood Type: []<BR>\n", blood_type)
-	dat += text("DNA Hash: []<BR><BR>\n", dna_hash)
-	if(front && side)
-		dat +="<td align = center valign = top>Photo:<br><img src=front.png height=80 width=80 border=4><img src=side.png height=80 width=80 border=4></td>"
-	dat += "</tr></table>"
-	return jointext(dat,null)
-
-/obj/item/weapon/card/id/Topic(href, href_list)
-	if(href_list["changeorg"])
-		if(usr.real_name == registered_name)
-			var/list/choices = list()
-			for(var/datum/world_faction/faction in GLOB.all_world_factions)
-				if(Retrieve_Record_Faction(registered_name, faction))
-					choices |= faction
-			var/datum/world_faction/choice = input(usr, "Choose an organization to connect to.","ID Reconnect",null) as null|anything in choices
-			if(choice && in_range(usr, src))
-				var/datum/computer_file/report/crew_record/record = Retrieve_Record_Faction(registered_name, choice)
-				selected_faction = choice.uid
-				if(record) sync_from_record(record)
-				var/datum/browser/popup = new(usr, "idcard", name, 600, 250)
-				if(usr.real_name == registered_name)
-					popup.set_content(self_dat())
-				else
-					popup.set_content(dat())
-				popup.set_title_image(usr.browse_rsc_icon(src.icon, src.icon_state))
-				popup.open()
 
 /obj/item/weapon/card/id/attack_self(mob/user as mob)
-	user.visible_message("\The [user] shows you: \icon[src] [src.name]. The assignment on the card: <font color=navy>[get_faction_tag(selected_faction)]</font>-([src.assignment])",\
-		"You flash your ID card: \icon[src] [src.name]. The assignment on the card: <font color=navy>[get_faction_tag(selected_faction)]</font>-([src.assignment])")
+	user.visible_message("\The [user] shows you: \icon[src] [src.name]. The assignment on the card: [src.assignment]",\
+		"You flash your ID card: \icon[src] [src.name]. The assignment on the card: [src.assignment]")
 
 	src.add_fingerprint(user)
 	return
-/obj/item/weapon/card/id/GetFaction()
-	return selected_faction
 
-
-/obj/item/weapon/card/id/GetAccess(var/faction_uid)
-	if(!valid) return list()
-	if(!faction_uid || faction_uid == "")
-		faction_uid = selected_faction
-	var/list/final_access[0]
-	var/datum/world_faction/faction = get_faction(faction_uid)
-	if(faction)
-		if(sanitize(faction.get_leadername()) == sanitize(registered_name))
-			faction.rebuild_all_access()
-			for(var/x in faction.all_access)
-				final_access |= text2num(x)
-			return final_access
-		var/datum/computer_file/report/crew_record/record = faction.get_record(registered_name)
-		if(record)
-			for(var/x in record.access)
-				final_access |= text2num(x)
-			if(faction.allow_id_access) final_access |= access
-			var/datum/assignment/assignment = faction.get_assignment(record.try_duty(), registered_name)
-			if(assignment)
-				for(var/i=1; i<=record.rank; i++)
-					var/datum/accesses/copy = assignment.accesses[i]
-					if(copy)
-						for(var/x in copy.accesses)
-							final_access |= text2num(x)
-			if(istype(faction, /datum/world_faction/democratic))
-				var/datum/world_faction/democratic/democratic = faction
-				var/datum/computer_file/report/crew_record/record2 = Retrieve_Record(registered_name)
-				if(record2)
-					var/datum/assignment/assignment2
-					switch(record2.citizenship)
-						if(RESIDENT)
-							assignment2 = democratic.resident_assignment
-						if(CITIZEN)
-							assignment2 = democratic.citizen_assignment
-						if(PRISONER)
-							assignment2 = democratic.prisoner_assignment
-
-					if(assignment2)
-						for(var/i=1; i<=record.rank; i++)
-							var/datum/accesses/copy = assignment2.accesses[i]
-							if(copy)
-								for(var/x in copy.accesses)
-									final_access |= text2num(x)
-
-			return final_access
-		else
-			if(faction.allow_id_access)
-				return access
-			else
-				return list()
-	else
-		return access
+/obj/item/weapon/card/id/GetAccess()
+	return access
 
 /obj/item/weapon/card/id/GetIdCard()
 	return src
@@ -730,44 +376,9 @@ var/const/NO_EMAG_ACT = -50
 	assignment = "Synthetic"
 	detail_color = COLOR_AMBER
 
-/obj/item/weapon/card/id/synthetic/devalidate()
-	valid = 1
-	return
 /obj/item/weapon/card/id/synthetic/New()
-//	access = get_all_station_access() + access_synth
+	access = get_all_station_access() + access_synth
 	..()
-
-
-/obj/item/weapon/card/id/synthetic/GetAccess(var/faction_uid)
-	var/list/final_access[0]
-	var/datum/world_faction/faction = get_faction(faction_uid)
-	if(faction)
-		if(faction.get_leadername() == registered_name)
-			faction.rebuild_all_access()
-			for(var/x in faction.all_access)
-				final_access |= text2num(x)
-			return final_access
-		var/datum/computer_file/report/crew_record/record = faction.get_record(registered_name)
-		if(record)
-			for(var/x in record.access)
-				final_access |= text2num(x)
-			if(faction.allow_id_access) final_access |= access
-			var/datum/assignment/assignment = faction.get_assignment(record.try_duty(), record.get_name())
-			if(assignment)
-				for(var/i=1; i<=record.rank; i++)
-					var/datum/accesses/copy = assignment.accesses[i]
-					if(copy)
-						for(var/x in copy.accesses)
-							final_access |= text2num(x)
-			return final_access
-		else
-			if(faction.allow_id_access)
-				return access
-			else
-				return list()
-	else
-		return access
-
 
 /obj/item/weapon/card/id/centcom
 	name = "\improper CentCom. ID"
@@ -794,15 +405,23 @@ var/const/NO_EMAG_ACT = -50
 	..()
 	access |= get_all_station_access()
 
+/obj/item/weapon/card/id/foundation_civilian
+	name = "operant registration card"
+	desc = "A registration card in a faux-leather case. It marks the named individual as a registered, law-abiding psionic."
+	icon_state = "warrantcard_civ"
+
+/obj/item/weapon/card/id/foundation_civilian/on_update_icon()
+	return
+
 /obj/item/weapon/card/id/foundation
 	name = "\improper Foundation warrant card"
 	desc = "A warrant card in a handsome leather case."
 	assignment = "Field Agent"
 	icon_state = "warrantcard"
 
-/obj/item/weapon/card/id/foundation/examine(var/mob/user)
-	. = ..(user, 1)
-	if(. && isliving(user))
+/obj/item/weapon/card/id/foundation/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1 && isliving(user))
 		var/mob/living/M = user
 		if(M.psi)
 			to_chat(user, SPAN_WARNING("There is a psionic compulsion surrounding \the [src], forcing anyone who reads it to perceive it as a legitimate document of authority. The actual text just reads 'I can do what I want.'"))
@@ -931,7 +550,7 @@ var/const/NO_EMAG_ACT = -50
 /obj/item/weapon/card/id/civilian
 	name = "identification card"
 	desc = "A card issued to civilian staff."
-	job_access_type = /datum/job/assistant
+	job_access_type = DEFAULT_JOB_TYPE
 	detail_color = COLOR_CIVIE_GREEN
 
 /obj/item/weapon/card/id/civilian/bartender

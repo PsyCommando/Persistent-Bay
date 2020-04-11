@@ -4,8 +4,7 @@
 
 /obj/item/clothing/suit/storage/Initialize()
 	. = ..()
-	if(!map_storage_loaded)
-		pockets = new/obj/item/weapon/storage/internal/pockets(src, slots, ITEM_SIZE_SMALL) //fit only pocket sized items
+	pockets = new/obj/item/weapon/storage/internal/pockets(src, slots, ITEM_SIZE_SMALL) //fit only pocket sized items
 
 /obj/item/clothing/suit/storage/Destroy()
 	QDEL_NULL(pockets)
@@ -32,6 +31,7 @@
 /obj/item/clothing/suit/storage/toggle
 	var/icon_open
 	var/icon_closed
+
 /obj/item/clothing/suit/storage/toggle/verb/toggle()
 	set name = "Toggle Coat Buttons"
 	set category = "Object"
@@ -49,6 +49,13 @@
 		to_chat(usr, "You attempt to button-up the velcro on your [src], before promptly realising how silly you are.")
 		return
 	update_clothing_icon()	//so our overlays update
+
+/obj/item/clothing/suit/storage/toggle/inherit_custom_item_data(var/datum/custom_item/citem)
+	. = ..()
+	if(citem.additional_data["icon_open"])
+		icon_open = citem.additional_data["icon_open"]
+	if(citem.additional_data["icon_closed"])
+		icon_closed = citem.additional_data["icon_closed"]
 
 /obj/item/clothing/suit/storage/vest/merc
 	slots = 4

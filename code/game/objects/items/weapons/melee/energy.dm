@@ -6,12 +6,10 @@
 	var/lighting_color
 	var/active_attack_verb
 	var/inactive_attack_verb = list()
-	sharpness = 0
-	damtype = DAM_BLUNT
+	sharp = 0
+	edge = 0
 	armor_penetration = 50
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_NO_BLOOD
-	mass = 0.5
-	icon = 'icons/obj/weapons/melee/energy.dmi'
 
 /obj/item/weapon/melee/energy/can_embed()
 	return FALSE
@@ -38,8 +36,8 @@
 	active = TRUE
 	force = active_force
 	throwforce = active_throwforce
-	sharpness = 1
-	damtype = DAM_ENERGY
+	sharp = 1
+	edge = 1
 	slot_flags |= SLOT_DENYPOCKET
 	attack_verb = active_attack_verb
 	update_icon()
@@ -54,8 +52,8 @@
 	active = FALSE
 	force = initial(force)
 	throwforce = initial(throwforce)
-	sharpness = initial(sharpness)
-	damtype = initial(damtype)
+	sharp = initial(sharp)
+	edge = initial(edge)
 	slot_flags = initial(slot_flags)
 	attack_verb = inactive_attack_verb
 	update_icon()
@@ -69,8 +67,7 @@
 		if((MUTATION_CLUMSY in user.mutations) && prob(50))
 			user.visible_message("<span class='danger'>\The [user] accidentally cuts \himself with \the [src].</span>",\
 			"<span class='danger'>You accidentally cut yourself with \the [src].</span>")
-			user.apply_damage(5, DAM_CUT)
-			user.apply_damage(5, DAM_BURN)
+			user.take_organ_damage(5,5)
 		deactivate(user)
 	else
 		activate(user)
@@ -97,11 +94,10 @@
 	icon_state = "axe0"
 	active_icon = "axe1"
 	lighting_color = COLOR_SABER_AXE
-	damtype = DAM_CUT
-	active_force = 18
-	active_throwforce = 14
-	force = 12
-	throwforce = 7
+	active_force = 60
+	active_throwforce = 35
+	force = 20
+	throwforce = 10
 	throw_speed = 1
 	throw_range = 5
 	w_class = ITEM_SIZE_NORMAL
@@ -110,14 +106,13 @@
 	origin_tech = list(TECH_MAGNET = 3, TECH_COMBAT = 4)
 	active_attack_verb = list("attacked", "chopped", "cleaved", "torn", "cut")
 	inactive_attack_verb = list("attacked", "chopped", "cleaved", "torn", "cut")
-	sharpness = 1
-	mass = 2.5
+	sharp = 1
+	edge = 1
 	melee_accuracy_bonus = 15
 
 /obj/item/weapon/melee/energy/axe/deactivate(mob/living/user)
 	. = ..()
 	to_chat(user, "<span class='notice'>\The [src] is de-energised. It's just a regular axe now.</span>")
-	damtype = DAM_CUT
 
 /*
  * Energy Sword
@@ -126,19 +121,20 @@
 	name = "energy sword"
 	desc = "May the force be within you."
 	icon_state = "sword0"
-	active_force = 15
-	active_throwforce = 10
+	active_force = 30
+	active_throwforce = 20
 	force = 3
-	throwforce = 2
+	throwforce = 5
 	throw_speed = 1
 	throw_range = 5
 	w_class = ITEM_SIZE_SMALL
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_NO_BLOOD
-	origin_tech = list(TECH_MAGNET = 3, TECH_ILLEGAL = 4)
-	sharpness = 1
-	mass = 0.8
+	origin_tech = list(TECH_MAGNET = 3, TECH_ESOTERIC = 4)
+	sharp = 1
+	edge = 1
 	base_parry_chance = 50
 	active_attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
+	hitsound = 'sound/weapons/blade1.ogg'
 	var/blade_color
 
 /obj/item/weapon/melee/energy/sword/Initialize()
@@ -195,10 +191,11 @@
 	icon_state = "blade"
 	active_icon = "blade"	//It's all energy, so it should always be visible.
 	lighting_color = COLOR_SABER_GREEN
-	force = 20 //Normal attacks deal very high damage - about the same as wielded fire axe
+	force = 40 //Normal attacks deal very high damage - about the same as wielded fire axe
 	active = 1
-	armor_penetration = 10
-	sharpness = 1
+	armor_penetration = 100
+	sharp = 1
+	edge = 1
 	anchored = 1    // Never spawned outside of inventory, should be fine.
 	throwforce = 1  //Throwing or dropping the item deletes it.
 	throw_speed = 1
@@ -206,7 +203,7 @@
 	w_class = ITEM_SIZE_TINY //technically it's just energy or something, I dunno
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_NO_BLOOD
 	active_attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
-	mass = 0.5
+	hitsound = 'sound/weapons/blade1.ogg'
 	var/mob/living/creator
 	var/datum/effect/effect/system/spark_spread/spark_system
 
@@ -262,3 +259,4 @@
 	w_class = ITEM_SIZE_SMALL
 	origin_tech = list(TECH_MAGNET = 3)
 	active_attack_verb = list("attacked", "chopped", "cleaved", "torn", "cut")
+	hitsound = 'sound/weapons/blade1.ogg'

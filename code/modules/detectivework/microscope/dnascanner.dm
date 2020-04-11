@@ -6,7 +6,6 @@
 	icon_state = "dnaopen"
 	anchored = 1
 	density = 1
-	circuit_type = /obj/item/weapon/circuitboard/dnaforensics
 
 	var/obj/item/weapon/forensics/swab/bloodsamp = null
 	var/closed = 0
@@ -16,20 +15,8 @@
 	var/last_process_worldtime = 0
 	var/report_num = 0
 
-/obj/machinery/dnaforensics/New()
-	..()
-	ADD_SAVED_VAR(bloodsamp)
-	ADD_SAVED_VAR(closed)
-	ADD_SAVED_VAR(scanning)
-	ADD_SAVED_VAR(scanner_progress)
-	ADD_SAVED_VAR(report_num)
+/obj/machinery/dnaforensics/attackby(var/obj/item/W, mob/user as mob)
 
-/obj/machinery/dnaforensics/attackby(var/obj/item/O as obj, mob/user as mob)
-	if(closed)
-		if(default_deconstruction_screwdriver(user, O))
-			return
-		if(default_deconstruction_crowbar(user, O))
-			return
 	if(bloodsamp)
 		to_chat(user, "<span class='warning'>There is already a sample in the machine.</span>")
 		return
@@ -38,12 +25,12 @@
 		to_chat(user, "<span class='warning'>Open the cover before inserting the sample.</span>")
 		return
 
-	var/obj/item/weapon/forensics/swab/swab = O
+	var/obj/item/weapon/forensics/swab/swab = W
 	if(istype(swab) && swab.is_used())
-		if(!user.unEquip(O, src))
+		if(!user.unEquip(W, src))
 			return
 		src.bloodsamp = swab
-		to_chat(user, "<span class='notice'>You insert \the [O] into \the [src].</span>")
+		to_chat(user, "<span class='notice'>You insert \the [W] into \the [src].</span>")
 	else
 		to_chat(user, "<span class='warning'>\The [src] only accepts used swabs.</span>")
 		return
@@ -137,11 +124,9 @@
 		update_icon()
 	return
 
-/obj/machinery/dnaforensics/attack_ai(mob/user as mob)
+/obj/machinery/dnaforensics/interface_interact(mob/user)
 	ui_interact(user)
-
-/obj/machinery/dnaforensics/attack_hand(mob/user as mob)
-	ui_interact(user)
+	return TRUE
 
 /obj/machinery/dnaforensics/verb/toggle_lid()
 	set category = "Object"

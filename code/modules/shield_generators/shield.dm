@@ -4,7 +4,6 @@
 	icon = 'icons/obj/machines/shielding.dmi'
 	icon_state = "shield_normal"
 	anchored = 1
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
 	density = 1
 	invisibility = 0
@@ -27,8 +26,8 @@
 
 // Prevents shuttles, singularities and pretty much everything else from moving the field segments away.
 // The only thing that is allowed to move us is the Destroy() proc.
-/obj/effect/shield/forceMove(var/newloc, var/qdeled = 0)
-	if(qdeled)
+/obj/effect/shield/forceMove()
+	if(QDELING(src))
 		return ..()
 	return 0
 
@@ -118,14 +117,13 @@
 		// The closer we are to impact site, the longer it takes for shield to come back up.
 		S.fail(-(-range + get_dist(src, S)) * 2)
 
-/obj/effect/shield/take_damage(damage, damtype, armorbypass, used_weapon, var/hitby)
+/obj/effect/shield/proc/take_damage(var/damage, var/damtype, var/hitby)
 	if(!gen)
 		qdel(src)
 		return
 
 	if(!damage)
 		return
-	..(damage, damtype, armorbypass, used_weapon)
 
 	damage = round(damage)
 
@@ -194,9 +192,9 @@
 
 // Projectiles
 /obj/effect/shield/bullet_act(var/obj/item/projectile/proj)
-	if(IsDamageTypeBurn(proj.damtype))
+	if(proj.damage_type == BURN)
 		take_damage(proj.get_structure_damage(), SHIELD_DAMTYPE_HEAT)
-	else if (IsDamageTypeBrute(proj.damtype))
+	else if (proj.damage_type == BRUTE)
 		take_damage(proj.get_structure_damage(), SHIELD_DAMTYPE_PHYSICAL)
 	else
 		take_damage(proj.get_structure_damage(), SHIELD_DAMTYPE_EM)
@@ -209,9 +207,9 @@
 
 	if(gen.check_flag(MODEFLAG_HYPERKINETIC))
 		user.visible_message("<span class='danger'>\The [user] hits \the [src] with \the [I]!</span>")
-		if(IsDamageTypeBurn(I.damtype))
+		if(I.damtype == BURN)
 			take_damage(I.force, SHIELD_DAMTYPE_HEAT)
-		else if (IsDamageTypeBrute(I.damtype))
+		else if (I.damtype == BRUTE)
 			take_damage(I.force, SHIELD_DAMTYPE_PHYSICAL)
 		else
 			take_damage(I.force, SHIELD_DAMTYPE_EM)
@@ -296,7 +294,7 @@
 /obj/effect/meteor/shield_impact(var/obj/effect/shield/S)
 	if(!S.gen.check_flag(MODEFLAG_HYPERKINETIC))
 		return
-	S.take_damage(get_shield_damage(), SHIELD_DAMTYPE_PHYSICAL, used_weapon = src)
+	S.take_damage(get_shield_damage(), SHIELD_DAMTYPE_PHYSICAL, src)
 	visible_message("<span class='danger'>\The [src] breaks into dust!</span>")
 	make_debris()
 	qdel(src)

@@ -14,19 +14,11 @@
 	w_class = ITEM_SIZE_LARGE
 	origin_tech = list(TECH_BIO = 4, TECH_POWER = 2)
 	action_button_name = "Remove/Replace Paddles"
-	mass = 1.5 KILOGRAMS
 
 	var/obj/item/weapon/shockpaddles/linked/paddles
 	var/obj/item/weapon/cell/bcell = null
 
-/obj/item/weapon/defibrillator/loaded //starts with regular power cell for R&D to replace later in the round.
-	bcell = /obj/item/weapon/cell/apc
-
-/obj/item/weapon/defibrillator/New()
-	..()
-	ADD_SAVED_VAR(bcell)
-
-/obj/item/weapon/defibrillator/Initialize(mapload) //starts without a cell for rnd
+/obj/item/weapon/defibrillator/Initialize() //starts without a cell for rnd
 	. = ..()
 	if(ispath(paddles))
 		paddles = new paddles(src, src)
@@ -35,20 +27,15 @@
 
 	if(ispath(bcell))
 		bcell = new bcell(src)
-	
-	if(!mapload)
-		update_icon()
-	else
-		queue_icon_update()
+	update_icon()
 
 /obj/item/weapon/defibrillator/Destroy()
-	if(paddles && !ispath(paddles))
-		qdel(paddles)
-	if(bcell && !ispath(bcell))
-		qdel(bcell)
-	paddles = null
-	bcell = null
-	return 	..()
+	. = ..()
+	QDEL_NULL(paddles)
+	QDEL_NULL(bcell)
+
+/obj/item/weapon/defibrillator/loaded //starts with regular power cell for R&D to replace later in the round.
+	bcell = /obj/item/weapon/cell/apc
 
 /obj/item/weapon/defibrillator/on_update_icon()
 	var/list/new_overlays = list()
@@ -72,11 +59,10 @@
 
 /obj/item/weapon/defibrillator/examine(mob/user)
 	. = ..()
-	if(.)
-		if(bcell)
-			to_chat(user, "The charge meter is showing [bcell.percent()]% charge left.")
-		else
-			to_chat(user, "There is no cell inside.")
+	if(bcell)
+		to_chat(user, "The charge meter is showing [bcell.percent()]% charge left.")
+	else
+		to_chat(user, "There is no cell inside.")
 
 /obj/item/weapon/defibrillator/ui_action_click()
 	toggle_paddles()
@@ -85,7 +71,7 @@
 	if(loc == user)
 		toggle_paddles()
 	else
-		return ..()
+		..()
 
 /obj/item/weapon/defibrillator/MouseDrop()
 	if(ismob(src.loc))
@@ -126,11 +112,6 @@
 	if(paddles)
 		return paddles.emag_act(uses, user, src)
 	return NO_EMAG_ACT
-
-/obj/item/weapon/defibrillator/get_cell()
-	if(!ispath(bcell))
-		return bcell
-	return null
 
 //Paddle stuff
 
@@ -388,7 +369,7 @@
 		return
 	if(!user.skill_check(SKILL_MEDICAL, SKILL_BASIC) && !lowskill_revive(H, user))
 		return
-	H.apply_damage(burn_damage_amt, DAM_BURN, BP_CHEST)
+	H.apply_damage(burn_damage_amt, BURN, BP_CHEST)
 
 	//set oxyloss so that the patient is just barely in crit, if possible
 	make_announcement("pings, \"Resuscitation successful.\"", "notice")
@@ -480,7 +461,7 @@
 	var/obj/item/organ/internal/brain/brain = H.internal_organs_by_name[BP_BRAIN]
 	if(!brain) return //no brain
 
-	var/brain_damage = Clamp((deadtime - DEFIB_TIME_LOSS)/(DEFIB_TIME_LIMIT - DEFIB_TIME_LOSS)*brain.get_max_health(), H.getBrainLoss(), brain.get_max_health())
+	var/brain_damage = Clamp((deadtime - DEFIB_TIME_LOSS)/(DEFIB_TIME_LIMIT - DEFIB_TIME_LOSS)*brain.max_damage, H.getBrainLoss(), brain.max_damage)
 	H.setBrainLoss(brain_damage)
 
 /obj/item/weapon/shockpaddles/proc/make_announcement(var/message, var/msg_class)
@@ -538,6 +519,30 @@
 		var/mob/living/silicon/robot/R = src.loc
 		return (R.cell && R.cell.checked_use(charge_amt))
 
+/obj/item/weapon/shockpaddles/rig
+	name = "mounted defibrillator"
+	desc = "If you can see this something is very wrong, report this bug."
+	cooldowntime = (4 SECONDS)
+	chargetime = (1 SECOND)
+	chargecost = 150
+	safety = 0
+	wielded = 1
+
+/obj/item/weapon/shockpaddles/rig/check_charge(var/charge_amt)
+	if(istype(src.loc, /obj/item/rig_module/device/defib))
+		var/obj/item/rig_module/device/defib/module = src.loc
+		return (module.holder && module.holder.cell && module.holder.cell.check_charge(charge_amt))
+
+/obj/item/weapon/shockpaddles/rig/checked_use(var/charge_amt)
+	if(istype(src.loc, /obj/item/rig_module/device/defib))
+		var/obj/item/rig_module/device/defib/module = src.loc
+		return (module.holder && module.holder.cell && module.holder.cell.checked_use(charge_amt))
+
+/obj/item/weapon/shockpaddles/rig/set_cooldown(var/delay)
+	..()
+	if(istype(src.loc, /obj/item/rig_module/device/defib))
+		var/obj/item/rig_module/device/defib/module = src.loc
+		module.next_use = world.time + delay
 /*
 	Shockpaddles that are linked to a base unit
 */
@@ -593,7 +598,8 @@
 
 /obj/item/weapon/shockpaddles/standalone/Process()
 	if(fail_counter > 0)
-		SSradiation.radiate(src, fail_counter--)
+		SSradiation.radiate(src, (fail_counter * 2))
+		fail_counter--
 	else
 		STOP_PROCESSING(SSobj, src)
 

@@ -33,7 +33,6 @@ By design, d1 is the smallest direction and d2 is the highest
 	var/d1 = 0
 	var/d2 = 1
 
-	plane = ABOVE_TURF_PLANE
 	layer = EXPOSED_WIRE_LAYER
 
 	color = COLOR_MAROON
@@ -83,19 +82,10 @@ By design, d1 is the smallest direction and d2 is the highest
 	d2 = text2num( copytext( icon_state, dash+1 ) )
 
 	var/turf/T = src.loc			// hide if turf is not intact
-	if(T)
-		if(level==1) hide(!T.is_plating())
+	if(level==1) hide(!T.is_plating())
 	cable_list += src //add it to the global cable list
 
 
-/obj/structure/cable/after_load()
-	icon_state = "[d1]-[d2]"
-	
-	var/turf/T = src.loc			// hide if turf is not intact
-	if(T)
-		if(level==1) hide(!T.is_plating())
-	mergeConnectedNetworks(d1)
-	mergeConnectedNetworks(d2)
 /obj/structure/cable/Destroy()     // called when a cable is deleted
 	if(powernet)
 		cut_cable_from_powernet()  // update the powernets
@@ -142,10 +132,6 @@ By design, d1 is the smallest direction and d2 is the highest
 /obj/structure/cable/proc/get_powernet()			//TODO: remove this as it is obsolete
 	return powernet
 
-//Telekinesis has no effect on a cable
-/obj/structure/cable/attack_tk(mob/user)
-	return
-
 // Items usable on a cable :
 //   - Wirecutters : cut it duh !
 //   - Cable coil : merge cables
@@ -153,11 +139,6 @@ By design, d1 is the smallest direction and d2 is the highest
 //
 
 /obj/structure/cable/attackby(obj/item/W, mob/user)
-
-	var/turf/T = src.loc
-	if(!T.is_plating())
-		return
-
 	if(isWirecutter(W))
 		cut_wire(W, user)
 
@@ -179,7 +160,7 @@ By design, d1 is the smallest direction and d2 is the highest
 		shock(user, 5, 0.2)
 
 
-	else if(W.sharpness)
+	else if(W.edge)
 
 		var/delay_holder
 
@@ -361,12 +342,13 @@ obj/structure/cable/proc/cableColor(var/colorC)
 
 		else if(istype(AM,/obj/machinery/power/apc))
 			var/obj/machinery/power/apc/N = AM
-			if(!N.terminal)	continue // APC are connected through their terminal
+			var/obj/machinery/power/terminal/terminal = N.terminal()
+			if(!terminal)	continue // APC are connected through their terminal
 
-			if(N.terminal.powernet == powernet)
+			if(terminal.powernet == powernet)
 				continue
 
-			to_connect += N.terminal //we'll connect the machines after all cables are merged
+			to_connect += terminal //we'll connect the machines after all cables are merged
 
 		else if(istype(AM,/obj/machinery/power)) //other power machines
 			var/obj/machinery/power/M = AM
@@ -490,7 +472,7 @@ obj/structure/cable/proc/cableColor(var/colorC)
 	icon = 'icons/obj/power.dmi'
 	icon_state = "coil"
 	randpixel = 2
-	amount = 1 //Keep it to 1, otherwise machines will be created with a million cables, and if changed for a numbered sub-class they won't build anymore
+	amount = MAXCOIL
 	max_amount = MAXCOIL
 	color = COLOR_MAROON
 	desc = "A coil of wiring, for delicate electronics use aswell as the more basic cable laying."
@@ -508,20 +490,8 @@ obj/structure/cable/proc/cableColor(var/colorC)
 /obj/item/stack/cable_coil/single
 	amount = 1
 
-/obj/item/stack/cable_coil/five
-	amount = 5
-
-/obj/item/stack/cable_coil/thirty
-	amount = 30
-	
-
-/obj/item/stack/cable_coil/single/New(var/loc, var/amount = 1, var/param_color = null)
-	..(loc, amount, param_color)
-/obj/item/stack/cable_coil/five/New(var/loc, var/amount = 5, var/param_color = null)
-	..(loc, amount, param_color)
-/obj/item/stack/cable_coil/thirty/New(var/loc, var/amount = 30, var/param_color = null)
-	..(loc, amount, param_color)
-
+/obj/item/stack/cable_coil/single/New(var/loc, var/length = 1, var/param_color = null)
+	..(loc, length, param_color)
 
 /obj/item/stack/cable_coil/cyborg
 	name = "cable coil synthesizer"
@@ -531,16 +501,13 @@ obj/structure/cable/proc/cableColor(var/colorC)
 	uses_charge = 1
 	charge_costs = list(1)
 
-/obj/item/stack/cable_coil/New(loc, amount = 1, var/param_color = null)
+/obj/item/stack/cable_coil/New(loc, length = MAXCOIL, var/param_color = null)
 	..()
-	src.amount = amount
+	src.amount = length
 	if (param_color) // It should be red by default, so only recolor it if parameter was specified.
 		color = param_color
+	update_icon()
 	update_wclass()
-
-/obj/item/stack/cable_coil/Initialize()
-	. = ..()
-	queue_icon_update()
 
 ///////////////////////////////////
 // General procedures
@@ -562,7 +529,7 @@ obj/structure/cable/proc/cableColor(var/colorC)
 
 		var/use_amt = min(src.amount, ceil(S.burn_dam/3), 5)
 		if(can_use(use_amt))
-			if(S.robo_repair(3*use_amt, DAM_BURN, "some damaged wiring", src, user))
+			if(S.robo_repair(3*use_amt, BURN, "some damaged wiring", src, user))
 				src.use(use_amt)
 		return
 	return ..()
@@ -601,9 +568,9 @@ obj/structure/cable/proc/cableColor(var/colorC)
 	else
 		w_class = ITEM_SIZE_SMALL
 
-/obj/item/stack/cable_coil/examine(mob/user)
+/obj/item/stack/cable_coil/examine(mob/user, distance)
 	. = ..()
-	if(get_dist(src, user) > 1)
+	if(distance > 1)
 		return
 
 	if(get_amount() == 1)
@@ -629,7 +596,6 @@ obj/structure/cable/proc/cableColor(var/colorC)
 		to_chat(usr, "<span class='notice'>You wind some cable together to make some restraints.</span>")
 	else
 		to_chat(usr, "<span class='notice'>You cannot do that.</span>")
-	..()
 
 /obj/item/stack/cable_coil/cyborg/verb/set_colour()
 	set name = "Change Colour"
@@ -649,19 +615,11 @@ obj/structure/cable/proc/cableColor(var/colorC)
 
 /obj/item/stack/cable_coil/transfer_to(obj/item/stack/cable_coil/S)
 	if(!istype(S))
-		return
+		return 0
 	if(!(can_merge(S) || S.can_merge(src)))
-		return
+		return 0
 
-	..()
-
-/obj/item/stack/cable_coil/use()
-	. = ..()
-	update_icon()
-
-/obj/item/stack/cable_coil/add()
-	. = ..()
-	update_icon()
+	return ..()
 
 ///////////////////////////////////////////////
 // Cable laying procedures
@@ -864,3 +822,31 @@ obj/structure/cable/proc/cableColor(var/colorC)
 /obj/item/stack/cable_coil/random/New()
 	color = GLOB.possible_cable_colours[pick(GLOB.possible_cable_colours)]
 	..()
+
+// Produces cable coil from a rig power cell.
+/obj/item/stack/cable_coil/fabricator
+	name = "cable fabricator"
+	var/cost_per_cable = 10
+
+/obj/item/stack/cable_coil/fabricator/split(var/tamount, var/force=FALSE)
+	return
+
+/obj/item/stack/cable_coil/fabricator/get_cell()
+	if(istype(loc, /obj/item/rig_module))
+		var/obj/item/rig_module/module = loc
+		return module.get_cell()
+	if(istype(loc, /mob/living/silicon/robot))
+		var/mob/living/silicon/robot/R = loc
+		return R.get_cell()
+
+/obj/item/stack/cable_coil/fabricator/use(var/used)
+	var/obj/item/weapon/cell/cell = get_cell()
+	if(cell) cell.use(used * cost_per_cable)
+
+/obj/item/stack/cable_coil/fabricator/get_amount()
+	var/obj/item/weapon/cell/cell = get_cell()
+	. = (cell ? Floor(cell.charge / cost_per_cable) : 0)
+
+/obj/item/stack/cable_coil/fabricator/get_max_amount()
+	var/obj/item/weapon/cell/cell = get_cell()
+	. = (cell ? Floor(cell.maxcharge / cost_per_cable) : 0)

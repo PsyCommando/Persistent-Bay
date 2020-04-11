@@ -37,7 +37,7 @@
 	if(activation_message)
 		to_chat(M, "<span class='warning'>[activation_message]</span>")
 	else
-		log_warning("[name] has no activation message.")
+		testing("[name] has no activation message.")
 
 /datum/dna/gene/disability/deactivate(var/mob/M, var/connected, var/flags)
 	if(mutation && (mutation in M.mutations))
@@ -49,7 +49,7 @@
 	if(deactivation_message)
 		to_chat(M, "<span class='warning'>[deactivation_message]</span>")
 	else
-		log_warning("[name] has no deactivation message.")
+		testing("[name] has no deactivation message.")
 
 // Note: Doesn't seem to do squat, at the moment.
 /datum/dna/gene/disability/hallucinate
@@ -103,7 +103,7 @@
 /datum/dna/gene/disability/blindness
 	name="Blindness"
 	activation_message="You can't seem to see anything."
-	sdisability=BLIND
+	sdisability=BLINDED
 
 /datum/dna/gene/disability/blindness/New()
 	block=GLOB.BLINDBLOCK
@@ -111,7 +111,7 @@
 /datum/dna/gene/disability/deaf
 	name="Deafness"
 	activation_message="It's kinda quiet."
-	sdisability=DEAF
+	sdisability=DEAFENED
 
 /datum/dna/gene/disability/deaf/New()
 	block=GLOB.DEAFBLOCK

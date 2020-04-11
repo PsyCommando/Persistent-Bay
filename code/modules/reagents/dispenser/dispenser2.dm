@@ -19,7 +19,7 @@
 	idle_power_usage = 100
 	density = 1
 	anchored = 1
-	obj_flags = OBJ_FLAG_ANCHORABLE | OBJ_FLAG_DAMAGEABLE
+	obj_flags = OBJ_FLAG_ANCHORABLE
 	core_skill = SKILL_CHEMISTRY
 	var/can_contaminate = TRUE
 
@@ -175,11 +175,9 @@
 			return TOPIC_REFRESH
 		return TOPIC_HANDLED
 
-/obj/machinery/chemical_dispenser/attack_ai(mob/user as mob)
+/obj/machinery/chemical_dispenser/interface_interact(mob/user)
 	ui_interact(user)
-
-/obj/machinery/chemical_dispenser/attack_hand(mob/user as mob)
-	ui_interact(user)
+	return TRUE
 
 /obj/machinery/chemical_dispenser/on_update_icon()
 	overlays.Cut()

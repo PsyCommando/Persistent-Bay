@@ -1,3 +1,14 @@
+/obj/item/weapon/stock_parts/circuitboard/centrifuge
+	name = T_BOARD("isolation centrifuge")
+	build_path = /obj/machinery/computer/centrifuge
+	origin_tech = list(TECH_DATA = 2, TECH_BIO = 3)
+/datum/design/circuit/centrifuge
+	name = "isolation centrifuge console"
+	id = "iso_centrifuge"
+	req_tech = list(TECH_DATA = 2, TECH_BIO = 3)
+	build_path = /obj/item/weapon/stock_parts/circuitboard/centrifuge
+	sort_string = "FACAG"
+
 /obj/machinery/computer/centrifuge
 	name = "isolation centrifuge"
 	desc = "Used to separate things with different weights. Spin 'em round, round, right round."
@@ -5,7 +16,6 @@
 	icon_state = "centrifuge"
 	density = 1
 	core_skill = SKILL_VIROLOGY
-	circuit_type = /obj/item/weapon/circuitboard/centrifuge
 	var/curing = FALSE
 	var/isolating = FALSE
 	var/obj/item/weapon/reagent_containers/glass/beaker/vial/sample = null
@@ -44,11 +54,7 @@
 		time_isolating_end = world.time + time_isolating_end
 
 /obj/machinery/computer/centrifuge/attackby(var/obj/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		return 1
-	else if(default_deconstruction_crowbar(user, O))
-		return 1
-	else if(istype(O,/obj/item/weapon/reagent_containers/glass/beaker/vial))
+	if(istype(O,/obj/item/weapon/reagent_containers/glass/beaker/vial))
 		if(sample)
 			to_chat(user, "\The [src] is already loaded.")
 			return
@@ -67,10 +73,9 @@
 	if(! (stat & (BROKEN|NOPOWER)))
 		icon_state = (isolating || curing) ? "centrifuge_moving" : "centrifuge"
 
-/obj/machinery/computer/centrifuge/attack_hand(var/mob/user as mob)
-	if(..()) 
-		return
+/obj/machinery/computer/centrifuge/interface_interact(var/mob/user)
 	ui_interact(user)
+	return TRUE
 
 /obj/machinery/computer/centrifuge/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	user.set_machine(src)
@@ -176,7 +181,7 @@
 
 			curing = TRUE
 			time_curing_end = world.time + round(delay) SECONDS
-			playsound(src.loc, 'sound/machines/juicer.ogg', 50, 1)
+			playsound(src.loc, 'sound/machines/juicer_old.ogg', 50, 1)
 			update_icon()
 			return TOPIC_REFRESH
 

@@ -10,28 +10,6 @@
 #define AB_CHECK_ALIVE 8
 #define AB_CHECK_INSIDE 16
 
-/mob/living/carbon/lace/Life()
-	update_action_buttons()
-
-/datum/action/lace
-	name = "Access Lace UI"
-
-//The lace action should be cleared when it no longer has any owner and lacemob!
-// Otherwise it just sticks around in people's action bar
-/datum/action/lace/CheckRemoval()
-	var/obj/item/organ/internal/stack/ST = target
-	if(!istype(ST))
-		return TRUE //Remove plz
-	if(ST.can_delete_stack_action())
-		return TRUE
-	return FALSE
-
-/datum/action/lace_storage
-	name = "Access Lace Storage UI"
-	action_type = AB_GENERIC
-	button_icon = 'icons/obj/action_buttons/lace.dmi'
-	button_icon_state = "lace"
-	procname = "lace_ui_interact"
 
 /datum/action
 	var/name = "Generic Action"
@@ -47,16 +25,12 @@
 	var/background_icon_state = "bg_default"
 	var/mob/living/owner
 
-	var/icon_override = null
-	var/override_state = ""
-
 /datum/action/New(var/Target)
 	target = Target
 
 /datum/action/Destroy()
 	if(owner)
 		Remove(owner)
-	return ..()
 
 /datum/action/proc/SetTarget(var/atom/Target)
 	target = Target
@@ -88,7 +62,7 @@
 	switch(action_type)
 		if(AB_ITEM, AB_ITEM_USE_ICON)
 			if(target)
-				var/obj/item = target
+				var/obj/item/item = target
 				item.ui_action_click()
 		//if(AB_SPELL)
 		//	if(target)
@@ -165,11 +139,8 @@
 	overlays.Cut()
 	var/image/img
 	if(owner.action_type == AB_ITEM && owner.target)
-		if(owner.icon_override)
-			img = image(owner.icon_override, src, owner.override_state)
-		else
-			var/obj/item/I = owner.target
-			img = image(I.icon, src , I.icon_state)
+		var/obj/item/I = owner.target
+		img = image(I.icon, src , I.icon_state)
 	else if(owner.button_icon && owner.button_icon_state)
 		img = image(owner.button_icon,src,owner.button_icon_state)
 	img.pixel_x = 0

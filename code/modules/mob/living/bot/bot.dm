@@ -3,8 +3,16 @@
 	health = 20
 	maxHealth = 20
 	icon = 'icons/mob/bot/placeholder.dmi'
-	universal_speak = 1
+	universal_speak = TRUE
 	density = 0
+
+	meat_type = null
+	meat_amount = 0
+	skin_material = null
+	skin_amount = 0
+	bone_material = null
+	bone_amount = 0
+
 	var/obj/item/weapon/card/id/botcard = null
 	var/list/botcard_access = list()
 	var/on = 1
@@ -16,9 +24,6 @@
 
 	var/obj/access_scanner = null
 	var/list/req_access = list()
-	var/list/req_one_access = list()
-	var/list/req_access_faction = list()
-	var/datum/world_faction/connected_faction
 
 	var/atom/target = null
 	var/list/ignore_list = list()
@@ -39,7 +44,6 @@
 	var/frustration = 0
 	var/max_frustration = 0
 
-	plane = HIDING_MOB_PLANE
 	layer = HIDING_MOB_LAYER
 
 /mob/living/bot/New()
@@ -51,12 +55,6 @@
 
 	access_scanner = new /obj(src)
 	access_scanner.req_access = req_access.Copy()
-	access_scanner.req_one_access = req_one_access.Copy()
-
-	ADD_SAVED_VAR(on)
-	ADD_SAVED_VAR(open)
-	ADD_SAVED_VAR(locked)
-	ADD_SAVED_VAR(emagged)
 
 /mob/living/bot/Initialize()
 	. = ..()
@@ -64,10 +62,6 @@
 		turn_on() // Update lights and other stuff
 	else
 		turn_off()
-
-/mob/living/bot/after_load()
-	..()
-	connected_faction = get_faction(req_access_faction)
 
 /mob/living/bot/Life()
 	..()
@@ -79,7 +73,8 @@
 	paralysis = 0
 
 	if(on && !client && !busy)
-		handleAI()
+		spawn(0)
+			handleAI()
 
 /mob/living/bot/updatehealth()
 	if(status_flags & GODMODE)
@@ -95,11 +90,6 @@
 
 /mob/living/bot/attackby(var/obj/item/O, var/mob/user)
 	if(O.GetIdCard())
-		if(!connected_faction && O.GetFaction())
-			req_access_faction = O.GetFaction()
-			connected_faction = get_faction(req_access_faction)
-			to_chat(user, "<span class='notice'>\The [src] has been synced to your faction</span>")
-			return
 		if(access_scanner.allowed(user) && !open)
 			locked = !locked
 			to_chat(user, "<span class='notice'>Controls are now [locked ? "locked." : "unlocked."]</span>")
@@ -163,20 +153,13 @@
 	popup.set_content(dat)
 	popup.open()
 
-/mob/living/bot/Topic(var/href, var/href_list)
-	if(..())
-		return 1
+/mob/living/bot/DefaultTopicState()
+	return GLOB.default_state
 
-	if(!issilicon(usr) && !Adjacent(usr))
-		return
-
-	if(usr.incapacitated())
-		return
-
+/mob/living/bot/OnTopic(mob/user, href_list)
 	if(href_list["command"])
-		ProcessCommand(usr, href_list["command"], href_list)
-
-	Interact(usr)
+		ProcessCommand(user, href_list["command"], href_list)
+	Interact(user)
 
 /mob/living/bot/proc/GetInteractTitle()
 	return

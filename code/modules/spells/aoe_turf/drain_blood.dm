@@ -47,14 +47,14 @@
 /obj/item/projectile/beam/blood_effect
 	name = "blood jet"
 	icon_state = "blood"
-	force = 0
+	damage = 0
 	randpixel = 0
 	no_attack_log = 1
 	muzzle_type = /obj/effect/projectile/blood
 	tracer_type = /obj/effect/projectile/blood
 	impact_type = /obj/effect/projectile/blood
 
-/obj/item/projectile/beam/blood_effect/Bump(var/atom/a)
+/obj/item/projectile/beam/blood_effect/Bump(var/atom/a, forced=0)
 	if(a == original)
 		on_impact(a)
 		qdel(src)

@@ -5,7 +5,7 @@
 	ore_smelts_to = MATERIAL_URANIUM
 	ore_result_amount = 5
 	ore_spread_chance = 10
-	ore_name = MATERIAL_PITCHBLENDE
+	ore_name = "pitchblende"
 	ore_scan_icon = "mineral_uncommon"
 	stack_origin_tech = list(TECH_MATERIAL = 5)
 	xarch_ages = list(
@@ -15,52 +15,34 @@
 	xarch_source_mineral = "potassium"
 	ore_icon_overlay = "nugget"
 	chem_products = list(
-		/datum/reagent/radium = 20,
-		/datum/reagent/uranium = 40
+		/datum/reagent/radium = 10,
+		/datum/reagent/uranium = 10
 		)
 	sheet_singular_name = "brick"
 	sheet_plural_name = "bricks"
 	sale_price = 2
-	ore_matter = list(MATERIAL_URANIUM = 2000)
 
 /material/graphite
-	name = MATERIAL_GRAPHITE //Aka carbon
-	ignition_point= T0C + 700
-	melting_point = T0C + 3500
+	name = MATERIAL_GRAPHITE
 	ore_compresses_to = MATERIAL_GRAPHITE
-	stack_type = /obj/item/stack/material/carbon
 	icon_colour = "#444444"
-	ore_name = MATERIAL_GRAPHITE
-	ore_smelts_to = MATERIAL_PLASTIC //Polyethylene(aka common plastic) is C2H4 not just carbon..
+	ore_smelts_to = MATERIAL_PLASTIC
+	ore_name = "graphite"
+	ore_smelts_to = MATERIAL_PLASTIC
 	ore_result_amount = 5
 	ore_spread_chance = 25
 	ore_scan_icon = "mineral_common"
 	ore_icon_overlay = "lump"
 	chem_products = list(
-		/datum/reagent/carbon = 40
+		/datum/reagent/carbon = 15,
+		/datum/reagent/acetone = 5
 		)
 	sale_price = 1
-	ore_matter = list(MATERIAL_GRAPHITE = 2000)
-	energy_combustion = 32.7
-
-/material/graphene
-	name = MATERIAL_GRAPHENE //Aka carbon
-	ignition_point= T0C + 700
-	melting_point = T0C + 3500
-	stack_type = /obj/item/stack/material/carbon
-	icon_colour = "#141414"
-	chem_products = list(
-		/datum/reagent/carbon = 10,
-		/datum/reagent/acetone = 10
-		)
-	sale_price = 1
-	ore_matter = list(MATERIAL_GRAPHITE = 2000)
-	energy_combustion = 32.7
 
 /material/quartz
 	name = MATERIAL_QUARTZ
 	ore_compresses_to = MATERIAL_QUARTZ
-	ore_name = MATERIAL_QUARTZ
+	ore_name = "quartz"
 	opacity = 0.5
 	ore_result_amount = 10
 	ore_spread_chance = 10
@@ -76,20 +58,19 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_matter = list(MATERIAL_QUARTZ = 2000)
 	sale_price = 2
 
 /material/pyrite
 	name = MATERIAL_PYRITE
-	ore_name = MATERIAL_PYRITE
+	ore_name = "pyrite"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
 	ore_icon_overlay = "lump"
 	icon_colour = "#ccc9a3"
 	chem_products = list(
-		/datum/reagent/sulfur = 20,
-		/datum/reagent/iron = 10,
+		/datum/reagent/sulfur = 15,
+		/datum/reagent/iron = 5
 		)
 	door_icon_base = "stone"
 	sheet_singular_name = "brick"
@@ -97,47 +78,20 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_compresses_to = MATERIAL_SULFUR
-	ore_matter = list(MATERIAL_SULFUR = 2000, MATERIAL_IRON = 1000)
+	ore_compresses_to = MATERIAL_PYRITE
 	sale_price = 2
 
-/material/sulfur
-	name = MATERIAL_SULFUR
-	icon_colour = "#edff21"
-	flags = MATERIAL_BRITTLE
-	conductive = 0
-	hardness = 1
-	weight = 10
-	integrity = 5
-	ignition_point= T0C + 232
-	melting_point = T0C + 115
-	sheet_singular_name = "brick"
-	sheet_plural_name = "bricks"
-	ore_name = "native " + MATERIAL_SULFUR
-	ore_result_amount = 10
-	ore_spread_chance = 10
-	ore_scan_icon = "mineral_common"
-	ore_icon_overlay = "lump"
-	chem_products = list(
-		/datum/reagent/sulfur = 20,
-		)
-	ore_compresses_to = MATERIAL_SULFUR
-	ore_matter = list(MATERIAL_SULFUR = 2000)
-	energy_combustion = 9.23
-
 /material/spodumene
-	name = MATERIAL_SPODUMENE //LiAl(SiO3)2
+	name = MATERIAL_SPODUMENE
 	ore_compresses_to = MATERIAL_SPODUMENE
-	ore_name = MATERIAL_SPODUMENE
+	ore_name = "spodumene"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
 	ore_icon_overlay = "lump"
 	icon_colour = "#e5becb"
 	chem_products = list(
-		/datum/reagent/lithium = 20,
-		/datum/reagent/silicon = 40,
-		/datum/reagent/aluminum = 20,
+		/datum/reagent/lithium = 20
 		)
 	door_icon_base = "stone"
 	sheet_singular_name = "brick"
@@ -145,22 +99,19 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_matter = list(MATERIAL_SPODUMENE = 2000, MATERIAL_ALUMINIUM = 500)
-	energy_combustion = 43.1
 	sale_price = 2
 
 /material/cinnabar
 	name = MATERIAL_CINNABAR
 	ore_compresses_to = MATERIAL_CINNABAR
-	ore_name = MATERIAL_CINNABAR
+	ore_name = "cinnabar"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
 	ore_icon_overlay = "lump"
 	icon_colour = "#e54e4e"
 	chem_products = list(
-		/datum/reagent/mercury  = 20,
-		/datum/reagent/toxin/bromide = 5, //Shouldn't be in cinnabar, but whatever
+		/datum/reagent/mercury  = 20
 	)
 	door_icon_base = "stone"
 	sheet_singular_name = "brick"
@@ -168,13 +119,12 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_matter = list(MATERIAL_CINNABAR = 2000)
 	sale_price = 2
 
 /material/phosphorite
 	name = MATERIAL_PHOSPHORITE
 	ore_compresses_to = MATERIAL_PHOSPHORITE
-	ore_name = MATERIAL_PHOSPHORITE
+	ore_name = "phosphorite"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
@@ -189,22 +139,19 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_matter = list(MATERIAL_PHOSPHORITE = 2000)
 	sale_price = 2
 
 /material/rocksalt
 	name = MATERIAL_ROCK_SALT
-	stack_type = /obj/item/stack/material/salt
 	ore_compresses_to = MATERIAL_ROCK_SALT
-	ore_name = MATERIAL_ROCK_SALT
+	ore_name = "rock salt"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
 	ore_icon_overlay = "lump"
 	icon_colour = "#d1c0bc"
 	chem_products = list(
-		/datum/reagent/sodium = 10,
-		/datum/reagent/toxin/chlorine = 10
+		/datum/reagent/sodium = 20
 	)
 	door_icon_base = "stone"
 	sheet_singular_name = "brick"
@@ -212,14 +159,12 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_matter = list(MATERIAL_ROCK_SALT = 2000)
-	energy_combustion = 9.23
 	sale_price = 2
 
 /material/potash
 	name = MATERIAL_POTASH
 	ore_compresses_to = MATERIAL_POTASH
-	ore_name = MATERIAL_POTASH
+	ore_name = "potash"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
@@ -234,19 +179,18 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	ore_matter = list(MATERIAL_POTASH = 2000)
 	sale_price = 2
 
 /material/bauxite
 	name = MATERIAL_BAUXITE
-	ore_name = MATERIAL_BAUXITE
+	ore_name = "bauxite"
 	ore_result_amount = 10
 	ore_spread_chance = 10
 	ore_scan_icon = "mineral_common"
 	ore_icon_overlay = "lump"
 	icon_colour = "#d8ad97"
 	chem_products = list(
-		/datum/reagent/aluminum = 20
+		/datum/reagent/aluminium = 15
 		)
 	door_icon_base = "stone"
 	sheet_singular_name = "brick"
@@ -254,11 +198,8 @@
 	icon_base = "stone"
 	table_icon_base = "stone"
 	icon_reinf = "reinf_stone"
-	door_icon_base = "stone"
-	ore_compresses_to = MATERIAL_BAUXITE
 	ore_smelts_to = MATERIAL_ALUMINIUM
-	ore_matter = list(MATERIAL_BAUXITE = 2000)
-	energy_combustion = 31
+	ore_compresses_to = MATERIAL_BAUXITE
 	sale_price = 1
 
 /material/sand
@@ -267,12 +208,11 @@
 	icon_colour = "#e2dbb5"
 	ore_smelts_to = MATERIAL_GLASS
 	ore_compresses_to = MATERIAL_SANDSTONE
-	ore_name = MATERIAL_SAND
+	ore_name = "sand"
 	ore_icon_overlay = "dust"
 	chem_products = list(
 		/datum/reagent/silicon = 20
 		)
-	ore_matter = list(MATERIAL_SAND = 2000)
 
 /material/phoron
 	name = MATERIAL_PHORON
@@ -282,7 +222,7 @@
 	table_icon_base = "stone"
 	icon_colour = "#e37108"
 	shard_type = SHARD_SHARD
-	hardness = 30
+	hardness = MATERIAL_RIGID
 	stack_origin_tech = list(TECH_MATERIAL = 2, TECH_PHORON = 2)
 	door_icon_base = "stone"
 	sheet_singular_name = "crystal"
@@ -291,8 +231,8 @@
 	chem_products = list(
 		/datum/reagent/toxin/phoron = 20
 		)
-	construction_difficulty = 2
-	ore_name = MATERIAL_PHORON
+	construction_difficulty = MATERIAL_HARD_DIY
+	ore_name = "phoron"
 	ore_compresses_to = MATERIAL_PHORON
 	ore_result_amount = 5
 	ore_spread_chance = 25
@@ -306,8 +246,7 @@
 	xarch_source_mineral = MATERIAL_PHORON
 	ore_icon_overlay = "gems"
 	sale_price = 5
-	ore_matter = list(MATERIAL_PHORON = 2000)
-	energy_combustion = 150
+	value = 200
 
 /material/phoron/supermatter
 	name = MATERIAL_SUPERMATTER

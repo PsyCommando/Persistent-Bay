@@ -30,7 +30,7 @@ GLOBAL_LIST_EMPTY(maze_map_data)
 
 	var/list/monster_types = list(/mob/living/simple_animal/hostile/carp) // types of monsters that will occur on this map.
 	var/monster_quantity = 5 // and how many will occur/respawn
-	var/list/obj_types = list(/obj/structure/cryo_crate)
+	var/list/obj_types = null//list(/obj/structure/cryo_crate)
 	var/obj_quantity = 5
 
 	var/list/current_monsters = list()
@@ -113,10 +113,10 @@ GLOBAL_LIST_EMPTY(maze_map_data)
 /datum/zlevel_data/proc/on_inactive()
 	for(var/mob/m in current_monsters)
 		STOP_PROCESSING(SSmobs, m)
-	for(var/obj/structure/cryo_crate/O in current_obj) //Despawn unsealed abandoned crates
-		if(O.sealed == FALSE)
-			current_obj -= O
-			qdel(O)
+	// for(var/obj/structure/cryo_crate/O in current_obj) //Despawn unsealed abandoned crates
+	// 	if(O.sealed == FALSE)
+	// 		current_obj -= O
+	// 		qdel(O)
 
 /datum/zlevel_data/proc/on_active()
 	if (!isWild())
@@ -179,7 +179,7 @@ GLOBAL_LIST_EMPTY(maze_map_data)
 	W_connect = 6
 	monster_types = list(/mob/living/simple_animal/hostile/tormented) // types of monsters that will occur on this map.
 	monster_quantity = 150 // and how many will occur/respawn
-	obj_types = list(/obj/structure/cryo_crate)
+	//obj_types = list(/obj/structure/cryo_crate)
 	obj_quantity = 3
 	difficulty = 4
 
@@ -191,7 +191,7 @@ GLOBAL_LIST_EMPTY(maze_map_data)
 	W_connect = 7
 	monster_types = list(/mob/living/simple_animal/hostile/tormented, /mob/living/simple_animal/hostile/creature) // types of monsters that will occur on this map.
 	monster_quantity = 150 // and how many will occur/respawn
-	obj_types = list(/obj/structure/cryo_crate)
+	//obj_types = list(/obj/structure/cryo_crate)
 	obj_quantity = 10
 	difficulty = 5
 
@@ -202,7 +202,7 @@ GLOBAL_LIST_EMPTY(maze_map_data)
 	E_connect = 6
 	monster_types = list(/mob/living/simple_animal/hostile/tormented, /mob/living/simple_animal/hostile/creature, /mob/living/simple_animal/hostile/faithless) // types of monsters that will occur on this map.
 	monster_quantity = 150 // and how many will occur/respawn
-	obj_types = list(/obj/structure/cryo_crate)
+	//obj_types = list(/obj/structure/cryo_crate)
 	obj_quantity = 10
 	difficulty = 6
 
@@ -212,7 +212,7 @@ GLOBAL_LIST_EMPTY(maze_map_data)
 	name = "Crash Site"
 	monster_types = list(/mob/living/simple_animal/hostile/tormented, /mob/living/simple_animal/hostile/creature, /mob/living/simple_animal/hostile/faithless) // types of monsters that will occur on this map.
 	monster_quantity = 150 // and how many will occur/respawn
-	obj_types = list(/obj/structure/cryo_crate)
+	//obj_types = list(/obj/structure/cryo_crate)
 	obj_quantity = 0
 	difficulty = 6
 

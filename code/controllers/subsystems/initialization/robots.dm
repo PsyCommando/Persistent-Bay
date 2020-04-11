@@ -17,11 +17,9 @@ SUBSYSTEM_DEF(robots)
 
 	var/list/mmi_types_by_title = list(
 		"cyborg"         = /obj/item/device/mmi,
-		"cyborg"         = /obj/item/device/lmi,
 		"robot"          = /obj/item/organ/internal/posibrain,
 		"drone"          = /obj/item/device/mmi/digital/robot,
 		"cyborg, flying" = /obj/item/device/mmi,
-		"cyborg, flying" = /obj/item/device/lmi,
 		"robot, flying"  = /obj/item/organ/internal/posibrain,
 		"drone, flying"  = /obj/item/device/mmi/digital/robot
 	)

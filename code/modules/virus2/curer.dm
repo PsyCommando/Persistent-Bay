@@ -1,9 +1,12 @@
+/obj/item/weapon/stock_parts/circuitboard/curefab
+	name = T_BOARD("cure fabricator")
+	build_path = /obj/machinery/computer/curer
+
 /obj/machinery/computer/curer
 	name = "cure research machine"
 	icon = 'icons/obj/computer.dmi'
 	icon_keyboard = "med_key"
 	icon_screen = "dna"
-	circuit = /obj/item/weapon/circuitboard/curefab
 	active_power_usage = 500//Watts
 	idle_power_usage = 50
 	var/curing = FALSE
@@ -43,11 +46,7 @@
 		time_virusing_end = world.time + time_virusing_end
 
 /obj/machinery/computer/curer/attackby(var/obj/I as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, I))
-		return 1
-	else if(default_deconstruction_crowbar(user, I))
-		return 1
-	else if(istype(I,/obj/item/weapon/reagent_containers))
+	if(istype(I,/obj/item/weapon/reagent_containers))
 		if(!container)
 			if(!user.unEquip(I, src))
 				return
@@ -69,12 +68,11 @@
 	else
 		return ..()
 
-/obj/machinery/computer/curer/attack_ai(var/mob/user as mob)
-	return src.attack_hand(user)
+/obj/machinery/computer/curer/interface_interact(var/mob/user)
+	interact(user)
+	return TRUE
 
-/obj/machinery/computer/curer/attack_hand(var/mob/user as mob)
-	if(..())
-		return
+/obj/machinery/computer/curer/interact(var/mob/user)
 	user.machine = src
 	var/dat
 	if(curing)
@@ -114,7 +112,7 @@
 		createvirus()
 	return
 
-/obj/machinery/computer/curer/OnTopic(var/mob/living/user, href_list)
+/obj/machinery/computer/curer/OnTopic(var/mob/living/carbon/user, href_list)
 	if (href_list["antibody"])
 		curing = TRUE
 		time_curing_end = world.time + 10 SECONDS

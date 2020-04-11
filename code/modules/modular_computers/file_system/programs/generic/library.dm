@@ -13,12 +13,11 @@ The answer was five and a half years -ZeroBits
 	program_icon_state = "word"
 	program_key_state = "atmos_key"
 	program_menu_icon = "note"
-	size = 4
+	size = 6
 	requires_ntnet = 1
 	available_on_ntnet = 1
 
 	nanomodule_path = /datum/nano_module/library
-	category = PROG_OFFICE
 
 /datum/nano_module/library
 	name = "Library"

@@ -8,9 +8,9 @@
 	throw_speed = 3
 	throw_range = 7
 	throwforce = 10
-	damtype = DAM_BURN
+	damtype = BURN
 	force = 10
-	sound_hit = 'sound/magic/forcewall.ogg'
+	hitsound = 'sound/magic/forcewall.ogg'
 
 /obj/item/weapon/scrying/attack_self(mob/user as mob)
 	if((user.mind && !GLOB.wizards.is_antagonist(user.mind)))

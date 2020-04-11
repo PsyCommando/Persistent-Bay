@@ -13,6 +13,7 @@
 #define INVISIBILITY_OBSERVER    60
 #define INVISIBILITY_EYE         61
 #define INVISIBILITY_SYSTEM      99
+#define INVISIBILITY_ABSTRACT   101	// special: this can never be seen, regardless of see_invisible
 
 #define SEE_INVISIBLE_LIVING     25
 #define SEE_INVISIBLE_NOLIGHTING 15
@@ -69,7 +70,7 @@
 #define EVENT_LEVEL_MAJOR    3
 
 //General-purpose life speed define for plants.
-#define HYDRO_SPEED_MULTIPLIER 0.5
+#define HYDRO_SPEED_MULTIPLIER 1
 
 #define DEFAULT_JOB_TYPE /datum/job/assistant
 
@@ -89,7 +90,7 @@
 // Convoluted setup so defines can be supplied by Bay12 main server compile script.
 // Should still work fine for people jamming the icons into their repo.
 #ifndef CUSTOM_ITEM_CONFIG
-#define CUSTOM_ITEM_CONFIG "config/custom_items.txt"
+#define CUSTOM_ITEM_CONFIG "config/custom_items/"
 #endif
 #ifndef CUSTOM_ITEM_SYNTH_CONFIG
 #define CUSTOM_ITEM_SYNTH_CONFIG "config/custom_sprites.txt"
@@ -118,9 +119,9 @@
 #define NTNET_SYSTEMCONTROL 4		// Control of various systems, RCon, air alarm control, etc.
 
 // NTNet transfer speeds, used when downloading/uploading a file/program.
-#define NTNETSPEED_LOWSIGNAL 0.25	// GQ/s transfer speed when the device is wirelessly connected and on Low signal
-#define NTNETSPEED_HIGHSIGNAL 0.5	// GQ/s transfer speed when the device is wirelessly connected and on High signal
-#define NTNETSPEED_ETHERNET 1		// GQ/s transfer speed when the device is using wired connection
+#define NTNETSPEED_LOWSIGNAL 0.5	// GQ/s transfer speed when the device is wirelessly connected and on Low signal
+#define NTNETSPEED_HIGHSIGNAL 1	// GQ/s transfer speed when the device is wirelessly connected and on High signal
+#define NTNETSPEED_ETHERNET 2		// GQ/s transfer speed when the device is using wired connection
 #define NTNETSPEED_DOS_AMPLIFICATION 5	// Multiplier for Denial of Service program. Resulting load on NTNet relay is this multiplied by NTNETSPEED of the device
 
 // Program bitflags
@@ -144,9 +145,6 @@
 #define PROG_UTIL 		"Utility"
 #define PROG_SEC 		"Security"
 #define PROG_MONITOR	"Monitoring"
-#define PROG_BUSINESS	"Business"
-#define PROG_GOVERNMENT	"Govenment"
-#define PROG_JUSTICE	"Justice"
 
 // Caps for NTNet logging. Less than 10 would make logging useless anyway, more than 500 may make the log browser too laggy. Defaults to 100 unless user changes it.
 #define MAX_NTNET_LOGS 500
@@ -208,21 +206,14 @@
 //Error handler defines
 #define ERROR_USEFUL_LEN 2
 
-#define RAD_LEVEL_LOW 0.5 // Around the level at which radiation starts to become harmful
-#define RAD_LEVEL_MODERATE 5
-#define RAD_LEVEL_HIGH 25
-#define RAD_LEVEL_VERY_HIGH 75
+#define RAD_LEVEL_LOW 1 // Around the level at which radiation starts to become harmful
+#define RAD_LEVEL_MODERATE 25
+#define RAD_LEVEL_HIGH 40
+#define RAD_LEVEL_VERY_HIGH 100
 
 #define RADIATION_THRESHOLD_CUTOFF 0.1	// Radiation will not affect a tile when below this value.
 
 #define LEGACY_RECORD_STRUCTURE(X, Y) GLOBAL_LIST_EMPTY(##X);/datum/computer_file/data/##Y/var/list/fields[0];/datum/computer_file/data/##Y/New(){..();GLOB.##X.Add(src);}/datum/computer_file/data/##Y/Destroy(){. = ..();GLOB.##X.Remove(src);}
-
-#define EDIT_SHORTTEXT 1	// Short (single line) text input field
-#define EDIT_LONGTEXT 2		// Long (multi line, papercode tag formattable) text input field
-#define EDIT_NUMERIC 3		// Single-line number input field
-#define EDIT_LIST 4			// Option select dialog
-
-#define REC_FIELD(KEY) 		/record_field/##KEY
 
 #define SUPPLY_SECURITY_ELEVATED 1
 #define SUPPLY_SECURITY_HIGH 2
@@ -252,21 +243,31 @@
 #define EMAIL_DOCUMENTS "document.server@internal-services.net"
 #define EMAIL_SYSADMIN  "admin@internal-services.net"
 #define EMAIL_BROADCAST "broadcast@internal-services.net"
-#define EMAIL_DOMAIN_DEFAULT "freemail.net"
+
+//Stats for department goals etc
+#define STAT_XENOPLANTS_SCANNED  "xenoplants_scanned"
+#define STAT_XENOFAUNA_SCANNED  "xenofauna_scanned"
+#define STAT_FLAGS_PLANTED  "planet_flags"
 
 //Number of slots a modular computer has which can be tweaked via gear tweaks.
 #define TWEAKABLE_COMPUTER_PART_SLOTS 7
 
 //Lying animation
 #define ANIM_LYING_TIME 2
-#define STOCKPROPOSAL_CEOFIRE 1
-#define STOCKPROPOSAL_CEOREPLACE 2
-#define STOCKPROPOSAL_CEOWAGE 3
-#define STOCKPROPOSAL_CEOTAX 4
-#define STOCKPROPOSAL_STOCKHOLDERTAX 5
-#define STOCKPROPOSAL_INSTANTDIVIDEND 6
-#define STOCKPROPOSAL_PUBLIC 7
-#define STOCKPROPOSAL_UNPUBLIC 8
 
-//Economic stuff
-#define DEFAULT_NEW_CHARACTER_MONEY 1000
+//Planet habitability class
+#define HABITABILITY_IDEAL  1
+#define HABITABILITY_OKAY  2
+#define HABITABILITY_BAD  3
+
+#ifndef WINDOWS_HTTP_POST_DLL_LOCATION
+#define WINDOWS_HTTP_POST_DLL_LOCATION "lib/byhttp.dll"
+#endif
+
+#ifndef UNIX_HTTP_POST_DLL_LOCATION
+#define UNIX_HTTP_POST_DLL_LOCATION "lib/libbyhttp.so"
+#endif
+
+#ifndef HTTP_POST_DLL_LOCATION
+#define HTTP_POST_DLL_LOCATION (world.system_type == MS_WINDOWS ? WINDOWS_HTTP_POST_DLL_LOCATION : UNIX_HTTP_POST_DLL_LOCATION)
+#endif

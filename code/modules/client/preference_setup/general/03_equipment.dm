@@ -4,16 +4,15 @@
 
 	var/decl/backpack_outfit/backpack
 	var/list/backpack_metadata
-	var/obj/item/clothing/under/selected_under
+
+	var/sensor_setting
+	var/sensors_locked
 
 /datum/category_item/player_setup_item/physical/equipment
 	name = "Clothing"
 	sort_order = 3
 
 	var/static/list/backpacks_by_name
-	var/list/possible_under
-	var/list/possible_under_extra = list()
-	var/last_background = ""
 
 /datum/category_item/player_setup_item/physical/equipment/New()
 	..()
@@ -23,24 +22,6 @@
 		for(var/bo in bos)
 			var/decl/backpack_outfit/backpack_outfit = bos[bo]
 			backpacks_by_name[backpack_outfit.name] = backpack_outfit
-	if(!possible_under)
-		possible_under = list()
-		possible_under |= new /obj/item/clothing/under/color/grey()
-		possible_under |= new /obj/item/clothing/under/color/green()
-		possible_under |= new /obj/item/clothing/under/color/white()
-		possible_under |= new /obj/item/clothing/under/color/black()
-		possible_under |= new /obj/item/clothing/under/blackjumpskirt()
-		possible_under |= new /obj/item/clothing/under/focal()
-		possible_under |= new /obj/item/clothing/under/aether()
-		possible_under |= new /obj/item/clothing/under/hephaestus()
-
-		possible_under |= new /obj/item/clothing/under/grayson()
-		possible_under |= new /obj/item/clothing/under/mbill()
-		possible_under |= new /obj/item/clothing/under/wardt()
-		possible_under |= new /obj/item/clothing/under/pcrc()
-		possible_under |= new /obj/item/clothing/under/lawyer/oldman()
-		possible_under |= new /obj/item/clothing/under/tourist()
-		possible_under |= new /obj/item/clothing/under/johnny()
 
 /datum/category_item/player_setup_item/physical/equipment/load_character(var/savefile/S)
 	var/load_backbag
@@ -49,6 +30,8 @@
 	from_file(S["all_underwear_metadata"], pref.all_underwear_metadata)
 	from_file(S["backpack"], load_backbag)
 	from_file(S["backpack_metadata"], pref.backpack_metadata)
+	from_file(S["sensor_setting"], pref.sensor_setting)
+	from_file(S["sensors_locked"], pref.sensors_locked)
 
 	pref.backpack = backpacks_by_name[load_backbag] || get_default_outfit_backpack()
 
@@ -57,12 +40,10 @@
 	to_file(S["all_underwear_metadata"], pref.all_underwear_metadata)
 	to_file(S["backpack"], pref.backpack.name)
 	to_file(S["backpack_metadata"], pref.backpack_metadata)
+	to_file(S["sensor_setting"], pref.sensor_setting)
+	to_file(S["sensors_locked"], pref.sensors_locked)
 
 /datum/category_item/player_setup_item/physical/equipment/sanitize_character()
-	// if(!pref.selected_under)
-	// 	pref.selected_under = pick(possible_under)
-	// if(!(pref.selected_under in possible_under) && !(pref.selected_under in possible_under_extra))
-	// 	pref.selected_under = pick(possible_under)
 	if(!istype(pref.all_underwear))
 		pref.all_underwear = list()
 
@@ -71,6 +52,10 @@
 				if(WRI.is_default(pref.gender ? pref.gender : MALE))
 					pref.all_underwear[WRC.name] = WRI.name
 					break
+
+	var/datum/species/mob_species = all_species[pref.species]
+	if(!(mob_species && mob_species.appearance_flags & HAS_UNDERWEAR))
+		pref.all_underwear.Cut()
 
 	if(!istype(pref.all_underwear_metadata))
 		pref.all_underwear_metadata = list()
@@ -107,18 +92,12 @@
 				var/list/metadata = tweak_metadata["[tweak]"]
 				tweak_metadata["[tweak]"] = tweak.validate_metadata(metadata)
 
+	pref.sensor_setting = sanitize_inlist(pref.sensor_setting, SUIT_SENSOR_MODES, get_key_by_index(SUIT_SENSOR_MODES, 0))
+	pref.sensors_locked = sanitize_bool(pref.sensors_locked, FALSE)
 
 /datum/category_item/player_setup_item/physical/equipment/content()
-	if(pref.cultural_info[TAG_FACTION] && pref.cultural_info[TAG_FACTION] != last_background)
-		last_background = pref.cultural_info[TAG_FACTION]
-		pref.preview_icon = null
-		pref.ShowChoices(usr)
-	//Fetch origin based uniform options
-	populate_uniforms(usr.client)
-
 	. = list()
-	. += "<b>Starting Equipment:</b><br>"
-	. += "Starting Clothing: <a href='?src=\ref[src];change_under=1'><b>[pref.selected_under ? pref.selected_under.name : "Default Outfit"]</b></a><br>"
+	. += "<b>Equipment:</b><br>"
 	for(var/datum/category_group/underwear/UWC in GLOB.underwear.categories)
 		var/item_name = (pref.all_underwear && pref.all_underwear[UWC.name]) ? pref.all_underwear[UWC.name] : "None"
 		. += "[UWC.name]: <a href='?src=\ref[src];change_underwear=[UWC.name]'><b>[item_name]</b></a>"
@@ -133,6 +112,8 @@
 	for(var/datum/backpack_tweak/bt in pref.backpack.tweaks)
 		. += " <a href='?src=\ref[src];backpack=[pref.backpack.name];tweak=\ref[bt]'>[bt.get_ui_content(get_backpack_metadata(pref.backpack, bt))]</a>"
 	. += "<br>"
+	. += "Default Suit Sensor Setting: <a href='?src=\ref[src];change_sensor_setting=1'>[pref.sensor_setting]</a><br />"
+	. += "Suit Sensors Locked: <a href='?src=\ref[src];toggle_sensors_locked=1'>[pref.sensors_locked ? "Locked" : "Unlocked"]</a><br />"
 	return jointext(.,null)
 
 /datum/category_item/player_setup_item/physical/equipment/proc/get_underwear_metadata(var/underwear_category, var/datum/gear_tweak/gt)
@@ -192,13 +173,6 @@
 		if(!isnull(new_backpack) && CanUseTopic(user))
 			pref.backpack = backpacks_by_name[new_backpack]
 			return TOPIC_REFRESH_UPDATE_PREVIEW
-	else if(href_list["change_under"])
-		populate_uniforms(usr.client)
-		var/obj/new_under = input(user, "Choose uniform:", CHARACTER_PREFERENCE_INPUT_TITLE, pref.selected_under) as null|anything in (possible_under+possible_under_extra)
-		if(new_under)
-			pref.selected_under = new_under
-			return TOPIC_REFRESH_UPDATE_PREVIEW
-		return TOPIC_NOACTION
 	else if(href_list["backpack"] && href_list["tweak"])
 		var/backpack_name = href_list["backpack"]
 		if(!(backpack_name in backpacks_by_name))
@@ -211,6 +185,15 @@
 		if(new_metadata)
 			set_backpack_metadata(bo, bt, new_metadata)
 			return TOPIC_REFRESH_UPDATE_PREVIEW
+	else if(href_list["change_sensor_setting"])
+		var/switchMode = input("Select a sensor mode:", "Suit Sensor Mode", pref.sensor_setting) as null | anything in SUIT_SENSOR_MODES
+		if(!switchMode || !CanUseTopic(user))
+			return TOPIC_NOACTION
+		pref.sensor_setting = switchMode
+		return TOPIC_REFRESH
+	else if(href_list["toggle_sensors_locked"])
+		pref.sensors_locked = !pref.sensors_locked
+		return TOPIC_REFRESH
 
 	return ..()
 
@@ -236,65 +219,3 @@
 
 		to_file(character["backpack"], pref.backpack.name)
 		return 1
-
-//Used to populate the chosen uniform list in the character creation menu, returns a list of clothing types
-/datum/category_item/player_setup_item/physical/equipment/proc/populate_uniforms(var/client/C)
-	LAZYCLEARLIST(possible_under_extra)
-	LAZYINITLIST(possible_under_extra)
-
-	//First add culture-related possibilities
-	if(pref.cultural_info)
-		//testing("culture is [pref.cultural_info[TAG_CULTURE]]")
-		switch(pref.cultural_info[TAG_CULTURE])
-			if(CULTURE_HUMAN_EARTH)
-				possible_under_extra |= new /obj/item/clothing/under/assistantformal()
-				possible_under_extra |= new /obj/item/clothing/under/gentlesuit()
-			if(CULTURE_HUMAN_SPACER)
-				possible_under_extra |= new /obj/item/clothing/under/frontier()
-				possible_under_extra |= new /obj/item/clothing/under/serviceoveralls()
-			if(CULTURE_HUMAN_CONFED)
-				possible_under_extra |= new /obj/item/clothing/under/confederacy()
-				possible_under_extra |= new /obj/item/clothing/under/saare()
-			if(CULTURE_HUMAN_SPAFRO)
-				possible_under_extra |= new /obj/item/clothing/under/frontier()
-				possible_under_extra |= new /obj/item/clothing/under/overalls()
-				possible_under_extra |= new /obj/item/clothing/under/serviceoveralls()
-			if(CULTURE_HUMAN_LUNAPOOR)
-			if(CULTURE_HUMAN_LUNARICH)
-				possible_under_extra |= new /obj/item/clothing/under/rank/vice()
-				possible_under_extra |= new /obj/item/clothing/under/rank/psych/turtleneck/sweater()
-			if(CULTURE_HUMAN_MARSTUN)
-			if(CULTURE_HUMAN_MARTIAN)
-				possible_under_extra |= new /obj/item/clothing/under/overalls()
-				possible_under_extra |= new /obj/item/clothing/under/serviceoveralls()
-			if(CULTURE_HUMAN_PLUTO)
-			if(CULTURE_HUMAN_VENUSIAN)
-			if(CULTURE_HUMAN_VENUSLOW)
-			if(CULTURE_HUMAN_CETI)
-				possible_under_extra |= new /obj/item/clothing/under/overalls()
-				possible_under_extra |= new /obj/item/clothing/under/serviceoveralls()
-			if(CULTURE_HUMAN_BELTER)
-				possible_under_extra |= new /obj/item/clothing/under/overalls()
-				possible_under_extra |= new /obj/item/clothing/under/serviceoveralls()
-			if(CULTURE_HUMAN_OTHER) // "Corporate Colonist"
-				possible_under_extra |= new /obj/item/clothing/under/dais()
-			if(CULTURE_HUMAN_VATGROWN)
-				possible_under_extra |= new /obj/item/clothing/under/scratch()
-			//
-			if(CULTURE_SERPENTID)
-				possible_under_extra |= new /obj/item/clothing/under/harness() //Only uniform they can wear!
-			//
-			if(CULTURE_VOX_ARKSHIP)
-				possible_under_extra |= new /obj/item/clothing/under/vox/vox_casual()
-			if(CULTURE_VOX_RAIDER)
-				possible_under_extra |= new /obj/item/clothing/under/vox/vox_casual()
-			if(CULTURE_VOX_SALVAGER)
-				possible_under_extra |= new /obj/item/clothing/under/vox/vox_casual()
-			//
-			if(CULTURE_UNATHI)
-				possible_under_extra |= new /obj/item/clothing/under/solgov/utility()
-				possible_under_extra |= new /obj/item/clothing/under/rank/ntwork()
-				possible_under_extra |= new /obj/item/clothing/under/rank/ntpilot()
-	
-	//Then add any extra possibilities
-	possible_under_extra |= GLOB.using_map.populate_uniforms(C)

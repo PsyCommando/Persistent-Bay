@@ -8,7 +8,6 @@ var/list/holder_mob_icon_cache = list()
 	slot_flags = SLOT_HEAD | SLOT_HOLSTER
 
 	sprite_sheets = list(
-		SPECIES_RESOMI = 'icons/mob/species/resomi/head.dmi',
 		SPECIES_VOX = 'icons/mob/species/vox/onmob_head_vox.dmi',
 		SPECIES_VOX_ARMALIS = 'icons/mob/species/vox/onmob_head_vox_armalis.dmi'
 		)
@@ -75,9 +74,9 @@ var/list/holder_mob_icon_cache = list()
 			return I
 	return null
 
-/obj/item/weapon/holder/GetAccess(var/faction_uid)
+/obj/item/weapon/holder/GetAccess()
 	var/obj/item/I = GetIdCard()
-	return I ? I.GetAccess(faction_uid) : ..(faction_uid)
+	return I ? I.GetAccess() : ..()
 
 /obj/item/weapon/holder/attack_self()
 	for(var/mob/M in contents)
@@ -133,7 +132,6 @@ var/list/holder_mob_icon_cache = list()
 /mob/living/var/holder_type
 
 /mob/living/proc/get_scooped(var/mob/living/carbon/human/grabber, var/self_grab)
-
 	if(!holder_type || buckled || pinned.len)
 		return
 

@@ -49,7 +49,7 @@ nanoui is used to open and update nano browser uis
 	var/map_z_level = 1
 	// initial data, containing the full data structure, must be sent to the ui (the data structure cannot be extended later on)
 	var/list/initial_data[0]
-	// set to 1 to update the ui automatically every SSnano tick
+	// set to 1 to update the ui automatically every master_controller tick
 	var/is_auto_updating = 0
 	// the current status/visibility of the ui
 	var/status = STATUS_INTERACTIVE
@@ -165,7 +165,7 @@ nanoui is used to open and update nano browser uis
 	set_status(new_status, push_update)
 
  /**
-  * Set the ui to auto update (every SSnano tick)
+  * Set the ui to auto update (every master_controller tick)
   *
   * @param state int (bool) Set auto update to 1 or 0 (true/false)
   *
@@ -203,7 +203,8 @@ nanoui is used to open and update nano browser uis
 			"mapName" = GLOB.using_map.path,
 			"mapZLevel" = map_z_level,
 			"mapZLevels" = GLOB.using_map.map_levels,
-			"user" = list("name" = user.name)
+			"user" = list("name" = user.name),
+			"currency" = GLOB.using_map.local_currency_name,
 		)
 	return config_data
 
@@ -429,7 +430,7 @@ nanoui is used to open and update nano browser uis
 	if(update_status(0))
 		return // Will be closed by update_status().
 
-	user << browse(get_html(), "window=[window_id];[window_size][window_options]")
+	show_browser(user, get_html(), "window=[window_id];[window_size][window_options]")
 	winset(user, "mapwindow.map", "focus=true") // return keyboard focus to map
 	on_close_winset()
 	//onclose(user, window_id)
@@ -519,8 +520,6 @@ nanoui is used to open and update nano browser uis
 		if(map_z in GLOB.using_map.map_levels)
 			set_map_z_level(map_z)
 			map_update = 1
-		else
-			return
 
 	if ((src_object && src_object.Topic(href, href_list, state)) || map_update)
 		SSnano.update_uis(src_object) // update all UIs attached to src_object

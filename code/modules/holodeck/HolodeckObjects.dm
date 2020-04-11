@@ -60,7 +60,8 @@
 /turf/simulated/floor/holofloor/wood
 	name = "wooden floor"
 	icon = 'icons/turf/flooring/wood.dmi'
-	icon_state = "walnut"
+	icon_state = "wood"
+	color = WOOD_COLOR_CHOCOLATE
 	initial_flooring = /decl/flooring/wood
 
 /turf/simulated/floor/holofloor/grass
@@ -153,9 +154,28 @@
 /obj/structure/window/reinforced/holowindow/Destroy()
 	..()
 
-/obj/structure/window/reinforced/holowindow/destroyed(var/display_message = 1)
-	playsound(src, sound_destroyed, 70, 1)
-	visible_message("[src] fades away as it shatters!")
+/obj/structure/window/reinforced/holowindow/attackby(obj/item/W as obj, mob/user as mob)
+
+	if(!istype(W) || W.item_flags & ITEM_FLAG_NO_BLUDGEON) return
+
+	if(isScrewdriver(W) || isCrowbar(W) || isWrench(W))
+		to_chat(user, ("<span class='notice'>It's a holowindow, you can't dismantle it!</span>"))
+	else
+		if(W.damtype == BRUTE || W.damtype == BURN)
+			hit(W.force)
+			if(health <= 7)
+				anchored = 0
+				update_nearby_icons()
+				step(src, get_dir(user, src))
+		else
+			playsound(loc, 'sound/effects/Glasshit.ogg', 75, 1)
+		..()
+	return
+
+/obj/structure/window/reinforced/holowindow/shatter(var/display_message = 1)
+	playsound(src, "shatter", 70, 1)
+	if(display_message)
+		visible_message("[src] fades away as it shatters!")
 	qdel(src)
 	return
 
@@ -174,7 +194,7 @@
 		var/aforce = I.force
 		playsound(src.loc, 'sound/effects/Glasshit.ogg', 75, 1)
 		visible_message("<span class='danger'>\The [src] was hit by \the [I].</span>")
-		if(IsDamageTypeBrute(I.damtype) || IsDamageTypeBurn(I.damtype))
+		if(I.damtype == BRUTE || I.damtype == BURN)
 			take_damage(aforce)
 		return
 
@@ -193,22 +213,23 @@
 
 	return
 
-/obj/machinery/door/window/holowindoor/destroyed()
+/obj/machinery/door/window/holowindoor/shatter(var/display_message = 1)
 	src.set_density(0)
-	playsound(src, sound_destroyed, 70, 1)
-	visible_message("[src] fades away as it shatters!")
+	playsound(src, "shatter", 70, 1)
+	if(display_message)
+		visible_message("[src] fades away as it shatters!")
 	qdel(src)
 
 /obj/structure/bed/chair/holochair/Destroy()
 	..()
 
 /obj/structure/bed/chair/holochair/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/tool/wrench))
-		to_chat(user, SPAN_NOTICE("It's a holochair, you can't dismantle it!"))
+	if(istype(W, /obj/item/weapon/wrench))
+		to_chat(user, ("<span class='notice'>It's a holochair, you can't dismantle it!</span>"))
 	return
 
 /obj/item/weapon/holo
-	damtype = DAM_PAIN
+	damtype = PAIN
 	no_attack_log = 1
 
 /obj/item/weapon/holo/esword
@@ -293,9 +314,9 @@
 			return
 		if(prob(50))
 			I.dropInto(loc)
-			visible_message("<span class='notice'>Swish! \the [I] lands in \the [src].</span>", 3)
+			visible_message("<span class='notice'>Swish! \the [I] lands in \the [src].</span>", range = 3)
 		else
-			visible_message("<span class='warning'>\The [I] bounces off of \the [src]'s rim!</span>", 3)
+			visible_message("<span class='warning'>\The [I] bounces off of \the [src]'s rim!</span>", range = 3)
 		return 0
 	else
 		return ..(mover, target, height, air_group)
@@ -331,7 +352,7 @@
 			return
 		if(prob(10))
 			I.dropInto(loc)
-			visible_message("<span class='notice'>Swish! \the [I] gets caught in \the [src].</span>", 3)
+			visible_message("<span class='notice'>Swish! \the [I] gets caught in \the [src].</span>", range = 3)
 			return 0
 		else
 			return 1
@@ -363,22 +384,15 @@
 /obj/machinery/readybutton/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	to_chat(user, "The device is a solid button, there's nothing you can do with it!")
 
-/obj/machinery/readybutton/attack_hand(mob/user as mob)
-
-	if(user.stat || stat & (NOPOWER|BROKEN))
-		to_chat(user, "This device is not powered.")
-		return
-
-	if(!user.IsAdvancedToolUser())
-		return 0
-
-	currentarea = get_area(src.loc)
+/obj/machinery/readybutton/physical_attack_hand(mob/user)
+	currentarea = get_area(src)
 	if(!currentarea)
 		qdel(src)
+		return TRUE
 
 	if(eventstarted)
-		to_chat(usr, "The event has already begun!")
-		return
+		to_chat(user, "The event has already begun!")
+		return TRUE
 
 	ready = !ready
 
@@ -393,6 +407,7 @@
 
 	if(numbuttons == numready)
 		begin_event()
+	return TRUE
 
 /obj/machinery/readybutton/on_update_icon()
 	if(ready)

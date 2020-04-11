@@ -10,8 +10,6 @@ I IS TYPIN'!'
 	follow_proc = /atom/movable/proc/move_to_turf_or_null
 	icon = 'icons/mob/talk.dmi'
 	icon_state = "typing"
-	should_save = 0
-	layer = TOPDOWN_LAYER //Layer for overhead healthbars and such according to byond doc
 
 /atom/movable/overlay/typing_indicator/Initialize()
 	. = ..()

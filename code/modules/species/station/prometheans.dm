@@ -11,6 +11,10 @@ var/datum/species/shapeshifter/promethean/prometheans
 	knockout_message = "collapses inwards, forming a disordered puddle of goo."
 	remains_type = /obj/effect/decal/cleanable/ash
 
+	meat_type = null
+	bone_material = null
+	skin_material = null
+
 	blood_color = "#05ff9b"
 	flesh_color = "#05fffb"
 
@@ -27,7 +31,6 @@ var/datum/species/shapeshifter/promethean/prometheans
 	poison_types = null
 
 	gluttonous =          GLUT_TINY | GLUT_SMALLER | GLUT_ITEM_ANYTHING | GLUT_PROJECTILE_VOMIT
-	virus_immune =        1
 	blood_volume =        600
 	min_age =             1
 	max_age =             5
@@ -64,9 +67,8 @@ var/datum/species/shapeshifter/promethean/prometheans
 		/mob/living/carbon/human/proc/shapeshifter_select_gender
 		)
 
-	valid_transform_species = list(SPECIES_HUMAN, SPECIES_UNATHI, SPECIES_SKRELL, SPECIES_DIONA, "Monkey")
+	valid_transform_species = list(SPECIES_HUMAN, SPECIES_UNATHI, SPECIES_SKRELL, SPECIES_DIONA, SPECIES_MANTID_ALATE, "Monkey")
 	monochromatic = 1
-	spawns_with_stack = TRUE
 
 	var/heal_rate = 5 // Temp. Regen per tick.
 
@@ -90,7 +92,7 @@ var/datum/species/shapeshifter/promethean/prometheans
 		var/obj/effect/decal/cleanable/C = locate() in T
 		if(C)
 			if(H.nutrition < 300)
-				H.nutrition += rand(10,20)
+				H.adjust_nutrition(rand(10,20))
 			qdel(C)
 
 	// We need a handle_life() proc for this stuff.
@@ -99,10 +101,10 @@ var/datum/species/shapeshifter/promethean/prometheans
 	// Theoretically the only internal organ a slime will have
 	// is the slime core. but we might as well be thorough.
 	for(var/obj/item/organ/I in H.internal_organs)
-		if(I.isdamaged())
-			I.heal_damage(heal_rate)
+		if(I.damage > 0)
+			I.damage = max(I.damage - heal_rate, 0)
 			if (prob(5))
-				to_chat(H, "<span class='notice'>You feel a soothing sensation within your [I.name]...</span>")
+				H << "<span class='notice'>You feel a soothing sensation within your [I.name]...</span>"
 			return 1
 
 	// Replace completely missing limbs.
@@ -110,8 +112,8 @@ var/datum/species/shapeshifter/promethean/prometheans
 		var/obj/item/organ/external/E = H.organs_by_name[limb_type]
 		if(E && !E.is_usable() && !(E.limb_flags & ORGAN_FLAG_HEALS_OVERKILL))
 			E.removed()
-			qdel(E)
-			E = null
+			if(!QDELETED(E))
+				QDEL_NULL(E)
 		if(!E)
 			var/list/organ_data = has_limbs[limb_type]
 			var/limb_path = organ_data["path"]

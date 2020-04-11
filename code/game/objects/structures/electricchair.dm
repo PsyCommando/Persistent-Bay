@@ -1,18 +1,14 @@
 /obj/structure/bed/chair/e_chair
 	name = "electric chair"
 	desc = "Looks absolutely SHOCKING!"
-	icon = 'icons/obj/structures/echair.dmi'
 	icon_state = "echair0"
-	base_icon = "echair0"
-	max_health = 150
 	var/on = 0
 	var/obj/item/assembly/shock_kit/part = null
 	var/last_time = 1.0
-
 /obj/structure/bed/chair/e_chair/New()
 	..()
-	ADD_SAVED_VAR(on)
-	ADD_SAVED_VAR(part)
+	overlays += image('icons/obj/objects.dmi', src, "echair_over", MOB_LAYER + 1, dir)
+	return
 
 /obj/structure/bed/chair/e_chair/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(isWrench(W))
@@ -23,8 +19,6 @@
 		part.master = null
 		part = null
 		qdel(src)
-		return
-	return ..()
 
 /obj/structure/bed/chair/e_chair/verb/toggle()
 	set name = "Toggle Electric Chair"
@@ -33,23 +27,18 @@
 
 	if(on)
 		on = 0
+		icon_state = "echair0"
 	else
 		on = 1
+		icon_state = "echair1"
 	to_chat(usr, "<span class='notice'>You switch [on ? "on" : "off"] [src].</span>")
-	update_icon()
 	return
 
 /obj/structure/bed/chair/e_chair/rotate()
 	..()
-	update_icon()
-
-/obj/structure/bed/chair/e_chair/on_update_icon()
-	..()
-	if(on)	icon_state = "echair0"
-	else	icon_state = "echair1"
-	icon_state = "echair0"
 	overlays.Cut()
-	overlays += image(icon, src, "echair_over", MOB_LAYER + 1, dir)	//there's probably a better way of handling this, but eh. -Pete
+	overlays += image('icons/obj/objects.dmi', src, "echair_over", MOB_LAYER + 1, dir)	//there's probably a better way of handling this, but eh. -Pete
+	return
 
 /obj/structure/bed/chair/e_chair/proc/shock()
 	if(!on)
@@ -82,5 +71,4 @@
 
 	A.power_light = light
 	A.update_icon()
-	update_icon()
 	return

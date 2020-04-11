@@ -6,14 +6,13 @@
 	item_state = "baton"
 	slot_flags = SLOT_BELT
 	force = 15
-	sharpness = 0
+	sharp = 0
+	edge = 0
 	throwforce = 7
 	w_class = ITEM_SIZE_NORMAL
 	origin_tech = list(TECH_COMBAT = 2)
 	attack_verb = list("beaten")
 	base_parry_chance = 30
-	mass = 0.5
-	damtype = DAM_BLUNT
 	var/stunforce = 0
 	var/agonyforce = 30
 	var/status = 0		//whether the thing is on or not
@@ -28,10 +27,6 @@
 		bcell = new bcell(src)
 		update_icon()
 	..()
-	ADD_SAVED_VAR(damtype)
-	ADD_SAVED_VAR(status)
-	ADD_SAVED_VAR(bcell)
-	ADD_SKIP_EMPTY(bcell)
 
 /obj/item/weapon/melee/baton/Destroy()
 	if(bcell && !ispath(bcell))
@@ -42,9 +37,15 @@
 /obj/item/weapon/melee/baton/get_cell()
 	return bcell
 
+/obj/item/weapon/melee/baton/proc/update_status()
+	if(bcell.charge < hitcost)
+		status = 0
+		update_icon()
+
 /obj/item/weapon/melee/baton/proc/deductcharge(var/chrgdeductamt)
 	if(bcell)
 		if(bcell.checked_use(chrgdeductamt))
+			update_status()
 			return 1
 		else
 			status = 0
@@ -65,11 +66,10 @@
 	else
 		set_light(0)
 
-/obj/item/weapon/melee/baton/examine(mob/user)
-	if(!..(user, 1))
-		return 0
-	examine_cell(user)
-	return 1
+/obj/item/weapon/melee/baton/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1)
+		examine_cell(user)
 
 // Addition made by Techhead0, thanks for fullfilling the todo!
 /obj/item/weapon/melee/baton/proc/examine_cell(mob/user)
@@ -102,22 +102,20 @@
 	set_status(!status, user)
 	add_fingerprint(user)
 
-/obj/item/weapon/melee/baton/throw_impact(atom/hit_atom, var/speed)
+/obj/item/weapon/melee/baton/throw_impact(atom/hit_atom, var/datum/thrownthing/TT)
 	if(istype(hit_atom,/mob/living))
-		apply_hit_effect(hit_atom, hit_zone = pick(BP_HEAD, BP_CHEST, BP_CHEST, BP_L_LEG, BP_R_LEG, BP_L_ARM, BP_R_ARM))
+		apply_hit_effect(hit_atom, hit_zone = ran_zone(TT.target_zone, 30))//more likely to hit the zone you target!
 	else
 		..()
 
 /obj/item/weapon/melee/baton/proc/set_status(var/newstatus, mob/user)
-	if(bcell && bcell.charge > hitcost)
+	if(bcell && bcell.charge >= hitcost)
 		if(status != newstatus)
 			change_status(newstatus)
 			to_chat(user, "<span class='notice'>[src] is now [status ? "on" : "off"].</span>")
 			playsound(loc, "sparks", 75, 1, -1)
-			damtype = DAM_STUN
 	else
 		change_status(0)
-		damtype = DAM_BLUNT
 		if(!bcell)
 			to_chat(user, "<span class='warning'>[src] does not have a power source!</span>")
 		else
@@ -178,7 +176,6 @@
 	if(status)
 		target.stun_effect_act(stun, agony, hit_zone, src)
 		msg_admin_attack("[key_name(user)] stunned [key_name(target)] with the [src].")
-
 		deductcharge(hitcost)
 
 		if(ishuman(target))

@@ -64,9 +64,7 @@
 	return 1
 	
 /datum/nano_module/program/research/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
-	var/datum/world_faction/connected_faction
-	if(program.computer.network_card && program.computer.network_card.connected_network)
-		connected_faction = program.computer.network_card.connected_network.holder
+	var/datum/world_faction/connected_faction = program.get_network_faction()
 	if(!connected_faction)
 		return 0
 	var/list/data = host.initial_data()
@@ -124,7 +122,7 @@
 		return 1
 	. = SSnano.update_uis(src)
 	var/mob/user = usr
-	var/datum/world_faction/connected_faction = program.computer.network_card.connected_network.holder
+	var/datum/world_faction/connected_faction = program.get_network_faction()
 	
 	switch(href_list["action"])
 		if("back")

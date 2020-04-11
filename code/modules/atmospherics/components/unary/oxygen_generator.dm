@@ -13,7 +13,7 @@ obj/machinery/atmospherics/unary/oxygen_generator
 
 	var/oxygen_content = 10
 
-	on_update_icon()
+	update_icon()
 		if(node)
 			icon_state = "intact_[on?("on"):("off")]"
 		else
@@ -25,9 +25,8 @@ obj/machinery/atmospherics/unary/oxygen_generator
 
 	New()
 		..()
+
 		air_contents.volume = 50
-		ADD_SAVED_VAR(on)
-		ADD_SAVED_VAR(oxygen_content)
 
 	Process()
 		..()

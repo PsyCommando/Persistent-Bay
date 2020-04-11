@@ -12,7 +12,7 @@
 
 /obj/item/clothing/head/soft/New()
 	..()
-	set_extension(src, /datum/extension/base_icon_state, /datum/extension/base_icon_state, icon_state)
+	set_extension(src, /datum/extension/base_icon_state, icon_state)
 	update_icon()
 
 /obj/item/clothing/head/soft/on_update_icon()
@@ -38,7 +38,7 @@
 
 /obj/item/clothing/head/soft/red
 	name = "red cap"
-	desc = "It's a baseball hat in a tasteless red color."
+	desc = "It's a peaked hat in a tasteless red color."
 	icon_state = "redsoft"
 
 /obj/item/clothing/head/soft/blue
@@ -102,27 +102,6 @@
 	icon_state = "blacksoft"
 
 /obj/item/clothing/head/soft/sec/corp/guard
-	name = "\improper Nanotrasen security cap"
-	desc = "It's field cap in Nanotrasen colors."
-	icon_state = "ntwhitesoft"
-	
-/obj/item/clothing/head/soft/fed
-	name = "\improper Federation utility cap"
-	desc = "A green utility cap."
-	icon_state = "greenutility"
-
-/obj/item/clothing/head/soft/fed/wheel
-	name = "\improper Federation wheel cap"
-	desc = "A green wheel cap."
-	icon_state = "greenwheelcap"
-
-/obj/item/clothing/head/soft/fed/garrison
-	name = "\improper Federation garrison cap"
-	desc = "A green garrison cap."
-	icon_state = "greengarrisoncap"
-
-/obj/item/clothing/head/soft/fed/dress
-	name = "\improper Federation dress cap"
-	desc = "A grey dress cap."
-	icon_state = "m_dress_int"
-
+	name = "corporate security cap"
+	desc = "It's field cap in corporate colors."
+	icon_state = "corpsec_soft"

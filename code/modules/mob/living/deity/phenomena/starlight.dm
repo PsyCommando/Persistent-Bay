@@ -61,7 +61,7 @@
 			return 1
 		var/type = form["armor"]
 		var/obj/item/I = new type(T)
-		var/datum/extension/deity_be_near/extension = set_extension(I, /datum/extension/deity_be_near, form["extension"], linked)
+		var/datum/extension/deity_be_near/extension = set_extension(I, form["extension"], linked)
 		L.equip_to_slot_or_store_or_drop(I, slot_wear_suit)
 		if(form["helm"])
 			var/h_type = form["helm"]
@@ -201,7 +201,7 @@
 	addtimer(CALLBACK(src, .proc/succeed_ritual, L), 600 SECONDS) //6 minutes
 	for(var/mob/living/player in GLOB.player_list)
 		sound_to(player, 'sound/effects/cascade.ogg')
-		if(player.mind && player.mind.assigned_role == "Counselor")
+		if(player.mind && istype(player.mind.assigned_job, /datum/job/chaplain))
 			to_chat(player, "<span class='cult'>Something bad is coming.... you know you don't have much time. Find and destroy the vessel, before its too late.</span>")
 		else if(player != linked && !linked.is_follower(player, silent = 1))
 			to_chat(player, "<span class='warning'>The world swims around you for just a moment... something is wrong. Very wrong.</span>")

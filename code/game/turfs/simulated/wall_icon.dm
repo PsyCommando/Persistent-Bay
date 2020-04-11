@@ -1,31 +1,24 @@
-/turf/simulated/wall/proc/update_full(var/propagate, var/integrity)
-	update_material(integrity)
-	update_connections(propagate)
-	queue_icon_update()
-
-/turf/simulated/wall/proc/update_material(var/integrity)
+/turf/simulated/wall/proc/update_material()
 
 	if(!material)
 		return
 
 	if(reinf_material)
-		state = 6
+		construction_stage = 6
 	else
-		state = null
+		construction_stage = null
 	if(!material)
 		material = SSmaterials.get_material_by_name(DEFAULT_WALL_MATERIAL)
 	if(material)
-		if(integrity)
-			src.integrity = MaxIntegrity()
 		explosion_resistance = material.explosion_resistance
 	if(reinf_material && reinf_material.explosion_resistance > explosion_resistance)
 		explosion_resistance = reinf_material.explosion_resistance
 
 	if(reinf_material)
-		SetName("reinforced [material.display_name] [initial(name)]")
+		SetName("reinforced [material.display_name] [material.wall_name]")
 		desc = "It seems to be a section of hull reinforced with [reinf_material.display_name] and plated with [material.display_name]."
 	else
-		SetName("[material.display_name] [initial(name)]")
+		SetName("[material.display_name] [material.wall_name]")
 		desc = "It seems to be a section of hull plated with [material.display_name]."
 
 	set_opacity(material.opacity >= 0.5)
@@ -46,11 +39,11 @@
 
 	if(!material)
 		return
-	
-	LAZYCLEARLIST(overlays)
 
-	if(!damage_overlays || damage_overlays && !damage_overlays[1]) //list hasn't been populated; note that it is always of fixed length, so we must check for membership.
+	if(!damage_overlays[1]) //list hasn't been populated; note that it is always of fixed length, so we must check for membership.
 		generate_overlays()
+
+	overlays.Cut()
 
 	var/image/I
 	var/base_color = paint_color ? paint_color : material.icon_colour
@@ -71,8 +64,8 @@
 
 	if(reinf_material)
 		var/reinf_color = paint_color ? paint_color : reinf_material.icon_colour
-		if(state != null && state < 6)
-			I = image('icons/turf/wall_masks.dmi', "reinf_construct-[state]")
+		if(construction_stage != null && construction_stage < 6)
+			I = image('icons/turf/wall_masks.dmi', "reinf_construct-[construction_stage]")
 			I.color = reinf_color
 			overlays += I
 		else
@@ -86,7 +79,9 @@
 				I = image('icons/turf/wall_masks.dmi', reinf_material.icon_reinf)
 				I.color = reinf_color
 				overlays += I
-
+	var/image/texture = material.get_wall_texture()
+	if(texture)
+		overlays += texture
 	if(stripe_color)
 		for(var/i = 1 to other_connections.len)
 			if(other_connections[i] != "0")
@@ -96,8 +91,12 @@
 			I.color = stripe_color
 			overlays += I
 
-	if(integrity != MaxIntegrity())
-		var/overlay = Floor((MaxIntegrity() - integrity) / MaxIntegrity() * damage_overlays.len) + 1
+	if(damage != 0)
+		var/integrity = material.integrity
+		if(reinf_material)
+			integrity += reinf_material.integrity
+
+		var/overlay = round(damage / integrity * damage_overlays.len) + 1
 		if(overlay > damage_overlays.len)
 			overlay = damage_overlays.len
 
@@ -105,7 +104,7 @@
 	return
 
 /turf/simulated/wall/proc/generate_overlays()
-	var/alpha_inc = 256 / damage_overlays.len //EW what the hell?
+	var/alpha_inc = 256 / damage_overlays.len
 
 	for(var/i = 1; i <= damage_overlays.len; i++)
 		var/image/img = image(icon = 'icons/turf/walls.dmi', icon_state = "overlay_damage")
@@ -114,7 +113,7 @@
 		damage_overlays[i] = img
 
 
-/turf/simulated/wall/proc/update_connections(propagate = FALSE)
+/turf/simulated/wall/proc/update_connections(propagate = 0)
 	if(!material)
 		return
 	var/list/wall_dirs = list()
@@ -134,14 +133,14 @@
 			W.update_icon()
 
 	for(var/turf/T in orange(src, 1))
-		var/success = FALSE
+		var/success = 0
 		for(var/obj/O in T)
 			for(var/b_type in blend_objects)
 				if(istype(O, b_type))
-					success = TRUE
+					success = 1
 				for(var/nb_type in noblend_objects)
 					if(istype(O, nb_type))
-						success = FALSE
+						success = 0
 				if(success)
 					break
 			if(success)

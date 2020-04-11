@@ -15,7 +15,7 @@
 		paycuts_suspicion
 			round_time = 60*10
 			message = {"Reports have leaked that NanoTrasen is planning to put paycuts into
-						effect on many of its Research Stations around the frontier. Apparently these research
+						effect on many of its Research Stations in Tau Ceti. Apparently these research
 						stations haven't been able to yield the expected revenue, and thus adjustments
 						have to be made."}
 			author = "Unauthorized"
@@ -30,7 +30,7 @@
 		human_experiments
 			round_time = 60*90
 			message = {"Unbelievable reports about human experimentation have reached our ears. According
-			 			to a refugee from one of the NanoTrasen Research Stations, their station, in order
+			 			to a refugee from one of the Tau Ceti Research Stations, their station, in order
 			 			to increase revenue, has refactored several of their facilities to perform experiments
 			 			on live humans, including virology research, genetic manipulation, and \"feeding them
 			 			to the slimes to see what happens\". Allegedly, these test subjects were neither
@@ -43,8 +43,9 @@
 		announcement
 			round_time = 60*20
 			message = {"The new field of research trying to explain several interesting spacetime oddities,
-						also known as \"Bluespace Research\", has reached new heights. Fifteen space stations are now 
-						specially equipped to experiment with and research Bluespace effects. Rumours have it some of these
+						also known as \"Bluespace Research\", has reached new heights. Of the several
+						hundred space stations now orbiting in Tau Ceti, fifteen are now specially equipped
+						to experiment with and research Bluespace effects. Rumours have it some of these
 						stations even sport functional \"travel gates\" that can instantly move a whole research
 						team to an alternate reality."}
 
@@ -116,8 +117,8 @@
 
 var/global/list/newscaster_standard_feeds = list(/datum/news_announcement/bluespace_research, /datum/news_announcement/lotus_tree, /datum/news_announcement/random_junk,  /datum/news_announcement/food_riots)
 
-// proc/process_newscaster()
-// 	check_for_newscaster_updates(SSticker.mode.newscaster_announcements)
+proc/process_newscaster()
+	check_for_newscaster_updates(SSticker.mode.newscaster_announcements)
 
 var/global/tmp/announced_news_types = list()
 proc/check_for_newscaster_updates(type)

@@ -22,16 +22,6 @@
 
 	return access_security // Default for all other networks
 
-// Returns whether a network is faction restricted
-/proc/is_faction_restricted(var/network)
-	if(!network)
-		return 0
-
-	if(network == NETWORK_PUBLIC) // Let people create public news channels! Horray!
-		return 0
-
-	return 1 // Assume faction restriction
-
 /datum/computer_file/program/camera_monitor
 	filename = "cammon"
 	filedesc = "Camera Monitoring"
@@ -49,14 +39,9 @@
 	name = "Camera Monitoring program"
 	var/obj/machinery/camera/current_camera = null
 	var/current_network = null
-	var/datum/world_faction/connected_faction
 
 /datum/nano_module/camera_monitor/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, state = GLOB.default_state)
 	var/list/data = host.initial_data()
-	if(connected_faction)
-		data["faction_uid"] = connected_faction.uid
-		data["faction_name"] = connected_faction.name
-		data["faction_netuid"] = connected_faction.network.net_uid
 
 	data["current_camera"] = current_camera ? current_camera.nano_structure() : null
 	data["current_network"] = current_network
@@ -65,13 +50,11 @@
 	for(var/network in GLOB.using_map.station_networks)
 		all_networks.Add(list(list(
 							"tag" = network,
-							"has_access" = can_access_network(user, network, is_faction_restricted(network))
+							"has_access" = can_access_network(user, get_camera_access(network))
 							)))
 
-	// .Add faction networks to all_networks here
-	// be sure to check_access(user, 5, connected_faction.uid)
-
 	all_networks = modify_networks_list(all_networks)
+
 	data["networks"] = all_networks
 
 	if(current_network)
@@ -94,17 +77,12 @@
 /datum/nano_module/camera_monitor/proc/modify_networks_list(var/list/networks)
 	return networks
 
-/datum/nano_module/camera_monitor/proc/can_access_network(var/mob/user, var/network, var/restricted)
-	// Anyone can view public networks
-	if(!restricted || !connected_faction)
+/datum/nano_module/camera_monitor/proc/can_access_network(var/mob/user, var/network_access)
+	// No access passed, or 0 which is considered no access requirement. Allow it.
+	if(!network_access)
 		return 1
 
-	// If it's a network that matches the connected faction net uid ('nt_net'), it is the security network for that faction
-	if(network == connected_faction.network.net_uid)
-		return check_access(user, 5, connected_faction.uid)
-
-	// Otherwise it is someone else's, refuse access
-	return 0
+	return check_access(user, access_security) || check_access(user, network_access)
 
 /datum/nano_module/camera_monitor/Topic(href, href_list)
 	if(..())
@@ -124,8 +102,8 @@
 		return 1
 
 	else if(href_list["switch_network"])
-		// Security access is required in order to access the network.
-		if(can_access_network(usr, href_list["switch_network"], is_faction_restricted(href_list["switch_network"])))
+		// Either security access, or access to the specific camera network's department is required in order to access the network.
+		if(can_access_network(usr, get_camera_access(href_list["switch_network"])))
 			current_network = href_list["switch_network"]
 		else
 			to_chat(usr, "\The [nano_host()] shows an \"Network Access Denied\" error message.")
@@ -149,8 +127,6 @@
 		return 1
 
 	set_current(C)
-	user.machine = nano_host()
-	user.reset_view(C)
 	return 1
 
 /datum/nano_module/camera_monitor/proc/set_current(var/obj/machinery/camera/C)
@@ -211,22 +187,3 @@
 /datum/nano_module/camera_monitor/remove_visual(mob/M)
 	if(current_camera)
 		current_camera.remove_visual(M)
-
-// Public variant of the camera program
-/datum/computer_file/program/camera_monitor/tv
-	filename = "tv"
-	filedesc = "Television"
-	extended_desc = "This program allows the reception of broadcast television."
-	size = 4
-	nanomodule_path = /datum/nano_module/camera_monitor/tv
-	available_on_ntnet = 1
-
-/datum/nano_module/camera_monitor/tv
-	name = "Television"
-	available_to_ai = FALSE
-
-// The television variant has access only to the Public network
-/datum/nano_module/camera_monitor/tv/modify_networks_list(var/list/networks)
-	var/list/public_networks[0]
-	public_networks.Add(list(list("tag" = NETWORK_PUBLIC, "has_access" = 1)))
-	return public_networks

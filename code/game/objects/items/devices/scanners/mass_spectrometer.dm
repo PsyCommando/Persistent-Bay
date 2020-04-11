@@ -5,7 +5,6 @@
 	item_state = "analyzer"
 
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_OPEN_CONTAINER
-	matter = list(MATERIAL_ALUMINIUM = 30,MATERIAL_GLASS = 20)
 	origin_tech = list(TECH_MAGNET = 2, TECH_BIO = 2)
 	window_width = 550
 	window_height = 300

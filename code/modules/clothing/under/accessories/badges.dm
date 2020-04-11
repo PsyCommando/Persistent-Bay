@@ -14,10 +14,9 @@
 	var/badge_string = "Detective"
 	var/stored_name
 
-/obj/item/clothing/accessory/badge/New()
+/obj/item/clothing/accessory/badge/get_lore_info()
 	. = ..()
-	ADD_SAVED_VAR(badge_string)
-	ADD_SAVED_VAR(stored_name)
+	. += "<br>Denotes affiliation to <l>[badge_string]</l>."
 
 /obj/item/clothing/accessory/badge/proc/set_name(var/new_name)
 	stored_name = new_name
@@ -39,7 +38,7 @@
 	. += "  <a href='?src=\ref[src];look_at_me=1'>\[View\]</a>"
 
 /obj/item/clothing/accessory/badge/examine(user)
-	..()
+	. = ..()
 	if(stored_name)
 		to_chat(user,"It reads: [stored_name], [badge_string].")
 
@@ -72,11 +71,11 @@
  */
 /obj/item/clothing/accessory/badge/holo
 	name = "holobadge"
-	desc = "This glowing blue badge marks the holder as a member of the Nexus Police."
+	desc = "This glowing blue badge marks the holder as a member of security."
 	color = COLOR_PALE_BLUE_GRAY
 	icon_state = "holobadge"
 	item_state = "holobadge"
-	badge_string = "Nexus Police"
+	badge_string = "Security"
 	var/badge_access = access_security
 	var/badge_number
 	var/emagged //emag_act removes access requirements
@@ -97,19 +96,13 @@
 	icon_state = "holobadge-cord"
 	slot_flags = SLOT_MASK | SLOT_TIE
 
-/obj/item/clothing/accessory/badge/holo/New()
-	. = ..()
-	ADD_SAVED_VAR(badge_access)
-	ADD_SAVED_VAR(badge_number)
-	ADD_SAVED_VAR(emagged)
-
 /obj/item/clothing/accessory/badge/holo/set_name(var/new_name)
 	..()
 	badge_number = random_id(type,1000,9999)
 	name = "[name] ([badge_number])"
 
 /obj/item/clothing/accessory/badge/holo/examine(user)
-	..()
+	. = ..()
 	if(badge_number)
 		to_chat(user,"The badge number is [badge_number].")
 
@@ -164,38 +157,38 @@
 	badge_string = "Unknown"
 
 /obj/item/clothing/accessory/badge/defenseintel
-	name = "\improper security contractor badge"
-	desc = "A leather-backed silver badge for a private security contractor."
+	name = "\improper DIA investigator's badge"
+	desc = "A leather-backed silver badge bearing the crest of the Defense Intelligence Agency."
 	icon_state = "diabadge"
-	badge_string = "Security Contractor"
+	badge_string = "Defense Intelligence Agency"
 
 /obj/item/clothing/accessory/badge/interstellarintel
-	name = "\improper OIC agent's badge"
-	desc = "A synthleather holographic badge bearing the crest of the Office of Internal Control."
+	name = "\improper OII agent's badge"
+	desc = "A synthleather holographic badge bearing the crest of the Office of Interstellar Intelligence."
 	icon_state = "intelbadge"
-	badge_string = "Office of Internal Control"
+	badge_string = "Office of Interstellar Intelligence"
 
 /obj/item/clothing/accessory/badge/nanotrasen
 	name = "corporate badge"
 	desc = "A leather-backed plastic badge with a variety of information printed on it. Belongs to a corporate executive."
 	icon_state = "ntbadge"
-	badge_string = "Executive"
+	badge_string = "Corporate Executive Body"
 
-/obj/item/clothing/accessory/badge/ocieagent
-	name = "\improper Council appointee's badge"
-	desc = "A leather-backed gold badge displaying the crest of the Nexus Council."
+/obj/item/clothing/accessory/badge/agent
+	name = "\improper SFP Agent's badge"
+	desc = "A leather-backed gold badge displaying the crest of the Sol Federal Police."
 	icon_state = "agentbadge"
-	slot_flags = SLOT_BELT | SLOT_TIE
+	slot_flags = SLOT_BELT | SLOT_TIE | SLOT_MASK
 	slot = ACCESSORY_SLOT_INSIGNIA
-	badge_string = "Nexus Council"
+	badge_string = FACTION_SPACECOPS
 
 /obj/item/clothing/accessory/badge/tracker
-	name = "\improper City appointee's badge"
-	desc = "A blue leather-backed gold badge displaying the symbol of the Office of the Governor."
+	name = "\improper Tracker's badge"
+	desc = "A blue leather-backed gold badge displaying the crest of the Sol Federal Police."
 	icon_state = "trackerbadge"
 	slot_flags = SLOT_BELT | SLOT_TIE
 	slot = ACCESSORY_SLOT_INSIGNIA
-	badge_string = "Office of the Governor"
+	badge_string = FACTION_SPACECOPS
 
 /obj/item/clothing/accessory/badge/press
 	name = "press badge"

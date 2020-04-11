@@ -3,19 +3,6 @@
 	suit_type = "augmented suit"
 	desc = "Prepare for paperwork."
 	icon_state = "internalaffairs_rig"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 5,
-		DAM_CUT 	= 5,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 5,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
 	siemens_coefficient = 0.9
 	online_slowdown = 0
 	offline_slowdown = 0
@@ -23,8 +10,7 @@
 
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/briefcase, /obj/item/weapon/storage/secure/briefcase)
 
-	req_access = list()
-	req_one_access = list()
+	req_access = list(access_lawyer)
 
 	glove_type = null
 	helm_type = null
@@ -51,24 +37,22 @@
 	suit_type = "industrial hardsuit"
 	desc = "A heavy, powerful rig used by construction crews and mining corporations."
 	icon_state = "engineering_rig"
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
 	online_slowdown = 3
 	offline_slowdown = 10
-	vision_restriction = TINT_HEAVY
+	vision_restriction = TINT_MODERATE
 	offline_vision_restriction = TINT_BLIND
 	emp_protection = -20
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
+	min_pressure_protection = 0
 
 	chest_type = /obj/item/clothing/suit/space/rig/industrial
 	helm_type = /obj/item/clothing/head/helmet/space/rig/industrial
@@ -76,9 +60,6 @@
 	glove_type = /obj/item/clothing/gloves/rig/industrial
 
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/stack/flag,/obj/item/weapon/storage/ore,/obj/item/device/t_scanner,/obj/item/weapon/pickaxe, /obj/item/weapon/rcd)
-
-	req_access = list()
-	req_one_access = list()
 
 /obj/item/clothing/head/helmet/space/rig/industrial
 	camera = /obj/machinery/camera/network/mining
@@ -110,21 +91,16 @@
 	suit_type = "EVA hardsuit"
 	desc = "A light rig for repairs and maintenance to the outside of habitats and vessels."
 	icon_state = "eva_rig"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 100,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_MINOR,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_MINOR,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SHIELDED
+		)
 	online_slowdown = 0
-	offline_slowdown = 1
 	offline_vision_restriction = TINT_HEAVY
 
 	chest_type = /obj/item/clothing/suit/space/rig/eva
@@ -134,8 +110,8 @@
 
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/toolbox,/obj/item/weapon/storage/briefcase/inflatable,/obj/item/weapon/inflatable_dispenser,/obj/item/device/t_scanner,/obj/item/weapon/rcd)
 
-	req_access = list()
-	req_one_access = list()
+	req_access = list(access_engine_equip)
+
 	sprite_sheets = list(
 		SPECIES_UNATHI = 'icons/mob/species/unathi/generated/onmob_rig_back_unathi.dmi'
 		)
@@ -179,26 +155,20 @@
 		)
 
 /obj/item/weapon/rig/ce
-
 	name = "advanced engineering hardsuit control module"
 	suit_type = "engineering hardsuit"
 	desc = "An advanced hardsuit that protects against hazardous, low pressure environments. Shines with a high polish. Appears compatible with the physiology of most species."
 	icon_state = "ce_rig"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 40,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 100,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_SMALL,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_SMALL,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SHIELDED
+		)
 	online_slowdown = 0
-	offline_slowdown = 0
 	offline_vision_restriction = TINT_HEAVY
 	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE // this is passed to the rig suit components when deployed, including the helmet.
 
@@ -208,7 +178,8 @@
 	allowed = list(/obj/item/weapon/gun,/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/ore,/obj/item/weapon/storage/toolbox,/obj/item/weapon/storage/briefcase/inflatable,/obj/item/weapon/inflatable_dispenser,/obj/item/device/t_scanner,/obj/item/weapon/pickaxe,/obj/item/weapon/rcd)
 
 	req_access = list(access_ce)
-	req_one_access = list()
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
+	min_pressure_protection = 0
 
 /obj/item/weapon/rig/ce/equipped
 
@@ -234,19 +205,15 @@
 	suit_type = "hazmat hardsuit"
 	desc = "An Anomalous Material Interaction hardsuit, a cutting-edge NanoTrasen design, protects the wearer against the strangest energies the universe can throw at it."
 	icon_state = "science_rig"
-	armor  = list(
-		DAM_BLUNT 	= 45,
-		DAM_PIERCE 	= 35,
-		DAM_CUT 	= 45,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 45,
-		DAM_ENERGY 	= 80,
-		DAM_BURN 	= 60,
-		DAM_BOMB 	= 60,
-		DAM_EMP 	= 40,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 100,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_STRONG,
+		bomb = ARMOR_BOMB_RESISTANT,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SHIELDED
+		)
 	online_slowdown = 1
 	offline_vision_restriction = TINT_HEAVY
 
@@ -257,8 +224,7 @@
 
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/stack/flag,/obj/item/weapon/storage/excavation,/obj/item/weapon/pickaxe,/obj/item/device/scanner/health,/obj/item/device/measuring_tape,/obj/item/device/ano_scanner,/obj/item/device/depth_scanner,/obj/item/device/core_sampler,/obj/item/device/gps,/obj/item/weapon/pinpointer/radio,/obj/item/device/radio/beacon,/obj/item/weapon/pickaxe/xeno,/obj/item/weapon/storage/bag/fossils)
 
-	req_access = list()
-	req_one_access = list()
+	req_access = list(access_tox)
 
 /obj/item/clothing/head/helmet/space/rig/hazmat
 	light_overlay = "helmet_light_dual"
@@ -276,8 +242,6 @@
 
 /obj/item/weapon/rig/hazmat/equipped
 
-	req_access = list(core_access_science_programs)
-
 	initial_modules = list(
 		/obj/item/rig_module/ai_container,
 		/obj/item/rig_module/maneuvering_jets,
@@ -286,24 +250,19 @@
 		)
 
 /obj/item/weapon/rig/medical
-
 	name = "rescue suit control module"
 	suit_type = "rescue hardsuit"
 	desc = "A durable suit designed for medical rescue in high risk areas."
 	icon_state = "medical_rig"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 25,
-		DAM_ENERGY 	= 60,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 100,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_SHIELDED
+		)
 	online_slowdown = 1
 	offline_vision_restriction = TINT_HEAVY
 
@@ -312,10 +271,9 @@
 	boot_type = /obj/item/clothing/shoes/magboots/rig/medical
 	glove_type = /obj/item/clothing/gloves/rig/medical
 
-	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/firstaid,/obj/item/device/scanner/health,/obj/item/stack/medical,/obj/item/roller )
+	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/storage/firstaid,/obj/item/device/scanner/health,/obj/item/stack/medical,/obj/item/roller,/obj/item/auto_cpr,/obj/item/weapon/inflatable_dispenser)
 
-	req_access = list()
-	req_one_access = list()
+	req_access = list(access_medical_equip)
 
 /obj/item/clothing/head/helmet/space/rig/medical
 	camera = /obj/machinery/camera/network/medbay
@@ -345,13 +303,12 @@
 
 /obj/item/weapon/rig/medical/equipped
 
-	req_access = list(core_access_medical_programs)
-
 	initial_modules = list(
 		/obj/item/rig_module/chem_dispenser/injector,
 		/obj/item/rig_module/maneuvering_jets,
 		/obj/item/rig_module/device/healthscanner,
 		/obj/item/rig_module/vision/medhud,
+		/obj/item/rig_module/device/defib,
 		/obj/item/rig_module/cooling_unit
 		)
 
@@ -360,19 +317,15 @@
 	suit_type = "hazard hardsuit"
 	desc = "A security hardsuit designed for prolonged EVA in dangerous environments."
 	icon_state = "hazard_rig"
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 40,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 30,
-		DAM_BOMB 	= 60,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 5)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_MINOR,
+		bomb = ARMOR_BOMB_RESISTANT,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
 	online_slowdown = 1
 	offline_slowdown = 3
 	offline_vision_restriction = TINT_BLIND
@@ -383,9 +336,6 @@
 	glove_type = /obj/item/clothing/gloves/rig/hazard
 
 	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/weapon/handcuffs,/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit,/obj/item/weapon/melee/baton)
-
-	req_access = list()
-	req_one_access = list()
 
 /obj/item/clothing/head/helmet/space/rig/hazard
 	light_overlay = "helmet_light_dual"
@@ -416,7 +366,10 @@
 	suit_type = "null hardsuit"
 	desc = "A very lightweight suit designed to allow use inside mechs and starfighters. It feels like you're wearing nothing at all."
 	icon_state = "null_rig"
-	armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 100, rad = 20)
+	armor = list(
+		bio = ARMOR_BIO_SHIELDED,
+		rad = ARMOR_RAD_MINOR
+		)
 	online_slowdown = 0
 	offline_slowdown = 1
 	offline_vision_restriction = TINT_HEAVY //You're wearing a flash protective space suit without light compensation, think it makes sense
@@ -425,6 +378,8 @@
 	helm_type = /obj/item/clothing/head/helmet/space/rig/zero
 	boot_type = null
 	glove_type = null
+	max_pressure_protection = null
+	min_pressure_protection = 0
 
 
 	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/device/suit_cooling_unit)

@@ -131,7 +131,7 @@
 
 /obj/item/weapon/vampiric/hear_talk(mob/M as mob, text)
 	..()
-	if(world.time - last_bloodcall >= bloodcall_interval && M in view(7, src))
+	if(world.time - last_bloodcall >= bloodcall_interval && (M in view(7, src)))
 		bloodcall(M)
 
 /obj/item/weapon/vampiric/proc/bloodcall(var/mob/living/carbon/human/M)
@@ -141,7 +141,7 @@
 		nearby_mobs.Add(M)
 
 		var/target = pick(M.organs_by_name)
-		M.apply_damage(rand(5, 10), DAM_PIERCE, target)
+		M.apply_damage(rand(5, 10), BRUTE, target)
 		to_chat(M, "<span class='warning'>The skin on your [parse_zone(target)] feels like it's ripping apart, and a stream of blood flies out.</span>")
 		var/obj/effect/decal/cleanable/blood/splatter/animated/B = new(M.loc)
 		B.target_turf = pick(range(1, src))
@@ -198,8 +198,8 @@
 	return ..()
 
 /obj/effect/shadow_wight/Process()
-	if(src.loc)
-		src.loc = get_turf(pick(orange(1,src)))
+	if(loc)
+		step_rand(src)
 		var/mob/living/carbon/M = locate() in src.loc
 		if(M)
 			playsound(src.loc, pick('sound/hallucinations/behind_you1.ogg',\
@@ -217,7 +217,7 @@
 			'sound/hallucinations/turn_around2.ogg',\
 			), 50, 1, -3)
 			M.sleeping = max(M.sleeping,rand(5,10))
-			src.loc = null
+			qdel(src)
 	else
 		STOP_PROCESSING(SSobj, src)
 

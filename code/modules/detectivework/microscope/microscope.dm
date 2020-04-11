@@ -6,7 +6,6 @@
 	icon_state = "microscope"
 	anchored = 1
 	density = 1
-	circuit_type = /obj/item/weapon/circuitboard/microscope
 
 	var/obj/item/sample = null
 	var/report_num = 0
@@ -15,11 +14,6 @@
 	if(sample)
 		sample.dropInto(loc)
 	..()
-
-/obj/machinery/microscope/New()
-	..()
-	ADD_SAVED_VAR(sample)
-	ADD_SAVED_VAR(report_num)
 
 /obj/machinery/microscope/attackby(obj/item/W, mob/user)
 
@@ -41,10 +35,9 @@
 		to_chat(user, "<span class='notice'>You insert \the [W] into the microscope.</span>")
 		sample = W
 		update_icon()
-		return
 
-/obj/machinery/microscope/attack_hand(mob/user)
-
+/obj/machinery/microscope/physical_attack_hand(mob/user)
+	. = TRUE
 	if(!sample)
 		to_chat(user, "<span class='warning'>The microscope has no sample to examine.</span>")
 		return
@@ -123,7 +116,7 @@
 
 /obj/machinery/microscope/proc/remove_sample(var/mob/living/remover)
 	if(!istype(remover) || remover.incapacitated() || !Adjacent(remover))
-		return ..()
+		return
 	if(!sample)
 		to_chat(remover, "<span class='warning'>\The [src] does not have a sample in it.</span>")
 		return
@@ -143,5 +136,7 @@
 
 /obj/machinery/microscope/on_update_icon()
 	icon_state = "microscope"
+	if(stat & NOPOWER)
+		icon_state += "_unpowered"
 	if(sample)
-		icon_state += "slide"
+		icon_state += "_slide"

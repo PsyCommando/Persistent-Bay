@@ -9,23 +9,14 @@
 	idle_power_usage = 0
 	var/obj/item/device/radio/beacon/Beacon
 
-	Initialize()
-		. = ..()
+	New()
+		..()
 		var/turf/T = get_turf(src)
-		if(T)
-			Beacon = new /obj/item/device/radio/beacon(T)
-			Beacon.invisibility = INVISIBILITY_MAXIMUM
+		Beacon = new /obj/item/device/radio/beacon(T)
+		Beacon.invisibility = INVISIBILITY_MAXIMUM
 
-			hide(!T.is_plating())
-//	after_load()
-//		..()
-//		var/turf/T = loc
-//		if(T)
-//			Beacon = new /obj/item/device/radio/beacon
-//			Beacon.invisibility = INVISIBILITY_MAXIMUM
-//			Beacon.loc = T
-//
-//			hide(!T.is_plating())
+		hide(!T.is_plating())
+
 	Destroy()
 		QDEL_NULL(Beacon)
 		. = ..()
@@ -36,7 +27,7 @@
 		update_icon()
 
 	// update the icon_state
-	on_update_icon()
+	update_icon()
 		var/state="floor_beacon"
 
 		if(invisibility)
@@ -49,9 +40,10 @@
 		if(!Beacon)
 			Beacon = new /obj/item/device/radio/beacon(get_turf(src))
 			Beacon.set_invisibility(INVISIBILITY_MAXIMUM)
-			queue_icon_update()
 		if(Beacon)
 			if(Beacon.loc != loc)
 				Beacon.forceMove(loc)
+
+		update_icon()
 
 

@@ -1,43 +1,32 @@
 /obj/machinery/cablelayer
 	name = "automatic cable layer"
-	icon = 'icons/obj/machines/pipedispenser.dmi'
+
+	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "pipe_d"
 	density = 1
-	circuit_type = /obj/item/weapon/circuitboard/cable_layer
 	var/obj/structure/cable/last_piece
 	var/obj/item/stack/cable_coil/cable
-	var/max_cable = 500
+	var/max_cable = 100
 	var/on = 0
 
 /obj/machinery/cablelayer/New()
-	..()
-	ADD_SAVED_VAR(cable)
-	ADD_SAVED_VAR(on)
-
-/obj/machinery/cablelayer/SetupParts()
-	. = ..()
 	cable = new(src)
-	cable.amount = 500
+	cable.amount = 100
+	..()
 
 /obj/machinery/cablelayer/Move(new_turf,M_Dir)
 	..()
 	layCable(new_turf,M_Dir)
 
-/obj/machinery/cablelayer/attack_hand(mob/user as mob)
-	if(!cable&&!on)
+/obj/machinery/cablelayer/physical_attack_hand(mob/user)
+	if(!cable && !on)
 		to_chat(user, "<span class='warning'>\The [src] doesn't have any cable loaded.</span>")
-		return
-	on=!on
+		return TRUE
+	on = !on
 	user.visible_message("\The [user] [!on?"dea":"a"]ctivates \the [src].", "You switch [src] [on? "on" : "off"]")
-	return
+	return TRUE
 
 /obj/machinery/cablelayer/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		return 1
-	if(default_deconstruction_crowbar(user, O))
-		return 1
-	if(default_part_replacement(user, O))
-		return 1
 	if(istype(O, /obj/item/stack/cable_coil))
 
 		var/result = load_cable(O)

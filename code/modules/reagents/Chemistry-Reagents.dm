@@ -14,6 +14,15 @@
 	var/scannable = 0 // Shows up on health analyzers.
 	var/color = "#000000"
 	var/color_weight = 1
+	var/color_foods = FALSE // If TRUE, this reagent affects the color of food items it's added to
+
+	// If TRUE, this reagent transfers changes to its 'color' var when moving to other containers
+	// Of note: Mixing two reagents of the same type with this var that have different colors
+	// will cause them both to take on the color of the form being added into the holder.
+	// i.e. if you add red to blue, all of the reagent turns red and vice-versa.
+	var/color_transfer = FALSE
+
+	var/alpha = 255
 	var/flags = 0
 	var/hidden_from_codex
 
@@ -26,22 +35,14 @@
 	var/gas_specific_heat = 20
 	var/gas_molar_mass =    0.032
 	var/gas_overlay_limit = 0.7
-	var/gas_flags =    		XGM_GAS_REAGENT_GAS
+	var/gas_flags =         0
 	var/gas_burn_product
 	var/gas_overlay = "generic"
-	var/gas_id									// Override for reagents inwhich name != id of parent gas
 	// END GAS DATA
-
-	var/addictiveness = 0						// Soft measure of how addiction a substance is.
-	var/addiction_median_dose = 0				// The dosage at which addiction is 50% likely
-	var/datum/reagent/parent_substance = null	// Used to generalize addiction between related substances e.g. alcohols, opioids
-	var/addiction_display_name
-	var/severe_ticks = 0						// Bursts of severe symptoms of withdrawal unique to each level
 
 	// Matter state data.
 	var/chilling_point
 	var/chilling_message = "crackles and freezes!"
-
 	var/chilling_sound = 'sound/effects/bubbles.ogg'
 	var/list/chilling_products
 
@@ -51,24 +52,19 @@
 	var/heating_sound = 'sound/effects/bubbles.ogg'
 
 	var/temperature_multiplier = 1
+	var/value = 1
+
+	var/scent //refer to _scent.dm
+	var/scent_intensity = /decl/scent_intensity/normal
+	var/scent_descriptor = SCENT_DESC_SMELL
+	var/scent_range = 1
 
 /datum/reagent/New(var/datum/reagents/holder)
 	//Have to comment this CRASH, because on mapload it breaks everything
 	// if(!istype(holder))
 	// 	CRASH("[src]: Invalid reagents holder: [log_info_line(holder)]")
 	src.holder = holder
-	if(!addiction_display_name)
-		addiction_display_name = name
 	..()
-
-	//We only want to save what's actually neccessary, the rest will be initialized properly to its default values
-	ADD_SAVED_VAR(volume)
-	ADD_SAVED_VAR(data)
-	ADD_SAVED_VAR(reagent_state)
-	ADD_SAVED_VAR(holder)
-	ADD_SAVED_VAR(severe_ticks)
-
-	ADD_SKIP_EMPTY(data)
 
 /datum/reagent/proc/remove_self(var/amount) // Shortcut
 	if(QDELETED(src)) // In case we remove multiple times without being careful.
@@ -123,9 +119,6 @@
 			if(CHEM_TOUCH)
 				affect_touch(M, alien, effective)
 
-	if(addictiveness && (removed > 0 && config.addiction))
-		M.metabolism_effects.check_reagent(src.type, volume, removed) // Handles addiction and withdrawal
-
 	if(volume)
 		remove_self(removed)
 
@@ -143,45 +136,6 @@
 	M.add_chemical_effect(CE_TOXIN, 1)
 	M.adjustToxLoss(REM)
 	return
-
-//Addiction and Withdrawal//
-/datum/reagent/proc/withdrawal_act_stage1(mob/living/carbon/human/M)
-	if(severe_ticks > 0)
-		severe_ticks--
-		M.add_chemical_effect(CE_SLOWDOWN, 1)
-
-/datum/reagent/proc/withdrawal_act_stage2(mob/living/carbon/human/M)
-	if(severe_ticks > 0)
-		severe_ticks--
-		M.add_chemical_effect(CE_SLOWDOWN, 3)
-		if(prob(5)) M.eye_blurry = 10
-		if(prob(10)) M.adjustHalLoss(10)
-	M.add_chemical_effect(CE_PULSE, 1)
-
-/datum/reagent/proc/withdrawal_act_stage3(mob/living/carbon/human/M)
-	if(severe_ticks > 0)
-		severe_ticks--
-		M.add_chemical_effect(CE_SLOWDOWN, 3)
-		M.make_jittery(5)
-		if(prob(10))
-			M.vomit()
-			M.eye_blurry = 10
-	M.add_chemical_effect(CE_PULSE, 1)
-	M.add_chemical_effect(CE_SLOWDOWN, 1)
-	if(prob(10)) M.adjustHalLoss(5)
-
-/datum/reagent/proc/withdrawal_act_stage4(mob/living/carbon/human/M)
-	if(severe_ticks > 0)
-		severe_ticks--
-		M.make_jittery(10)
-		if(prob(10)) M.hallucination(25, 30)
-		if(prob(5)) M.adjustHalLoss(10)
-	M.add_chemical_effect(CE_PULSE, 1)
-	M.add_chemical_effect(CE_SLOWDOWN, 4)
-	if(prob(5))
-		M.vomit()
-		M.eye_blurry = 10
-	if(prob(10)) M.adjustHalLoss(5)
 
 /datum/reagent/proc/initialize_data(var/newdata) // Called when the reagent is created.
 	if(!isnull(newdata))

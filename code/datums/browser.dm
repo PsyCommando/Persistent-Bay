@@ -125,6 +125,7 @@
 // This is added to mob so that it can be used without a reference to the browser object
 // There is probably a better place for this...
 /mob/proc/browse_rsc_icon(icon, icon_state, dir = -1)
+	/*
 	var/icon/I
 	if (dir >= 0)
 		I = new /icon(icon, icon_state, dir)
@@ -133,8 +134,9 @@
 		dir = "default"
 
 	var/filename = "[ckey("[icon]_[icon_state]_[dir]")].png"
-	src << browse_rsc(I, filename)
+	send_rsc(src, I, filename)
 	return filename
+	*/
 
 
 // Registers the on-close verb for a browse window (client/verb/.windowclose)
@@ -144,7 +146,7 @@
 // e.g. canisters, timers, etc.
 //
 // windowid should be the specified window name
-// e.g. code is	: user << browse(text, "window=fred")
+// e.g. code is	: show_browser(user, text, "window=fred")
 // then use 	: onclose(user, "fred")
 //
 // Optionally, specify the "ref" parameter as the controlled atom (usually src)
@@ -158,7 +160,7 @@
 		param = "\ref[ref]"
 
 	spawn(2)
-		if(!user || !user.client) return
+		if(!user.client) return
 		winset(user, windowid, "on-close=\".windowclose [param]\"")
 
 //	log_debug("OnClose [user]: [windowid] : ["on-close=\".windowclose [param]\""]")

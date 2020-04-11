@@ -3,7 +3,6 @@
 	desc = "Old will forever be in fashion."
 	closet_appearance = /decl/closet_appearance/cabinet
 
-
 /obj/structure/closet/acloset
 	name = "strange closet"
 	desc = "It looks alien!"
@@ -15,22 +14,22 @@
 	closet_appearance = /decl/closet_appearance/tactical
 	anchored = 0
 
-/obj/structure/closet/gimmick/russian //Add the contents to Supply Crate.
+/obj/structure/closet/gimmick/russian
 	name = "russian surplus closet"
 	desc = "It's a storage unit for Russian standard-issue surplus."
 	closet_appearance = /decl/closet_appearance/tactical
 
-/*
 /obj/structure/closet/gimmick/russian/WillContain()
 	return list(
 		/obj/item/clothing/head/ushanka = 5,
 		/obj/item/clothing/under/soviet = 5)
-*/
+
 /obj/structure/closet/gimmick/tacticool
 	name = "tacticool gear closet"
 	desc = "It's a storage unit for Tacticool gear."
 	closet_appearance = /decl/closet_appearance/tactical
-/*
+
+
 /obj/structure/closet/gimmick/tacticool/WillContain()
 	return list(
 		/obj/item/clothing/glasses/eyepatch,
@@ -41,11 +40,12 @@
 		/obj/item/clothing/shoes/swat = 2,
 		/obj/item/clothing/suit/space/void/swat = 2,
 		/obj/item/clothing/under/syndicate/tacticool = 2)
-*/
-/obj/structure/closet/thunderdome  //Do not add this to supply crates.
+
+/obj/structure/closet/thunderdome
 	name = "\improper Thunderdome closet"
 	desc = "Everything you need!"
 	closet_appearance = /decl/closet_appearance/tactical/alt
+
 	anchored = 1
 
 /obj/structure/closet/thunderdome/tdred

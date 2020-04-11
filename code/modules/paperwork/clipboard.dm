@@ -1,7 +1,7 @@
 /obj/item/weapon/material/clipboard
 	name = "clipboard"
 	desc = "It's a board with a clip used to organise papers."
-	icon = 'icons/obj/items/clipboard.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "clipboard"
 	item_state = "clipboard"
 	throwforce = 0
@@ -17,15 +17,10 @@
 
 /obj/item/weapon/material/clipboard/New(newloc, material_key)
 	..()
-	ADD_SAVED_VAR(haspen)
-	ADD_SAVED_VAR(toppaper)
-
-/obj/item/weapon/material/clipboard/Initialize()
-	. = ..()
+	update_icon()
 	if(material)
 		desc = initial(desc)
 		desc += " It's made of [material.use_name]."
-	queue_icon_update()
 
 /obj/item/weapon/material/clipboard/MouseDrop(obj/over_object as obj) //Quick clipboard fix. -Agouri
 	if(ishuman(usr))
@@ -90,7 +85,7 @@
 	for(var/obj/item/weapon/photo/Ph in src)
 		dat += "<A href='?src=\ref[src];remove=\ref[Ph]'>Remove</A> <A href='?src=\ref[src];rename=\ref[Ph]'>Rename</A> - <A href='?src=\ref[src];look=\ref[Ph]'>[Ph.name]</A><BR>"
 
-	user << browse(dat, "window=clipboard")
+	show_browser(user, dat, "window=clipboard")
 	onclose(user, "clipboard")
 	add_fingerprint(usr)
 	return
@@ -158,10 +153,10 @@
 			if(P && (P.loc == src) && istype(P, /obj/item/weapon/paper) )
 
 				if(!(istype(usr, /mob/living/carbon/human) || isghost(usr) || istype(usr, /mob/living/silicon)))
-					usr << browse("<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY>[stars(P.info)][P.stamps]</BODY></HTML>", "window=[P.name]")
+					show_browser(usr, "<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY>[stars(P.info)][P.stamps]</BODY></HTML>", "window=[P.name]")
 					onclose(usr, "[P.name]")
 				else
-					usr << browse("<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY>[P.info][P.stamps]</BODY></HTML>", "window=[P.name]")
+					show_browser(usr, "<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY>[P.info][P.stamps]</BODY></HTML>", "window=[P.name]")
 					onclose(usr, "[P.name]")
 
 		else if(href_list["look"])

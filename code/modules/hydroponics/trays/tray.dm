@@ -7,6 +7,9 @@
 	anchored = 1
 	atom_flags = ATOM_FLAG_OPEN_CONTAINER
 	volume = 100
+	construct_state = /decl/machine_construction/default/panel_closed
+	uncreated_component_parts = null
+	stat_immune = 0
 
 	var/mechanical = 1         // Set to 0 to stop it from drawing the alert lights.
 	var/base_name = "tray"
@@ -38,7 +41,6 @@
 	var/closed_system          // If set, the tray will attempt to take atmos from a pipe.
 	var/force_update           // Set this to bypass the cycle time check.
 	var/obj/temp_chem_holder   // Something to hold reagents during process_reagents()
-	var/labelled
 
 	// Seed details/line data.
 	var/datum/seed/seed = null // The currently planted seed
@@ -128,43 +130,6 @@
 		/datum/reagent/mutagen = 15,
 		/datum/reagent/toxin/fertilizer/left4zed = 30)
 
-	var/datum/world_faction/connected_faction
-
-/obj/machinery/portable_atmospherics/hydroponics/New()
-	. = ..()
-	ADD_SAVED_VAR(waterlevel)
-	ADD_SAVED_VAR(nutrilevel)
-	ADD_SAVED_VAR(pestlevel)
-	ADD_SAVED_VAR(weedlevel)
-	ADD_SAVED_VAR(dead)
-	ADD_SAVED_VAR(harvest)
-	ADD_SAVED_VAR(age)
-	ADD_SAVED_VAR(sampled)
-	ADD_SAVED_VAR(yield_mod)
-	ADD_SAVED_VAR(mutation_mod)
-	ADD_SAVED_VAR(toxins)
-	ADD_SAVED_VAR(mutation_level)
-	ADD_SAVED_VAR(tray_light)
-	ADD_SAVED_VAR(plant_health)
-
-	ADD_SAVED_VAR(closed_system)
-
-	ADD_SAVED_VAR(temp_chem_holder)
-	ADD_SAVED_VAR(labelled)
-	ADD_SAVED_VAR(seed)
-	ADD_SAVED_VAR(req_access_faction)
-
-/obj/machinery/portable_atmospherics/hydroponics/before_save()
-	. = ..()
-	if(connected_faction)
-		req_access_faction = connected_faction.uid
-
-/obj/machinery/portable_atmospherics/hydroponics/after_load()
-	..()
-	if(req_access_faction)
-		connected_faction = get_faction(req_access_faction)
-	queue_icon_update()
-
 /obj/machinery/portable_atmospherics/hydroponics/AltClick()
 	if(mechanical && !usr.incapacitated() && Adjacent(usr))
 		close_lid(usr)
@@ -182,50 +147,26 @@
 	if(response == "Yes")
 		harvest()
 
-
-/obj/machinery/portable_atmospherics/hydroponics/can_connect(var/datum/world_faction/trying, var/mob/M)
-	var/datum/machine_limits/limits = trying.get_limits()
-	if(M && !has_access(list(core_access_machine_linking), list(), M.GetAccess(trying.uid)))
-		to_chat(M, "You do not have access to link machines to [trying.name].")
-		return 0
-	if(limits.limit_botany <= limits.botany.len)
-		if(M)
-			to_chat(M, "[trying.name] cannot connect any more machines of this type.")
-		return 0
-	limits.botany |= src
-	req_access_faction = trying.uid
-	connected_faction = trying
-
-/obj/machinery/portable_atmospherics/hydroponics/can_disconnect(var/datum/world_faction/trying, var/mob/M)
-	var/datum/machine_limits/limits = trying.get_limits()
-	limits.botany -= src
-	req_access_faction = ""
-	connected_faction = null
-	if(M) to_chat(M, "The machine has been disconnected.")
-
 /obj/machinery/portable_atmospherics/hydroponics/Initialize()
+	if(!mechanical)
+		construct_state = null
 	. = ..()
+	temp_chem_holder = new()
+	temp_chem_holder.create_reagents(10)
+	temp_chem_holder.atom_flags |= ATOM_FLAG_OPEN_CONTAINER
+	create_reagents(200)
 	if(mechanical)
 		connect()
-	queue_icon_update()
-	STOP_PROCESSING(SSmachines, src)
+	update_icon()
+	STOP_PROCESSING_MACHINE(src, MACHINERY_PROCESS_ALL)
 	START_PROCESSING(SSplants, src)
 	return INITIALIZE_HINT_LATELOAD
-
-/obj/machinery/portable_atmospherics/hydroponics/SetupReagents()
-	. = ..()
-	if(!temp_chem_holder)
-		temp_chem_holder = new()
-		temp_chem_holder.create_reagents(100)
-		temp_chem_holder.atom_flags |= ATOM_FLAG_OPEN_CONTAINER
-	if (!reagents) create_reagents(200)
 
 /obj/machinery/portable_atmospherics/hydroponics/Destroy()
 	STOP_PROCESSING(SSplants, src)
 	QDEL_NULL(temp_chem_holder)
 	if(seed)
 		QDEL_NULL(seed)
-	connected_faction = null
 	. = ..()
 
 /obj/machinery/portable_atmospherics/hydroponics/LateInitialize()
@@ -278,6 +219,7 @@
 
 //Process reagents being input into the tray.
 /obj/machinery/portable_atmospherics/hydroponics/proc/process_reagents()
+
 	if(!reagents) return
 
 	if(reagents.total_volume <= 0)
@@ -288,6 +230,7 @@
 	for(var/datum/reagent/R in temp_chem_holder.reagents.reagent_list)
 
 		var/reagent_total = temp_chem_holder.reagents.get_reagent_amount(R.type)
+
 		if(seed && !dead)
 			//Handle some general level adjustments.
 			if(toxic_reagents[R.type])
@@ -396,6 +339,7 @@
 	return
 
 /obj/machinery/portable_atmospherics/hydroponics/proc/mutate(var/severity)
+
 	// No seed, no mutations.
 	if(!seed)
 		return
@@ -412,23 +356,6 @@
 		seed = seed.diverge()
 	seed.mutate(severity,get_turf(src))
 
-	return
-
-/obj/machinery/portable_atmospherics/hydroponics/verb/remove_label()
-
-	set name = "Remove Label"
-	set category = "Object"
-	set src in view(1)
-
-	if(usr.incapacitated())
-		return
-	if(ishuman(usr) || istype(usr, /mob/living/silicon/robot))
-		if(labelled)
-			to_chat(usr, "You remove the label.")
-			labelled = null
-			update_icon()
-		else
-			to_chat(usr, "There is no label to remove.")
 	return
 
 /obj/machinery/portable_atmospherics/hydroponics/verb/setlight()
@@ -461,6 +388,7 @@
 	toxins =         max(0,min(toxins,10))
 
 /obj/machinery/portable_atmospherics/hydroponics/proc/mutate_species()
+
 	var/previous_plant = seed.display_name
 	var/newseed = seed.get_mutant_variant()
 	if(newseed in SSplants.seeds)
@@ -481,27 +409,31 @@
 
 	return
 
-/obj/machinery/portable_atmospherics/hydroponics/attackby(var/obj/item/O as obj, var/mob/user as mob)
+/obj/machinery/portable_atmospherics/hydroponics/attackby(var/obj/item/O, var/mob/user)
 
 	if (O.is_open_container())
 		return 0
 
-	if(isWirecutter(O) || istype(O, /obj/item/weapon/scalpel) || O.sharpness >= 1)
+	if(O.edge && O.w_class < ITEM_SIZE_NORMAL && user.a_intent != I_HURT)
 
 		if(!seed)
-			to_chat(user, "There is nothing to take a sample from in \the [src].")
+			to_chat(user, SPAN_WARNING("There is nothing to take a sample from in \the [src]."))
 			return
 
 		if(sampled)
-			to_chat(user, "You have already sampled from this plant.")
+			to_chat(user, SPAN_WARNING("There's no bits that can be used for a sampling left."))
 			return
 
 		if(dead)
-			to_chat(user, "The plant is dead.")
+			to_chat(user, SPAN_WARNING("The plant is dead."))
 			return
 
-		// Create a sample.
-		seed.harvest(user,yield_mod,1)
+		var/needed_skill = seed.mysterious ? SKILL_ADEPT : SKILL_BASIC
+		if(prob(user.skill_fail_chance(SKILL_BOTANY, 90, needed_skill)))
+			to_chat(user, SPAN_WARNING("You failed to get a usable sample."))
+		else
+			// Create a sample.
+			seed.harvest(user,yield_mod,1)
 		plant_health -= (rand(3,5)*10)
 
 		if(prob(30))
@@ -513,17 +445,6 @@
 		Process()
 
 		return
-	
-	else if(istype(O, /obj/item/weapon/card/id) && mechanical)
-		var/obj/item/weapon/card/id/id = O
-		if(!req_access_faction || req_access_faction == "")
-			var/datum/world_faction/faction = get_faction(id.selected_faction)
-			if(faction)
-				can_connect(faction,usr)
-		else
-			var/datum/world_faction/faction = get_faction(id.selected_faction)
-			if(faction)
-				can_disconnect(faction,usr)
 
 	else if(istype(O, /obj/item/weapon/reagent_containers/syringe))
 
@@ -582,13 +503,6 @@
 		qdel(O)
 		check_health()
 
-	else if ( istype(O, /obj/item/weapon/reagent_containers) )
-		if( O.reagents.total_volume > 0 )
-			spawn()
-				reagents.update_total()
-				process_reagents() // Force reagents to be processed
-				return 0
-
 	else if(mechanical && isWrench(O))
 
 		//If there's a connector here, the portable_atmospherics setup can handle it.
@@ -602,11 +516,12 @@
 	else if(O.force && seed)
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		user.visible_message("<span class='danger'>\The [seed.display_name] has been attacked by [user] with \the [O]!</span>")
-		playsound(get_turf(src), O.sound_hit, 100, 1)
+		playsound(get_turf(src), O.hitsound, 100, 1)
 		if(!dead)
 			plant_health -= O.force
 			check_health()
-	return
+	else if(mechanical)
+		return component_attackby(O, user)
 
 /obj/machinery/portable_atmospherics/hydroponics/proc/plant_seed(var/mob/user, var/obj/item/seeds/S)
 
@@ -637,26 +552,19 @@
 	qdel(S)
 	check_health()
 
-/obj/machinery/portable_atmospherics/hydroponics/attack_tk(mob/user as mob)
-	if(dead)
-		remove_dead(user)
-	else if(harvest)
-		harvest(user)
+/obj/machinery/portable_atmospherics/hydroponics/attack_robot(mob/user)
+	return FALSE // no hands
 
-/obj/machinery/portable_atmospherics/hydroponics/attack_hand(mob/user as mob)
-
-	if(istype(usr,/mob/living/silicon))
-		return
-
+/obj/machinery/portable_atmospherics/hydroponics/physical_attack_hand(mob/user)
 	if(harvest)
 		harvest(user)
-	else if(dead)
+		return TRUE
+	if(dead)
 		remove_dead(user)
+		return TRUE
 
 /obj/machinery/portable_atmospherics/hydroponics/examine(mob/user)
 	. = ..(user)
-	if(mechanical && !connected_faction)
-		to_chat(user, "The tray is not connected to an organization and so it is not growing correctly.")
 	if(!seed)
 		to_chat(user, "\The [src] is empty.")
 		return
@@ -726,3 +634,11 @@
 	lastcycle = world.time
 	qdel(S)
 	check_health()
+
+/obj/machinery/portable_atmospherics/hydroponics/do_simple_ranged_interaction(var/mob/user)
+	if(dead)
+		remove_dead()
+	else if(harvest)
+		harvest()
+	return TRUE
+

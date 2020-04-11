@@ -2,16 +2,13 @@
 	name = "Canvas"
 	desc = "Such avant-garde, much art."
 	gender = NEUTER
-	icon = 'icons/obj/bureaucracy.dmi'
+	icon = 'code/modules/persistence_modules/icons/obj/canvases.dmi'
 	icon_state = "canvas"
 	build_machine_type = /obj/structure/canvas
-
 	var/icon_offset_x = 1
 	var/icon_offset_y = 1
 	var/icon_width = 30
 	var/icon_height = 30
-
-
 
 /obj/item/frame/canvas/examine(mob/user)
 	show(user)
@@ -69,7 +66,7 @@
 	name = "Mounted canvas"
 	desc = "Such avant-garde, much art."
 	gender = NEUTER
-	icon = 'icons/obj/bureaucracy.dmi'
+	icon = 'code/modules/persistence_modules/icons/obj/canvases.dmi'
 	icon_state = "canvas"
 	anchored = 1
 

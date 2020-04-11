@@ -1,12 +1,13 @@
 /datum/language/human/monkey
-	name = "Chimpanzee"
+	name = LANGUAGE_PRIMITIVE
 	desc = "Ook ook ook."
 	speech_verb = "chimpers"
 	ask_verb = "chimpers"
 	exclaim_verb = "screeches"
 	key = "m"
 	syllables = list("ook","eek")
-	shorthand = "HM"
+	shorthand = "Ook"
+	hidden_from_codex = 1
 
 /datum/language/unathi/monkey
 	name = SPECIES_STOK
@@ -14,6 +15,7 @@
 	key = "7"
 	syllables = list("hiss","gronk")
 	shorthand = "UM"
+	hidden_from_codex = 1
 
 /datum/language/skrell/monkey
 	name = SPECIES_NEAERA
@@ -21,6 +23,7 @@
 	key = "8"
 	syllables = list("squick","croak")
 	shorthand = "SM"
+	hidden_from_codex = 1
 
 /datum/language/xenos/monkey
 	name = SPECIES_FARWA
@@ -28,3 +31,4 @@
 	key = "9"
 	syllables = list("meow","mew")
 	shorthand = "TM"
+	hidden_from_codex = 1

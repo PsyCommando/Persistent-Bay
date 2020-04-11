@@ -6,12 +6,6 @@
 		mloc = mloc.loc
 	return mloc
 
-/proc/iswall(turf/T)
-	return (istype(T, /turf/simulated/wall) || istype(T, /turf/unsimulated/wall) || istype(T, /turf/simulated/shuttle/wall))
-
-/proc/isfloor(turf/T)
-	return (istype(T, /turf/simulated/floor) || istype(T, /turf/unsimulated/floor))
-
 /proc/turf_clear(turf/T)
 	for(var/atom/A in T)
 		if(A.simulated)
@@ -113,14 +107,8 @@
 //Returns an assoc list that describes how turfs would be changed if the
 //turfs in turfs_src were translated by shifting the src_origin to the dst_origin
 /proc/get_turf_translation(turf/src_origin, turf/dst_origin, list/turfs_src)
-	if(!src_origin || !dst_origin || !turfs_src)
-		error("Missing arguments")
-
 	var/list/turf_map = list()
 	for(var/turf/source in turfs_src)
-		if(!source)
-			continue
-
 		var/x_pos = (source.x - src_origin.x)
 		var/y_pos = (source.y - src_origin.y)
 		var/z_pos = (source.z - src_origin.z)
@@ -139,10 +127,9 @@
 		var/turf/target = translation[source]
 
 		if(target)
-			//update area first so that area/Entered() will be called with the correct area when atoms are moved
 			if(base_area)
-				source.loc.contents.Add(target)
-				base_area.contents.Add(source)
+				ChangeArea(target, get_area(source))
+				ChangeArea(source, base_area)
 			transport_turf_contents(source, target)
 
 	//change the old turfs

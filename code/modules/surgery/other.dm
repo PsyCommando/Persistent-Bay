@@ -2,8 +2,6 @@
 //////////////////////////////////////////////////////////////////
 //					INTERNAL WOUND PATCHING						//
 //////////////////////////////////////////////////////////////////
-#define DUCTTAPE_NEEDED_TENDONFIX 10
-#define DUCTTAPE_NEEDED_IBFIX 10
 
 //////////////////////////////////////////////////////////////////
 //	 Tendon fix surgery step
@@ -41,15 +39,12 @@
 		"<span class='notice'>You have reattached the [affected.tendon_name] in [target]'s [affected.name] with \the [tool].</span>")
 	affected.status &= ~ORGAN_TENDON_CUT
 	affected.update_damages()
-	if(istype(tool, /obj/item/weapon/tape_roll))
-		var/obj/item/weapon/tape_roll/thetape = tool
-		thetape.use_tape(DUCTTAPE_NEEDED_TENDONFIX)
 
 /decl/surgery_step/fix_tendon/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user]'s hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>" , \
 	"<span class='warning'>Your hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>")
-	affected.take_damage(5, used_weapon = tool)
+	affected.take_external_damage(5, used_weapon = tool)
 
 //////////////////////////////////////////////////////////////////
 //	 IB fix surgery step
@@ -88,15 +83,12 @@
 		"<span class='notice'>You have patched the [affected.artery_name] in [target]'s [affected.name] with \the [tool].</span>")
 	affected.status &= ~ORGAN_ARTERY_CUT
 	affected.update_damages()
-	if(istype(tool, /obj/item/weapon/tape_roll))
-		var/obj/item/weapon/tape_roll/thetape = tool
-		thetape.use_tape(DUCTTAPE_NEEDED_IBFIX)
 
 /decl/surgery_step/fix_vein/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user]'s hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>" , \
 	"<span class='warning'>Your hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>")
-	affected.take_damage(5, used_weapon = tool)
+	affected.take_external_damage(5, used_weapon = tool)
 
 
 //////////////////////////////////////////////////////////////////
@@ -105,7 +97,7 @@
 /decl/surgery_step/hardsuit
 	name = "Remove hardsuit"
 	allowed_tools = list(
-		/obj/item/weapon/tool/weldingtool = 80,
+		/obj/item/weapon/weldingtool = 80,
 		/obj/item/weapon/circular_saw = 60,
 		/obj/item/psychic_power/psiblade/master/grand/paramount = 100,
 		/obj/item/psychic_power/psiblade = 75,
@@ -113,7 +105,6 @@
 	)
 	can_infect = 0
 	blood_level = 0
-	core_skill = SKILL_EVA
 	min_duration = 120
 	max_duration = 180
 	surgery_candidate_flags = 0
@@ -121,11 +112,14 @@
 /decl/surgery_step/hardsuit/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	return TRUE
 
+/decl/surgery_step/hardsuit/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
+	return list(SKILL_EVA = SKILL_BASIC) 
+
 /decl/surgery_step/hardsuit/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	if(!istype(target))
 		return FALSE
 	if(isWelder(tool))
-		var/obj/item/weapon/tool/weldingtool/welder = tool
+		var/obj/item/weapon/weldingtool/welder = tool
 		if(!welder.isOn() || !welder.remove_fuel(1,user))
 			return FALSE
 	return (target_zone == BP_CHEST) && istype(target.back, /obj/item/weapon/rig) && !(target.back.canremove)
@@ -173,6 +167,9 @@
 	var/obj/item/organ/external/affected = ..()
 	if(affected && !affected.is_disinfected() && check_chemicals(tool))
 		return affected
+
+/decl/surgery_step/sterilize/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
+	return list(SKILL_MEDICAL = SKILL_BASIC) 
 
 /decl/surgery_step/sterilize/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
@@ -226,6 +223,3 @@
 				if(booze.strength <= 40)
 					return TRUE
 	return FALSE
-
-#undef DUCTTAPE_NEEDED_TENDONFIX
-#undef DUCTTAPE_NEEDED_IBFIX

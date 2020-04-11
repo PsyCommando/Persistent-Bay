@@ -23,6 +23,8 @@
 /client/Topic(href, href_list, hsrc)
 	if(!usr || usr != mob)	//stops us calling Topic for somebody else's client. Also helps prevent usr=null
 		return
+	if(!user_acted(src))
+		return
 
 	#if defined(TOPIC_DEBUGGING)
 	log_debug("[src]'s Topic: [href] destined for [hsrc].")
@@ -76,8 +78,6 @@
 
 		ticket.close(client_repository.get_lite_client(usr.client))
 
-
-
 	//Logs all hrefs
 	if(config && config.log_hrefs && href_logfile)
 		to_chat(href_logfile, "<small>[time2text(world.timeofday,"hh:mm")] [src] (usr:[usr])</small> || [hsrc ? "[hsrc] " : ""][href]<br>")
@@ -88,10 +88,19 @@
 		if("prefs")		return prefs.process_link(usr,href_list)
 		if("vars")		return view_var_Topic(href,href_list,hsrc)
 
+	if(codex_topic(href, href_list))
+		return
+
+	if(href_list["SDQL_select"])
+		debug_variables(locate(href_list["SDQL_select"]))
+		return
+
 	..()	//redirect to hsrc.Topic()
 
 //This stops files larger than UPLOAD_LIMIT being sent from client to server via input(), client.Import() etc.
 /client/AllowUpload(filename, filelength)
+	if(!user_acted(src))
+		return 0
 	if(filelength > UPLOAD_LIMIT)
 		to_chat(src, "<font color='red'>Error: AllowUpload(): File Upload too large. Upload Limit: [UPLOAD_LIMIT/1024]KiB.</font>")
 		return 0
@@ -111,8 +120,9 @@
 /client/New(TopicData)
 	TopicData = null							//Prevent calls to client.Topic from connect
 
-	if(!(connection in list("seeker", "web")))					//Invalid connection type.
-		return null
+	switch (connection)
+		if ("seeker", "web") // check for invalid connection type. do nothing if valid
+		else return null
 	#if DM_VERSION >= 512
 	var/bad_version = config.minimum_byond_version && byond_version < config.minimum_byond_version
 	var/bad_build = config.minimum_byond_build && byond_build < config.minimum_byond_build
@@ -142,9 +152,9 @@
 			return
 
 	// Change the way they should download resources.
-//	if(config.resource_urls && config.resource_urls.len)
-//		src.preload_rsc = pick(config.resource_urls)
-//	else src.preload_rsc = 2 // If config.resource_urls is not set, preload like normal.
+	if(config.resource_urls && config.resource_urls.len)
+		src.preload_rsc = pick(config.resource_urls)
+	else src.preload_rsc = 1 // If config.resource_urls is not set, preload like normal.
 
 	if(byond_version < DM_VERSION)
 		to_chat(src, "<span class='warning'>You are running an older version of BYOND than the server and may experience issues.</span>")
@@ -163,13 +173,11 @@
 	prefs = SScharacter_setup.preferences_datums[ckey]
 	if(!prefs)
 		prefs = new /datum/preferences(src)
-		SScharacter_setup.preferences_datums[ckey] = prefs
 	prefs.last_ip = address				//these are gonna be used for banning
 	prefs.last_id = computer_id			//these are gonna be used for banning
 	apply_fps(prefs.clientfps)
 
 	. = ..()	//calls mob.Login()
-	prefs.sanitize_preferences()
 
 	GLOB.using_map.map_info(src)
 
@@ -178,7 +186,6 @@
 		to_chat(src, "<h2 class='alert'>A custom event is taking place. OOC Info:</h2>")
 		to_chat(src, "<span class='alert'>[custom_event_msg]</span>")
 		to_chat(src, "<br>")
-
 
 	if(holder)
 		add_admin_verbs()
@@ -345,7 +352,6 @@
 	statpanel("Status")
 
 	. = ..()
-	sleep(1)
 
 //send resources to the client. It's here in its own proc so we can move it around easiliy if need be
 /client/proc/send_resources()
@@ -359,15 +365,13 @@
 		'html/images/bluentlogo.png',
 		'html/images/sollogo.png',
 		'html/images/terralogo.png',
-		'html/images/nfrlogo.png',
+		'html/images/talisman.png',
 		'html/images/exologo.png',
 		'html/images/xynlogo.png',
 		'html/images/daislogo.png',
 		'html/images/eclogo.png',
 		'html/images/fleetlogo.png',
-		'html/images/ocielogo.png',
-		'html/images/pdlogo.png',
-		'html/images/shenlogo.png'
+		'html/images/sfplogo.png'
 		)
 
 	var/decl/asset_cache/asset_cache = decls_repository.get_decl(/decl/asset_cache)
@@ -375,22 +379,28 @@
 		//Precache the client with all other assets slowly, so as to not block other browse() calls
 		getFilesSlow(src, asset_cache.cache, register_asset = FALSE)
 
-/mob/proc/MayRespawn()
+mob/proc/MayRespawn()
 	return 0
 
-/client/proc/MayRespawn()
+client/proc/MayRespawn()
 	if(mob)
 		return mob.MayRespawn()
 
 	// Something went wrong, client is usually kicked or transfered to a new mob at this point
 	return 0
 
-// client/verb/character_setup()
-// 	set name = "Character Setup"
-// 	set category = "OOC"
-// 	if(prefs)
-// 		prefs.ShowChoices(usr)
+client/verb/character_setup()
+	set name = "Character Setup"
+	set category = "OOC"
+	if(prefs)
+		prefs.ShowChoices(usr)
 
 /client/proc/apply_fps(var/client_fps)
 	if(world.byond_version >= 511 && byond_version >= 511 && client_fps >= CLIENT_MIN_FPS && client_fps <= CLIENT_MAX_FPS)
 		vars["fps"] = prefs.clientfps
+
+/client/MouseDrag(src_object, over_object, src_location, over_location, src_control, over_control, params)
+	. = ..()
+	var/mob/living/M = mob
+	if(istype(M))
+		M.OnMouseDrag(src_object, over_object, src_location, over_location, src_control, over_control, params)

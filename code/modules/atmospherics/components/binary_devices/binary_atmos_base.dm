@@ -1,7 +1,6 @@
 /obj/machinery/atmospherics/binary
-	dir 					= SOUTH
-	initialize_directions 	= SOUTH|NORTH
-	use_power 				= POWER_USE_IDLE
+	dir = SOUTH
+	initialize_directions = SOUTH|NORTH
 
 	var/datum/gas_mixture/air1
 	var/datum/gas_mixture/air2
@@ -9,33 +8,16 @@
 	var/datum/pipe_network/network1
 	var/datum/pipe_network/network2
 
-/obj/machinery/atmospherics/binary/New()
-	..()
+	pipe_class = PIPE_CLASS_BINARY
+	connect_dir_type = SOUTH | NORTH
+
+/obj/machinery/atmospherics/binary/Initialize()
 	air1 = new
 	air2 = new
+
 	air1.volume = 200
 	air2.volume = 200
-	ADD_SAVED_VAR(air1)
-	ADD_SAVED_VAR(air2)
-
-/obj/machinery/atmospherics/binary/setup_initialize_directions()
-	..()
-	switch(dir)
-		if(NORTH)
-			initialize_directions = NORTH|SOUTH
-		if(SOUTH)
-			initialize_directions = NORTH|SOUTH
-		if(EAST)
-			initialize_directions = EAST|WEST
-		if(WEST)
-			initialize_directions = EAST|WEST
-
-/obj/machinery/atmospherics/binary/Process()
-	//Rebuild the networks if something is wrong
-	if( (network1 && !network1.normal_members && !network1.line_members) || (network2 && !network2.normal_members && !network2.line_members) )
-		. = ..()
-	last_power_draw = 0
-	last_flow_rate = 0
+	. = ..()
 
 // Housekeeping and pipe network stuff below
 /obj/machinery/atmospherics/binary/network_expand(datum/pipe_network/new_network, obj/machinery/atmospherics/pipe/reference)
@@ -54,25 +36,24 @@
 
 /obj/machinery/atmospherics/binary/atmos_init()
 	..()
-	if(node1 && node2) 
-		return
+	if(node1 && node2) return
 
 	var/node2_connect = dir
 	var/node1_connect = turn(dir, 180)
 
 	for(var/obj/machinery/atmospherics/target in get_step(src,node1_connect))
 		if(target.initialize_directions & get_dir(target,src))
-			if (check_connect_types(target,src))
+			if (check_connect_types(target,src))					
 				node1 = target
 				break
 
-	for(var/obj/machinery/atmospherics/target in get_step(src,node2_connect))
-		if(target.initialize_directions & get_dir(target,src))
-			if (check_connect_types(target,src))
+	for(var/obj/machinery/atmospherics/target in get_step(src,node2_connect))			
+		if(target.initialize_directions & get_dir(target,src))				
+			if (check_connect_types(target,src))					
 				node2 = target
 				break
 
-	queue_icon_update()
+	update_icon()
 	update_underlays()
 
 /obj/machinery/atmospherics/binary/build_network()
@@ -125,21 +106,12 @@
 		qdel(network2)
 		node2 = null
 
-	queue_icon_update()
+	update_icon()
 	update_underlays()
 
 	return null
-
-/obj/machinery/atmospherics/binary/atmos_scan()
-	var/list/results = list()
-	results += air1
-	results += air2
-
-	return results
-
+		
 /obj/machinery/atmospherics/binary/Destroy()
-	loc = null
-
 	if(node1)
 		node1.disconnect(src)
 		qdel(network1)

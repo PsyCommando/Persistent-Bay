@@ -13,6 +13,11 @@
 #define TimeOfGame (get_game_time())
 #define TimeOfTick (world.tick_usage*0.01*world.tick_lag)
 
+#define TICKS *world.tick_lag
+
+#define DS2TICKS(DS) ((DS)/world.tick_lag)
+#define TICKS2DS(T) ((T) TICKS)
+
 /proc/get_game_time()
 	var/global/time_offset = 0
 	var/global/last_time = 0
@@ -29,25 +34,31 @@
 
 	return wtime + (time_offset + wusage) * world.tick_lag
 
-var/roundstart_timeofday
+var/roundstart_hour
 var/station_date = ""
 var/next_station_date_change = 1 DAY
 
 #define duration2stationtime(time) time2text(station_time_in_ticks + time, "hh:mm")
-#define worldtime2stationtime(time) time2text(roundstart_timeofday + time, "hh:mm")
+#define worldtime2stationtime(time) time2text(roundstart_hour HOURS + time, "hh:mm")
 #define round_duration_in_ticks (round_start_time ? world.time - round_start_time : 0)
-#define station_time_in_ticks (roundstart_timeofday + round_duration_in_ticks)
+#define station_time_in_ticks (roundstart_hour HOURS + round_duration_in_ticks)
 
 /proc/stationtime2text()
-	return time2text(world.timeofday, "hh:mm")
+	return time2text(station_time_in_ticks, "hh:mm")
 
 /proc/stationdate2text()
-	var/timeofday = world.realtime
-	station_date = num2text((text2num(time2text(timeofday, "YYYY"))+config.year_skip)) + "-" + time2text(timeofday, "MM-DD")
+	var/update_time = FALSE
+	if(station_time_in_ticks > next_station_date_change)
+		next_station_date_change += 1 DAY
+		update_time = TRUE
+	if(!station_date || update_time)
+		var/extra_days = round(station_time_in_ticks / (1 DAY)) DAYS
+		var/timeofday = world.timeofday + extra_days
+		station_date = num2text(game_year) + "-" + time2text(timeofday, "MM-DD")
 	return station_date
 
 /proc/time_stamp()
-	return time2text(world.timeofday, "hh:mm:ss")
+	return time2text(station_time_in_ticks, "hh:mm:ss")
 
 /* Returns 1 if it is the selected month and day */
 proc/isDay(var/month, var/day)
@@ -87,8 +98,8 @@ var/round_start_time = 0
 	next_duration_update = world.time + 1 MINUTES
 	return last_round_duration
 
-/hook/startup/proc/set_roundstart_timeofday()
-	roundstart_timeofday = world.timeofday + (config.time_zone HOURS)
+/hook/startup/proc/set_roundstart_hour()
+	roundstart_hour = pick(2,7,12,17)
 	return 1
 
 GLOBAL_VAR_INIT(midnight_rollovers, 0)
@@ -115,3 +126,13 @@ GLOBAL_VAR_INIT(rollovercheck_last_timeofday, 0)
 	while (world.tick_usage > min(TICK_LIMIT_TO_RUN, Master.current_ticklimit))
 
 #undef DELTA_CALC
+
+/proc/acquire_days_per_month()
+	. = list(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+	if(isLeap(text2num(time2text(world.realtime, "YYYY"))))
+		.[2] = 29
+
+/proc/current_month_and_day()
+	var/time_string = time2text(world.realtime, "MM-DD")
+	var/time_list = splittext(time_string, "-")
+	return list(text2num(time_list[1]), text2num(time_list[2]))

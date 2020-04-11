@@ -7,21 +7,8 @@
 	idle_power_usage = 5
 	active_power_usage = 60 KILOWATTS	//This is the power drawn when charging
 	power_channel = EQUIP
-	circuit_type = /obj/item/weapon/circuitboard/machinery/cell_charger
 	var/obj/item/weapon/cell/charging = null
 	var/chargelevel = -1
-	var/time_next_update = 0 //Time when the charger perform a full icon update
-
-/obj/machinery/cell_charger/New()
-	..()
-	ADD_SAVED_VAR(charging)
-	ADD_SAVED_VAR(chargelevel)
-
-/obj/machinery/cell_charger/Destroy()
-	if(charging)
-		charging.forceMove(get_turf(src))
-	charging = null
-	return ..()
 
 /obj/machinery/cell_charger/on_update_icon()
 	icon_state = "ccharger[charging ? 1 : 0]"
@@ -34,22 +21,14 @@
 	else
 		overlays.Cut()
 
-/obj/machinery/cell_charger/examine(mob/user)
-	if(!..(user, 5))
-		return
-
-	to_chat(user, "There's [charging ? "a" : "no"] cell in the charger.")
-	if(charging)
-		to_chat(user, "Current charge: [charging.charge]")
+/obj/machinery/cell_charger/examine(var/mob/user, var/distance)
+	. = ..()
+	if(distance <= 5)
+		to_chat(user, "There's [charging ? "a" : "no"] cell in the charger.")
+		if(charging)
+			to_chat(user, "Current charge: [charging.charge]")
 
 /obj/machinery/cell_charger/attackby(obj/item/weapon/W, mob/user)
-	if(default_deconstruction_screwdriver(user, W))
-		updateUsrDialog()
-		return
-	if(default_deconstruction_crowbar(user, W))
-		return
-	if(default_part_replacement(user, W))
-		return
 	if(stat & BROKEN)
 		return
 
@@ -66,7 +45,7 @@
 				return
 			charging = W
 			set_power()
-			START_PROCESSING(SSmachines, src)
+			START_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 			user.visible_message("[user] inserts a cell into the charger.", "You insert a cell into the charger.")
 			chargelevel = -1
 		queue_icon_update()
@@ -80,15 +59,7 @@
 		to_chat(user, "You [anchored ? "attach" : "detach"] the cell charger [anchored ? "to" : "from"] the ground")
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
 
-/obj/machinery/cell_charger/set_anchored(new_anchored)
-	. = ..()
-	if(!anchored && charging)
-		charging.dropInto(get_turf(src))
-		charging = null
-		chargelevel = -1
-	set_power()
-
-/obj/machinery/cell_charger/attack_hand(mob/user)
+/obj/machinery/cell_charger/physical_attack_hand(mob/user)
 	if(charging)
 		user.put_in_hands(charging)
 		charging.add_fingerprint(user)
@@ -98,11 +69,8 @@
 		user.visible_message("[user] removes the cell from the charger.", "You remove the cell from the charger.")
 		chargelevel = -1
 		set_power()
-		STOP_PROCESSING(SSmachines, src)
-
-/obj/machinery/cell_charger/attack_robot(mob/user)
-	if(Adjacent(user)) // Borgs can remove the cell if they are near enough
-		attack_hand(user)
+		STOP_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
+		return TRUE
 
 /obj/machinery/cell_charger/emp_act(severity)
 	if(stat & (BROKEN|NOPOWER))
@@ -111,11 +79,8 @@
 		charging.emp_act(severity)
 	..(severity)
 
-/obj/machinery/cell_charger/power_change()
-	if(..())
-		set_power()
-
 /obj/machinery/cell_charger/proc/set_power()
+	queue_icon_update()
 	if((stat & (BROKEN|NOPOWER)) || !anchored)
 		update_use_power(POWER_USE_OFF)
 		return
@@ -123,12 +88,11 @@
 		update_use_power(POWER_USE_ACTIVE)
 	else
 		update_use_power(POWER_USE_IDLE)
-	queue_icon_update()
 
 /obj/machinery/cell_charger/Process()
+	. = ..()
 	if(!charging)
-		return PROCESS_KILL
+		return
+	. = 0
 	charging.give(active_power_usage*CELLRATE)
-	if(time_next_update <= world.time)
-		queue_icon_update()
-		time_next_update = world.time + 2 SECONDS //Only update the icon every 2 seconds
+	set_power()

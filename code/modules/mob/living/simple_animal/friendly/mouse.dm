@@ -16,33 +16,35 @@
 	see_in_dark = 6
 	maxHealth = 5
 	health = 5
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
-	meat_amount = 1
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "stamps on"
 	density = 0
-	var/body_color //brown, gray and white, leave blank for random
 	minbodytemp = 223		//Below -50 Degrees Celsius
 	maxbodytemp = 323	//Above 50 Degrees Celsius
-	universal_speak = 0
-	universal_understand = 1
+	universal_speak = FALSE
+	universal_understand = TRUE
 	holder_type = /obj/item/weapon/holder/mouse
 	mob_size = MOB_MINISCULE
 	possession_candidate = 1
-	can_escape = 1
-
+	can_escape = TRUE
 	can_pull_size = ITEM_SIZE_TINY
 	can_pull_mobs = MOB_PULL_NONE
+
+	meat_amount =   1
+	bone_amount =   1
+	skin_amount =   1
+	skin_material = MATERIAL_SKIN_FUR
+
+	var/body_color //brown, gray and white, leave blank for random
 
 /mob/living/simple_animal/mouse/Life()
 	. = ..()
 	if(!.)
 		return FALSE
-	if(!istype(loc, /turf))
-		return . //Don't do anything when stored in something or in nullspace
-	if(!is_dead() && prob(speak_chance))
-		emote("squeak")
+	if(prob(speak_chance))
+		for(var/mob/M in view())
+			sound_to(M, 'sound/effects/mousesqueek.ogg')
 
 	if(!ckey && stat == CONSCIOUS && prob(0.5))
 		set_stat(UNCONSCIOUS)
@@ -74,11 +76,20 @@
 
 	if(!body_color)
 		body_color = pick( list("brown","gray","white") )
+
 	icon_state = "mouse_[body_color]"
 	item_state = "mouse_[body_color]"
 	icon_living = "mouse_[body_color]"
 	icon_dead = "mouse_[body_color]_dead"
 	desc = "It's a small [body_color] rodent, often seen hiding in maintenance areas and making a nuisance of itself."
+
+/mob/living/simple_animal/mouse/Initialize()
+	. = ..()
+	switch(body_color)
+		if("gray")
+			skin_material = MATERIAL_SKIN_FUR_GRAY
+		if("white")
+			skin_material = MATERIAL_SKIN_FUR_WHITE
 
 /mob/living/simple_animal/mouse/proc/splat()
 	icon_dead = "mouse_[body_color]_splat"
@@ -88,7 +99,9 @@
 /mob/living/simple_animal/mouse/Crossed(AM as mob|obj)
 	if( ishuman(AM) )
 		if(!stat)
-			emote("squeak")
+			var/mob/M = AM
+			to_chat(M, "<span class='warning'>\icon[src] Squeek!</span>")
+			sound_to(M, 'sound/effects/mousesqueek.ogg')
 	..()
 
 /*

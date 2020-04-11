@@ -1,7 +1,7 @@
 /obj/item/weapon/paper_bundle
 	name = "paper bundle"
 	gender = NEUTER
-	icon = 'icons/obj/items/paper.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "paper"
 	item_state = "paper"
 	randpixel = 8
@@ -95,17 +95,12 @@
 			else
 				to_chat(user, "<span class='warning'>You must hold \the [P] steady to burn \the [src].</span>")
 
-/obj/item/weapon/paper_bundle/fire_act(datum/gas_mixture/air, temperature, volume)
-	new /obj/effect/decal/cleanable/ash(src.loc)
-	qdel(src)
-	return
-
-/obj/item/weapon/paper_bundle/examine(mob/user)
-	if(..(user, 1))
+/obj/item/weapon/paper_bundle/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1)
 		src.show_content(user)
 	else
 		to_chat(user, "<span class='notice'>It is too far away.</span>")
-	return
 
 /obj/item/weapon/paper_bundle/proc/show_content(mob/user as mob)
 	var/dat
@@ -135,7 +130,7 @@
 		var/obj/item/weapon/photo/P = W
 		dat += "<html><head><title>[P.name]</title></head><body style='overflow:hidden'>"
 		dat += "<div> <img src='tmp_photo.png' width = '180'[P.scribble ? "<div> Written on the back:<br><i>[P.scribble]</i>" : null ]</body></html>"
-		user << browse_rsc(P.img, "tmp_photo.png")
+		send_rsc(user, P.img, "tmp_photo.png")
 		show_browser(user, JOINTEXT(dat), "window=[name]")
 
 /obj/item/weapon/paper_bundle/attack_self(mob/user as mob)
@@ -220,7 +215,7 @@
 	var/i = 0
 	var/photo
 	for(var/obj/O in src)
-		var/image/img = image(icon)
+		var/image/img = image('icons/obj/bureaucracy.dmi')
 		if(istype(O, /obj/item/weapon/paper))
 			img.icon_state = O.icon_state
 			img.pixel_x -= min(1*i, 2)
@@ -240,5 +235,5 @@
 		desc = "A single sheet of paper."
 	if(photo)
 		desc += "\nThere is a photo attached to it."
-	overlays += image(icon, "clip")
+	overlays += image('icons/obj/bureaucracy.dmi', "clip")
 	return

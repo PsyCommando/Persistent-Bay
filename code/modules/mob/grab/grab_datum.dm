@@ -47,6 +47,8 @@
 	var/list/break_chance_table = list(100)
 	var/breakability = 2
 
+	var/can_grab_self = 1
+
 	// The names of different intents for use in attack logs
 	var/help_action = "help intent"
 	var/disarm_action = "disarm intent"
@@ -111,11 +113,23 @@
 	process_effect(G)
 
 /datum/grab/proc/throw_held(var/obj/item/grab/G)
-
-	if(!istype(G))
+	if(G.assailant == G.affecting)
 		return
-	qdel(G)
-	return null
+
+	var/mob/living/carbon/human/affecting = G.affecting
+
+	if(can_throw)
+		. = affecting
+		var/mob/thrower = G.loc
+
+		animate(affecting, pixel_x = 0, pixel_y = 0, 4, 1)
+		qdel(G)
+
+		// check if we're grabbing with our inactive hand
+		G = thrower.get_inactive_hand()
+		if(!istype(G))	return
+		qdel(G)
+		return
 
 /datum/grab/proc/hit_with_grab(var/obj/item/grab/G)
 	if(downgrade_on_action)
@@ -156,8 +170,6 @@
 	var/mob/living/carbon/human/affecting = G.affecting
 	var/mob/living/carbon/human/assailant = G.assailant
 	var/adir = get_dir(assailant, affecting)
-	if(!affecting || !assailant )
-		return 0
 
 	if(same_tile)
 		affecting.forceMove(assailant.loc)
@@ -178,8 +190,7 @@
 			animate(affecting, pixel_x =-shift, pixel_y = 0, 5, 1, LINEAR_EASING)
 			G.draw_affecting_under()
 
-	if(affecting)
-		affecting.reset_plane_and_layer()
+	affecting.reset_plane_and_layer()
 
 /datum/grab/proc/reset_position(var/obj/item/grab/G)
 	var/mob/living/carbon/human/affecting = G.affecting

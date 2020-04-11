@@ -40,14 +40,22 @@
 		/obj/item/weapon/surgicaldrill,
 		/obj/item/weapon/gripper/organ,
 		/obj/item/weapon/shockpaddles/robot,
-		/obj/item/weapon/tool/crowbar,
+		/obj/item/weapon/crowbar,
 		/obj/item/stack/nanopaste,
-		/obj/item/stack/medical/advanced/bruise_pack
+		/obj/item/stack/medical/advanced/bruise_pack,
+		/obj/item/weapon/reagent_containers/dropper/
 	)
 	synths = list(
 		/datum/matter_synth/medicine = 10000,
 	)
 	emag = /obj/item/weapon/reagent_containers/spray
+	skills = list(
+		SKILL_ANATOMY     = SKILL_PROF,
+		SKILL_MEDICAL     = SKILL_EXPERT,
+		SKILL_CHEMISTRY   = SKILL_ADEPT,
+		SKILL_BUREAUCRACY = SKILL_ADEPT,
+		SKILL_DEVICES     = SKILL_EXPERT
+	)
 
 /obj/item/weapon/robot_module/medical/surgeon/finalize_equipment()
 	. = ..()
@@ -90,7 +98,7 @@
 		"Needles" = "medicalrobot"
 	)
 	equipment = list(
-		/obj/item/weapon/tool/crowbar,
+		/obj/item/weapon/crowbar,
 		/obj/item/device/flash,
 		/obj/item/borg/sight/hud/med,
 		/obj/item/device/scanner/health,
@@ -112,6 +120,14 @@
 		/datum/matter_synth/medicine = 15000
 	)
 	emag = /obj/item/weapon/reagent_containers/spray
+	skills = list(
+		SKILL_ANATOMY     = SKILL_BASIC,
+		SKILL_MEDICAL     = SKILL_PROF,
+		SKILL_CHEMISTRY   = SKILL_ADEPT,
+		SKILL_BUREAUCRACY = SKILL_ADEPT,
+		SKILL_EVA         = SKILL_EXPERT,
+		SKILL_MECH        = HAS_PERK
+	)
 
 /obj/item/weapon/robot_module/medical/crisis/finalize_equipment()
 	. = ..()

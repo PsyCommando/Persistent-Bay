@@ -2,17 +2,6 @@
 #define DIRECT_OUTPUT(A, B) A << B
 #define WRITE_FILE(file, text) DIRECT_OUTPUT(file, text)
 
-#define LOGS_PATH_FOLDER(YEAR,MONTH,DAY) "data/logs/##YEAR/##MONTH/##DAY"
-#define LOGS_PATH_FOLDER_NOW "data/logs/[time2text(world.realtime,"YYYY/MM/DD")]" //Folder structure for log folder for the day
-#define MAKE_LOGS_PATH_NOW(LOGFILENAME) "data/logs/[time2text(world.realtime,"YYYY/MM/DD")]/[LOGFILENAME]" //Macro for the path to a log file in today's log folder
-
-#define PATH_ATTACK_LOG_NOW  MAKE_LOGS_PATH_NOW("attack-[game_id].log")
-#define PATH_GAME_LOG_NOW    MAKE_LOGS_PATH_NOW("game-[game_id].log")
-#define PATH_RUNTIME_LOG_NOW MAKE_LOGS_PATH_NOW("runtime-[game_id].log")
-#define PATH_QDEL_LOG_NOW    MAKE_LOGS_PATH_NOW("qdel-[game_id].log")
-#define PATH_HREF_LOG_NOW    MAKE_LOGS_PATH_NOW("hrefs-[game_id].htm")
-#define PATH_WORLD_LOG_NOW   MAKE_LOGS_PATH_NOW("world-[game_id].log")
-
 
 // On Linux/Unix systems the line endings are LF, on windows it's CRLF, admins that don't use notepad++
 // will get logs that are one big line if the system is Linux and they are using notepad.  This solves it by adding CR to every line ending
@@ -22,7 +11,7 @@
 
 
 /proc/error(msg)
-	log_world("## ERROR: [msg][log_end]")
+	to_world_log("## ERROR: [msg][log_end]")
 
 /proc/log_ss(subsystem, text, log_world = TRUE)
 	if (!subsystem)
@@ -38,18 +27,14 @@
 #define WARNING(MSG) warning("[MSG] in [__FILE__] at line [__LINE__] src: [src] usr: [usr].")
 //print a warning message to world.log
 /proc/warning(msg)
-	log_world("## WARNING: [msg][log_end]")
+	to_world_log("## WARNING: [msg][log_end]")
 
 //print a testing-mode debug message to world.log
 /proc/testing(msg)
-	log_world("## TESTING: [msg][log_end]")
+	to_world_log("## TESTING: [msg][log_end]")
 
 /proc/game_log(category, text)
-	//diary << "\[[time_stamp()]] [game_id] [category]: [text][log_end]"
-	diary << "\[[time_stamp()]] [category]: [text][log_end]"
-
-/proc/attack_log(text)
-	to_file(GLOB.world_attack_log, "\[[time_stamp()]] ATTACK: [text][log_end]")
+	diary << "\[[time_stamp()]] [game_id] [category]: [text][log_end]"
 
 /proc/log_admin(text)
 	GLOB.admin_log.Add(text)
@@ -118,11 +103,6 @@
 	if (config.log_pda)
 		game_log("PDA", text)
 
-/proc/log_to_dd(text)
-	to_world_log(text) //this comes before the config check because it can't possibly runtime
-	if(config.log_world_output)
-		game_log("DD_OUTPUT", text)
-
 /proc/log_misc(text)
 	game_log("MISC", text)
 
@@ -135,12 +115,9 @@
 
 //This replaces world.log so it displays both in DD and the file
 /proc/log_world(text)
-	if(config && config.log_runtime)
-		to_world_log(text)
-		//to_world_log(runtime_diary)
-		//to_world_log(text)
-	//to_world_log(text)
-	to_world_log(runtime_diary)
+	to_world_log(text) //this comes before the config check because it can't possibly runtime
+	if(config.log_world_output)
+		game_log("DD_OUTPUT", text)
 
 //pretty print a direction bitflag, can be useful for debugging.
 /proc/dir_text(var/dir)
@@ -168,7 +145,7 @@
 	else if(ismob(whom))
 		M = whom
 		C = M.client
-		key = M.key
+		key = LAST_KEY(M)
 	else if(istype(whom, /datum/mind))
 		var/datum/mind/D = whom
 		key = D.key

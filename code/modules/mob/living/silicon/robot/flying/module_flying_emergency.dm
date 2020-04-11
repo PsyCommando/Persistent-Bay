@@ -17,11 +17,11 @@
 		/obj/item/weapon/extinguisher/mini,
 		/obj/item/taperoll/medical,
 		/obj/item/weapon/inflatable_dispenser/robot,
-		/obj/item/weapon/tool/weldingtool/mini,
-		/obj/item/weapon/tool/screwdriver,
-		/obj/item/weapon/tool/wrench,
-		/obj/item/weapon/tool/crowbar,
-		/obj/item/weapon/tool/wirecutters,
+		/obj/item/weapon/weldingtool/mini,
+		/obj/item/weapon/screwdriver,
+		/obj/item/weapon/wrench,
+		/obj/item/weapon/crowbar,
+		/obj/item/weapon/wirecutters,
 		/obj/item/device/multitool,
 		/obj/item/stack/medical/ointment,
 		/obj/item/stack/medical/bruise_pack,
@@ -29,6 +29,14 @@
 	)
 	synths = list(/datum/matter_synth/medicine = 15000)
 	emag = /obj/item/weapon/reagent_containers/spray
+	skills = list(
+		SKILL_ANATOMY      = SKILL_BASIC,
+		SKILL_MEDICAL      = SKILL_PROF,
+		SKILL_EVA          = SKILL_EXPERT,
+		SKILL_MECH         = HAS_PERK,
+		SKILL_CONSTRUCTION = SKILL_EXPERT,
+		SKILL_ELECTRICAL   = SKILL_EXPERT
+	)
 
 /obj/item/weapon/robot_module/flying/emergency/finalize_emag()
 	. = ..()

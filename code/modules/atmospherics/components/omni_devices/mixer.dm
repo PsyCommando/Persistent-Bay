@@ -8,7 +8,7 @@
 	idle_power_usage = 150		//internal circuitry, friction losses and stuff
 	power_rating = 15000			// 15000 W ~ 20 HP
 
-	var/list/inputs
+	var/list/inputs = new()
 	var/datum/omni_port/output
 	var/max_output_pressure = MAX_OMNI_PRESSURE
 
@@ -22,28 +22,10 @@
 	var/set_flow_rate = ATMOS_DEFAULT_VOLUME_MIXER
 
 	var/list/mixing_inputs = list()
-
-/obj/machinery/atmospherics/omni/mixer/New()
-	..()
-	if(!inputs)
-		inputs = list()
-	ADD_SAVED_VAR(inputs)
-	ADD_SAVED_VAR(output)
-	ADD_SAVED_VAR(mixing_inputs)
+	build_icon_state = "omni_mixer"
 
 /obj/machinery/atmospherics/omni/mixer/Initialize()
-	.=..()
-	do_init()
-
-
-/obj/machinery/atmospherics/omni/mixer/after_load()
-	update_ports()
-	build_icons()
-	for(var/datum/omni_port/P in ports)
-		handle_port_change(P)
-	..()
-
-/obj/machinery/atmospherics/omni/mixer/proc/do_init()
+	. = ..()
 	if(mapper_set())
 		var/con = 0
 		for(var/datum/omni_port/P in ports)
@@ -255,7 +237,14 @@
 		else if(P.mode == ATM_OUTPUT && mode == ATM_OUTPUT)
 			P.mode = ATM_INPUT
 		if(P.mode != old_mode)
-			handle_port_change(P)
+			switch(P.mode)
+				if(ATM_NONE)
+					initialize_directions &= ~P.dir
+					P.disconnect()
+				else
+					initialize_directions |= P.dir
+					P.connect()
+			P.update = 1
 
 	update_ports()
 	rebuild_mixing_inputs()
@@ -312,13 +301,3 @@
 	for(var/datum/omni_port/P in inputs)
 		if(P.dir == port)
 			P.con_lock = !P.con_lock
-
-/obj/machinery/atmospherics/omni/mixer/proc/handle_port_change(var/datum/omni_port/P)
-	switch(P.mode)
-		if(ATM_NONE)
-			initialize_directions &= ~P.dir
-			P.disconnect()
-		else
-			initialize_directions |= P.dir
-			P.connect()
-	P.update = 1

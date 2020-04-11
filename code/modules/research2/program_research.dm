@@ -13,12 +13,12 @@
 // 	return do_on_afterattack(user, I)
 
 //Hijack the paper scanner instead
-/obj/item/weapon/computer_hardware/scanner/paper/do_on_afterattack(mob/user, obj/item/weapon/paper/researchTheorem/target, proximity)
+/obj/item/weapon/stock_parts/computer/scanner/paper/do_on_afterattack(mob/user, obj/item/weapon/paper/researchTheorem/target, proximity)
 	if(!..())
 		return
 	if(!holder2?.active_program)
 		return
-	var/datum/world_faction/faction = holder2.active_program.ConnectedFaction()
+	var/datum/world_faction/faction = holder2.active_program.get_network_faction()
 	if(!faction /*|| !faction.ModuleResearch*/)
 		return
 	if(istype(target))

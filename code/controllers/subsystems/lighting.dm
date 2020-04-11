@@ -43,13 +43,16 @@ SUBSYSTEM_DEF(lighting)
 	InitializeTurfs()
 	lighting_overlays_initialised = TRUE
 	fire(FALSE, TRUE)
-	return ..()
+	..()
 
 // It's safe to pass a list of non-turfs to this list - it'll only check turfs.
 /datum/controller/subsystem/lighting/proc/InitializeTurfs(list/targets)
 	for (var/turf/T in (targets || world))
 		if (T.dynamic_lighting && T.loc:dynamic_lighting)
 			T.lighting_build_overlay()
+
+		// If this isn't here, BYOND will set-background us.
+		CHECK_TICK
 
 /datum/controller/subsystem/lighting/fire(resumed = FALSE, no_mc_tick = FALSE)
 	if (!resumed)

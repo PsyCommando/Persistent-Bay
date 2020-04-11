@@ -4,11 +4,10 @@
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = null
 	w_class = ITEM_SIZE_SMALL
-	temperature_coefficient = 0.5 //defaults to this, so it can be heated
 	var/amount_per_transfer_from_this = 5
 	var/possible_transfer_amounts = "5;10;15;25;30"
 	var/volume = 30
-	var/list/datum/reagent/starts_with = null
+	var/label_text
 
 /obj/item/weapon/reagent_containers/proc/cannot_interact(mob/user)
 	if(!CanPhysicallyInteract(user))
@@ -32,22 +31,10 @@
 		amount_per_transfer_from_this = N
 
 /obj/item/weapon/reagent_containers/New()
+	create_reagents(volume)
 	..()
 	if(!possible_transfer_amounts)
 		src.verbs -= /obj/item/weapon/reagent_containers/verb/set_amount_per_transfer_from_this
-	ADD_SAVED_VAR(amount_per_transfer_from_this)
-	ADD_SAVED_VAR(atom_flags) //Since we change the open_container flag a lot
-
-/obj/item/weapon/reagent_containers/Initialize()
-	. = ..()
-
-/obj/item/weapon/reagent_containers/SetupReagents()
-	..()
-	create_reagents(volume)
-	if(starts_with)
-		for(var/T in starts_with)
-			reagents.add_reagent(T, starts_with[T])
-		queue_icon_update()
 
 /obj/item/weapon/reagent_containers/attack_self(mob/user as mob)
 	return
@@ -62,27 +49,25 @@
 
 /obj/item/weapon/reagent_containers/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/weapon/pen) || istype(W, /obj/item/device/flashlight/pen))
-		var/datum/extension/labels/L = get_extension(src, /datum/extension/labels)
-		var/old_label = LAZYLEN(L.labels) ? L.labels[1] : ""
-		var/tmp_label = sanitizeSafe(input(user, "Enter a label for [name]", "Label", old_label), MAX_NAME_LEN)
-		set_label(user, tmp_label)
-		return 1 //Keeps afterattack from triggering
+		var/tmp_label = sanitizeSafe(input(user, "Enter a label for [name]", "Label", label_text), MAX_NAME_LEN)
+		if(length(tmp_label) > 10)
+			to_chat(user, "<span class='notice'>The label can be at most 10 characters long.</span>")
+		else
+			to_chat(user, "<span class='notice'>You set the label to \"[tmp_label]\".</span>")
+			label_text = tmp_label
+			update_name_label()
 	else
 		return ..()
 
-//Don't need this anymore. The label extension does it
-// /obj/item/weapon/reagent_containers/proc/update_name_label()
-// 	if(label == "")
-// 		SetName(initial(name))
-// 	else
-// 		SetName("[initial(name)] ([label])")
+/obj/item/weapon/reagent_containers/proc/update_name_label()
+	if(label_text == "")
+		SetName(initial(name))
+	else
+		SetName("[initial(name)] ([label_text])")
 
 /obj/item/weapon/reagent_containers/proc/standard_dispenser_refill(var/mob/user, var/obj/structure/reagent_dispensers/target) // This goes into afterattack
 	if(!istype(target))
 		return 0
-	
-	if(target.can_fill)
-		return 0 //Run regular reagent container code if the dispenser is open!
 
 	if(!target.reagents || !target.reagents.total_volume)
 		to_chat(user, "<span class='notice'>[target] is empty.</span>")
@@ -231,31 +216,10 @@
 		var/prec = user.skill_fail_chance(SKILL_CHEMISTRY, 10)
 		to_chat(user, "<span class='notice'>The [src] contains: [reagents.get_reagents(precision = prec)].</span>")
 	else if((loc == user) && user.skill_check(SKILL_CHEMISTRY, SKILL_EXPERT))
-		to_chat(user, "<span class='notice'>Using your chemistry knowledge, you indentify the following reagents in \the [src]: [reagents.get_reagents(!user.skill_check(SKILL_CHEMISTRY, SKILL_PROF), 5)].</span>")
+		to_chat(user, "<span class='notice'>Using your chemistry knowledge, you identify the following reagents in \the [src]: [reagents.get_reagents(!user.skill_check(SKILL_CHEMISTRY, SKILL_PROF), 5)].</span>")
 
 /obj/item/weapon/reagent_containers/ex_act(severity)
 	if(reagents)
 		for(var/datum/reagent/R in reagents.reagent_list)
 			R.ex_act(src, severity)
 	..()
-
-/obj/item/weapon/reagent_containers/proc/get_first_label()
-	. = ""
-	var/datum/extension/labels/L = get_extension(src, /datum/extension/labels)
-	if(L && LAZYLEN(L.labels))
-		. = L.labels[1]
-	return .
-
-/obj/item/weapon/reagent_containers/proc/set_label(var/mob/user, var/tmp_label)
-	var/datum/extension/labels/L = get_or_create_extension(src, /datum/extension/labels, /datum/extension/labels)
-	//var/old_label = LAZYLEN(L.labels) ? L.labels[1] : ""
-	if(length(tmp_label) > 25)
-		if(user) to_chat(user, SPAN_WARNING("The label can be at most 25 characters long."));
-	else
-		L.RemoveAllLabels() 
-
-		if(length(tmp_label) == 0)
-			if(user) to_chat(user, SPAN_NOTICE("You remove the label."));
-		else
-			//if(user) to_chat(user, SPAN_NOTICE("You set the label to \"[tmp_label]\"."));
-			L.AttachLabel(user, tmp_label)

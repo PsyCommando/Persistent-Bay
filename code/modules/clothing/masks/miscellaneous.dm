@@ -11,7 +11,7 @@
 /obj/item/clothing/mask/muzzle/tape
 	name = "length of tape"
 	desc = "It's a robust DIY muzzle!"
-	icon = 'icons/obj/items/tape.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "tape_cross"
 	item_state = null
 	w_class = ITEM_SIZE_TINY
@@ -32,16 +32,18 @@
 	desc = "A sterile mask designed to help prevent the spread of diseases."
 	icon_state = "sterile"
 	item_state = "sterile"
-	w_class = ITEM_SIZE_SMALL
+	w_class = ITEM_SIZE_TINY
 	body_parts_covered = FACE
 	item_flags = ITEM_FLAG_FLEXIBLEMATERIAL
 	gas_transfer_coefficient = 0.90
 	permeability_coefficient = 0.01
+	armor = list(
+		bio = ARMOR_BIO_RESISTANT
+		)
 	down_gas_transfer_coefficient = 1
 	down_body_parts_covered = null
 	down_icon_state = "steriledown"
 	pull_mask = 1
-	armor  = list(DAM_BIO = 60)
 
 /obj/item/clothing/mask/fakemoustache
 	name = "fake moustache"
@@ -210,13 +212,13 @@
 
 /obj/item/clothing/mask/rubber/admiral
 	name = "Admiral Diwali mask"
-	desc = "Admiral that led the offensive against the Terran Colonial Navy in the Gaia conflict. For bridge officers who wish they'd achieve a fraction of that."
+	desc = "Admiral that led the infamous last stand at Helios against the Independent Navy in the Gaia conflict. For bridge officers who wish they'd achieve a fraction of that."
 	icon_state = "admiral"
 	visible_name = "Admiral Diwali"
 
 /obj/item/clothing/mask/rubber/turner
 	name = "Charles Turner mask"
-	desc = "Premier of the Terran Colonial Confederation. Probably shouldn't wear this in front of your veteran uncle."
+	desc = "Premier of the Gilgamesh Colonial Confederation. Probably shouldn't wear this in front of your veteran uncle."
 	icon_state = "turner"
 	visible_name = "Charles Turner"
 

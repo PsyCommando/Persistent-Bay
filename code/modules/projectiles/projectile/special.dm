@@ -2,9 +2,10 @@
 	name = "ion bolt"
 	icon_state = "ion"
 	fire_sound = 'sound/weapons/Laser.ogg'
-	force = 0
-	damtype = DAM_EMP
-	nodamage = TRUE
+	damage = 0
+	damage_type = BURN
+	damage_flags = 0
+	nodamage = 1
 	var/heavy_effect_range = 1
 	var/light_effect_range = 2
 
@@ -24,9 +25,8 @@
 /obj/item/projectile/bullet/gyro
 	name ="explosive bolt"
 	icon_state= "bolter"
-	force = 25
-	sharpness = 1
-	mass = 0.012
+	damage = 50
+	damage_flags = DAM_BULLET | DAM_SHARP | DAM_EDGE
 
 	on_hit(var/atom/target, var/blocked = 0)
 		explosion(target, -1, 0, 2)
@@ -36,9 +36,10 @@
 	name = "freeze beam"
 	icon_state = "ice_2"
 	fire_sound = 'sound/weapons/pulse3.ogg'
-	force = 0
-	damtype = DAM_BURN
-	nodamage = TRUE
+	damage = 0
+	damage_type = BURN
+	damage_flags = 0
+	nodamage = 1
 	var/firing_temperature = 300
 
 	on_hit(var/atom/target, var/blocked = 0)//These two could likely check temp protection on the mob
@@ -51,11 +52,11 @@
 	name = "meteor"
 	icon = 'icons/obj/meteor.dmi'
 	icon_state = "smallf"
-	force = 0
-	damtype = DAM_BULLET
-	nodamage = TRUE
+	damage = 0
+	damage_type = BRUTE
+	nodamage = 1
 
-	Bump(atom/A as mob|obj|turf|area)
+	Bump(atom/A as mob|obj|turf|area, forced=0)
 		if(A == firer)
 			forceMove(A.loc)
 			return
@@ -80,9 +81,9 @@
 	name = "alpha somatoray"
 	icon_state = "energy"
 	fire_sound = 'sound/effects/stealthoff.ogg'
-	force = 0
-	damtype = DAM_RADS
-	nodamage = TRUE
+	damage = 0
+	damage_type = TOX
+	nodamage = 1
 
 	on_hit(var/atom/target, var/blocked = 0)
 		var/mob/living/M = target
@@ -113,25 +114,25 @@
 	name = "gamma somatoray"
 	icon_state = "energy2"
 	fire_sound = 'sound/effects/stealthoff.ogg'
-	force = 0
-	damtype = DAM_RADS
-	nodamage = TRUE
+	damage = 0
+	damage_type = TOX
+	nodamage = 1
 	var/decl/plantgene/gene = null
 
 /obj/item/projectile/energy/florayield
 	name = "beta somatoray"
 	icon_state = "energy2"
 	fire_sound = 'sound/effects/stealthoff.ogg'
-	force = 0
-	damtype = DAM_RADS
-	nodamage = TRUE
+	damage = 0
+	damage_type = TOX
+	nodamage = 1
 
 	on_hit(var/atom/target, var/blocked = 0)
 		var/mob/M = target
 		if(ishuman(target)) //These rays make plantmen fat.
 			var/mob/living/carbon/human/H = M
 			if((H.species.species_flags & SPECIES_FLAG_IS_PLANT) && (H.nutrition < 500))
-				H.nutrition += 30
+				H.adjust_nutrition(30)
 		else if (istype(target, /mob/living/carbon/))
 			M.show_message("<span class='notice'>The radiation beam dissipates harmlessly through your body.</span>")
 		else
@@ -149,17 +150,18 @@
 /obj/item/projectile/chameleon
 	name = "bullet"
 	icon_state = "bullet"
-	force = 1 // stop trying to murderbone with a fake gun dumbass!!!
-	embed = FALSE // nope
-	nodamage = TRUE
-	damtype = DAM_PAIN
+	damage = 1 // stop trying to murderbone with a fake gun dumbass!!!
+	embed = 0 // nope
+	nodamage = 1
+	damage_type = PAIN
+	damage_flags = 0
 	muzzle_type = /obj/effect/projectile/bullet/muzzle
 
 /obj/item/projectile/venom
 	name = "venom bolt"
 	icon_state = "venom"
-	force = 5 //most damage is in the reagent
-	damtype = DAM_BIO
+	damage = 5 //most damage is in the reagent
+	damage_type = TOX
 	damage_flags = 0
 
 /obj/item/projectile/venom/on_hit(atom/target, blocked, def_zone)
@@ -167,3 +169,33 @@
 	var/mob/living/L = target
 	if(L.reagents)
 		L.reagents.add_reagent(/datum/reagent/toxin/venom, 5)
+
+/obj/item/missile
+	icon = 'icons/obj/grenade.dmi'
+	icon_state = "missile"
+	var/primed = null
+	throwforce = 15
+
+/obj/item/missile/throw_impact(atom/hit_atom)
+	if(primed)
+		explosion(hit_atom, 0, 1, 2, 4)
+		qdel(src)
+	else
+		..()
+	return
+
+/obj/item/projectile/hotgas
+	name = "gas vent"
+	icon_state = null
+	damage_type = BURN
+	damage_flags = 0
+	life_span = 3
+	silenced = TRUE
+
+/obj/item/projectile/hotgas/on_hit(atom/target, blocked, def_zone)
+	. = ..()
+	if(isliving(target))
+		var/mob/living/L = target
+		to_chat(target, SPAN_WARNING("You feel a wave of heat wash over you!"))
+		L.adjust_fire_stacks(rand(5,8))
+		L.IgniteMob()

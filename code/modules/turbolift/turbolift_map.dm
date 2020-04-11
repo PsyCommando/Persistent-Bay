@@ -11,8 +11,17 @@
 	var/wall_type =  /turf/simulated/wall/elevator
 	var/floor_type = /turf/simulated/floor/tiled/dark
 	var/door_type =  /obj/machinery/door/airlock/lift
+	var/firedoor_type = /obj/machinery/door/firedoor
 
 	var/list/areas_to_use = list()
+
+/obj/turbolift_map_holder/Destroy()
+	turbolifts -= src
+	return ..()
+
+/obj/turbolift_map_holder/New()
+	turbolifts += src
+	..()
 
 /obj/turbolift_map_holder/Initialize()
 	. = ..()
@@ -175,7 +184,9 @@
 						lift.doors += newdoor
 						newdoor.lift = cfloor
 					else
+						var/obj/machinery/door/firedoor/newfiredoor = new firedoor_type(checking)
 						cfloor.doors += newdoor
+						cfloor.doors += newfiredoor
 						newdoor.floor = cfloor
 
 		// Place exterior control panel.
@@ -187,13 +198,8 @@
 
 		//Transfer access
 		panel_ext.req_access 					= src.req_access
-		panel_ext.req_one_access 				= src.req_one_access
 		panel_ext.req_access_faction 			= src.req_access_faction
 		panel_ext.req_access_personal 			= src.req_access_personal
-		panel_ext.req_access_personal_list 		= src.req_access_personal_list
-		panel_ext.req_access_business 			= src.req_access_business
-		panel_ext.req_access_business_list 		= src.req_access_business_list
-		panel_ext.req_one_access_business_list 	= src.req_one_access_business_list
 
 		// Update area.
 		if(az > areas_to_use.len)
@@ -217,13 +223,8 @@
 	lift.open_doors()
 	//Transfer access
 	lift.control_panel_interior.req_access 						= src.req_access
-	lift.control_panel_interior.req_one_access 					= src.req_one_access
 	lift.control_panel_interior.req_access_faction 				= src.req_access_faction
 	lift.control_panel_interior.req_access_personal 			= src.req_access_personal
-	lift.control_panel_interior.req_access_personal_list 		= src.req_access_personal_list
-	lift.control_panel_interior.req_access_business 			= src.req_access_business
-	lift.control_panel_interior.req_access_business_list 		= src.req_access_business_list
-	lift.control_panel_interior.req_one_access_business_list 	= src.req_one_access_business_list
 
 	// Place lights
 	var/turf/placing1 = locate(light_x1, light_y1, uz)

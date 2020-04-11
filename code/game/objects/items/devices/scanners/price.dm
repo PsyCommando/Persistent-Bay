@@ -4,14 +4,13 @@
 	icon_state = "price_scanner"
 	origin_tech = list(TECH_MATERIAL = 6, TECH_MAGNET = 4)
 	scan_sound = 'sound/effects/checkout.ogg'
-	matter = list(MATERIAL_ALUMINIUM = 25, MATERIAL_GLASS = 25)
 
 /obj/item/device/scanner/price/is_valid_scan_target(atom/movable/target)
 	return !!get_value(target)
 
 /obj/item/device/scanner/price/scan(atom/movable/target, mob/user)
 	scan_title = "Price estimations"
-	var/data = "\The [target]: [get_value(target)] Thalers"
+	var/data = "\The [target]: [get_value(target)] [GLOB.using_map.local_currency_name]"
 	if(!scan_data)
 		scan_data = data
 	else

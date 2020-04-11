@@ -1,22 +1,21 @@
 /obj/machinery/atmospherics/unary
 	dir = SOUTH
 	initialize_directions = SOUTH
+
 	layer = ABOVE_TILE_LAYER
 
 	var/datum/gas_mixture/air_contents
-	var/datum/pipe_network/network
+
 	var/obj/machinery/atmospherics/node
 
-/obj/machinery/atmospherics/unary/New()
-	..()
-	if(!air_contents)
-		air_contents = new
-		air_contents.volume = 200
-	ADD_SAVED_VAR(air_contents)
+	var/datum/pipe_network/network
 
-/obj/machinery/atmospherics/unary/setup_initialize_directions()
-	..()
-	initialize_directions = dir
+	pipe_class = PIPE_CLASS_UNARY
+
+/obj/machinery/atmospherics/unary/Initialize()
+	air_contents = new
+	air_contents.volume = 200
+	. = ..()
 
 // Housekeeping and pipe network stuff below
 /obj/machinery/atmospherics/unary/network_expand(datum/pipe_network/new_network, obj/machinery/atmospherics/pipe/reference)
@@ -31,8 +30,6 @@
 	return null
 
 /obj/machinery/atmospherics/unary/Destroy()
-	loc = null
-
 	if(node)
 		node.disconnect(src)
 		qdel(network)
@@ -53,7 +50,7 @@
 				node = target
 				break
 
-	queue_icon_update()
+	update_icon()
 	update_underlays()
 
 /obj/machinery/atmospherics/unary/build_network()
@@ -61,7 +58,6 @@
 		network = new /datum/pipe_network()
 		network.normal_members += src
 		network.build_network(node, src)
-
 
 /obj/machinery/atmospherics/unary/return_network(obj/machinery/atmospherics/reference)
 	build_network()
@@ -86,11 +82,11 @@
 	return results
 
 /obj/machinery/atmospherics/unary/disconnect(obj/machinery/atmospherics/reference)
-	if(reference == node)
-		QDEL_NULL(network)
-	queue_icon_update()
-	update_underlays()
-	return null
+	if(reference==node)
+		qdel(network)
+		node = null
 
-obj/machinery/atmospherics/unary/atmos_scan()
-	return air_contents
+	update_icon()
+	update_underlays()
+
+	return null

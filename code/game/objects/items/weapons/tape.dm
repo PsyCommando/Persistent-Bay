@@ -1,32 +1,9 @@
-#define DUCTTAPE_NEEDED_BLINDFOLD 8
-#define DUCTTAPE_NEEDED_GAG 8
-#define DUCTTAPE_NEEDED_CUFF 10
-
 /obj/item/weapon/tape_roll
 	name = "duct tape"
 	desc = "A roll of sticky tape. Possibly for taping ducks... or was that ducts?"
-	icon = 'icons/obj/items/tape.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "taperoll"
 	w_class = ITEM_SIZE_SMALL
-	var/uses_left = 30
-
-/obj/item/weapon/tape_roll/proc/has_enough_tape_left(var/amount_needed)
-	return (uses_left >= amount_needed)? TRUE : FALSE
-
-//Meant to be used by external entities wanting tape for their purpose
-//It does a check to see if there's enough and then delete the roll if its empty after use
-//Return 0 when not enough tape, returns true when there was enough
-/obj/item/weapon/tape_roll/proc/use_tape(var/amount)
-	if(!has_enough_tape_left(amount))
-		return FALSE
-	uses_left -= amount
-	if(uses_left < 1)
-		qdel(src)
-	return TRUE
-
-/obj/item/weapon/tape_roll/examine(mob/user)
-	if(..(user, 1))
-		to_chat(user, "There [src.uses_left == 1 ? "is" : "are"] about [src.uses_left] use\s left out of this tape roll.")
 
 /obj/item/weapon/tape_roll/attack(var/mob/living/carbon/human/H, var/mob/user)
 	if(istype(H))
@@ -55,12 +32,9 @@
 
 			playsound(src, 'sound/effects/tape.ogg',25)
 			user.visible_message("<span class='danger'>\The [user] has taped up \the [H]'s eyes!</span>")
-			H.equip_to_slot_or_del(new /obj/item/clothing/glasses/sunglasses/blindfold/tape(H), slot_glasses)
+			H.equip_to_slot_or_del(new /obj/item/clothing/glasses/blindfold/tape(H), slot_glasses)
 
 		else if(user.zone_sel.selecting == BP_MOUTH || user.zone_sel.selecting == BP_HEAD)
-			if(!has_enough_tape_left(DUCTTAPE_NEEDED_GAG))
-				to_chat(user, "<span class='warning'>You need [DUCTTAPE_NEEDED_GAG] strips of tape to gag \the [H]!</span>")
-				return
 			if(!H.organs_by_name[BP_HEAD])
 				to_chat(user, "<span class='warning'>\The [H] doesn't have a head.</span>")
 				return
@@ -83,30 +57,18 @@
 			if(!H || !src || !H.organs_by_name[BP_HEAD] || !H.check_has_mouth() || H.wear_mask || (H.head && (H.head.body_parts_covered & FACE)))
 				return
 			playsound(src, 'sound/effects/tape.ogg',25)
-
-			if(!use_tape(DUCTTAPE_NEEDED_GAG))
-				to_chat(user, "<span class='warning'>You need [DUCTTAPE_NEEDED_GAG] strips of tape to gag \the [H]!</span>")
-				return
-
 			user.visible_message("<span class='danger'>\The [user] has taped up \the [H]'s mouth!</span>")
 			H.equip_to_slot_or_del(new /obj/item/clothing/mask/muzzle/tape(H), slot_wear_mask)
-
 
 		else if(user.zone_sel.selecting == BP_R_HAND || user.zone_sel.selecting == BP_L_HAND)
 			playsound(src, 'sound/effects/tape.ogg',25)
 			var/obj/item/weapon/handcuffs/cable/tape/T = new(user)
 			if(!T.place_handcuffs(H, user))
-				user.unEquip(T)
 				qdel(T)
-			if(!use_tape(DUCTTAPE_NEEDED_CUFF))
-				to_chat(user, "<span class='warning'>You need [DUCTTAPE_NEEDED_CUFF] strips of tape to cuff \the [H]'s hands!</span>")
-				return
 
 		else if(user.zone_sel.selecting == BP_CHEST)
 			if(H.wear_suit && istype(H.wear_suit, /obj/item/clothing/suit/space))
-				if(H == user || do_mob(user, H, 10))	//Skip the time-check if patching your own suit, that's handled in attackby()
-					playsound(src, 'sound/effects/tape.ogg',25)
-					H.wear_suit.attackby(src, user)
+				H.wear_suit.attackby(src, user)//everything is handled by attackby
 			else
 				to_chat(user, "<span class='warning'>\The [H] isn't wearing a spacesuit for you to reseal.</span>")
 
@@ -117,8 +79,6 @@
 /obj/item/weapon/tape_roll/proc/stick(var/obj/item/weapon/W, mob/user)
 	if(!istype(W, /obj/item/weapon/paper) || istype(W, /obj/item/weapon/paper/sticky) || !user.unEquip(W))
 		return
-	if(!use_tape(1))
-		return
 	var/obj/item/weapon/ducttape/tape = new(get_turf(src))
 	tape.attach(W)
 	user.put_in_hands(tape)
@@ -126,11 +86,10 @@
 /obj/item/weapon/ducttape
 	name = "piece of tape"
 	desc = "A piece of sticky tape."
-	icon = 'icons/obj/items/tape.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "tape"
 	w_class = ITEM_SIZE_TINY
 	layer = ABOVE_OBJ_LAYER
-	anchored = 1 //it's sticky, no you cant move it
 
 	var/obj/item/weapon/stuck = null
 
@@ -142,8 +101,8 @@
 	. = ..()
 	item_flags |= ITEM_FLAG_NO_BLUDGEON
 
-/obj/item/weapon/ducttape/examine(mob/user)
-	return stuck ? stuck.examine(user) : ..()
+/obj/item/weapon/ducttape/examine()
+	return stuck ? stuck.examine(arglist(args)) : ..()
 
 /obj/item/weapon/ducttape/proc/attach(var/obj/item/weapon/W)
 	stuck = W
@@ -158,11 +117,8 @@
 		return
 
 	to_chat(user, "You remove \the [initial(name)] from [stuck].")
-	user.drop_from_inventory(src)
-	stuck.forceMove(get_turf(src))
 	user.put_in_hands(stuck)
 	stuck = null
-	overlays.Cut()
 	qdel(src)
 
 /obj/item/weapon/ducttape/afterattack(var/A, mob/user, flag, params)
@@ -184,6 +140,8 @@
 		return
 	playsound(src, 'sound/effects/tape.ogg',25)
 
+	layer = ABOVE_WINDOW_LAYER
+	
 	if(params)
 		var/list/mouse_control = params2list(params)
 		if(mouse_control["icon-x"])
@@ -198,7 +156,3 @@
 				pixel_y += 32
 			else if(dir_offset & SOUTH)
 				pixel_y -= 32
-
-#undef DUCTTAPE_NEEDED_BLINDFOLD
-#undef DUCTTAPE_NEEDED_GAG
-#undef DUCTTAPE_NEEDED_CUFF

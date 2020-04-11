@@ -1,10 +1,20 @@
+/obj/item/weapon/stock_parts/circuitboard/incubator
+	name = T_BOARD("Incubator")
+	build_path = /obj/machinery/disease2/incubator
+	board_type = "machine"
+	origin_tech = list(TECH_DATA = 3, TECH_BIO = 3)
+	req_components = list(
+		/obj/item/weapon/stock_parts/matter_bin = 1,
+		/obj/item/weapon/stock_parts/scanning_module = 1,
+		/obj/item/weapon/stock_parts/console_screen = 1,
+		)
+
 /obj/machinery/disease2/incubator/
 	name = "pathogenic incubator"
 	density = 1
 	anchored = 1
 	icon = 'icons/obj/virology.dmi'
 	icon_state = "incubator"
-	circuit_type = /obj/item/weapon/circuitboard/incubator
 	var/obj/item/weapon/virusdish/dish
 	var/obj/item/weapon/reagent_containers/glass/beaker = null
 	var/radiation	= 0
@@ -23,11 +33,7 @@
 	ADD_SKIP_EMPTY(beaker)
 
 /obj/machinery/disease2/incubator/attackby(var/obj/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		return 1
-	else if(default_deconstruction_crowbar(user, O))
-		return 1
-	else if(istype(O, /obj/item/weapon/reagent_containers/glass) || istype(O,/obj/item/weapon/reagent_containers/syringe))
+	if(istype(O, /obj/item/weapon/reagent_containers/glass) || istype(O,/obj/item/weapon/reagent_containers/syringe))
 		if(beaker)
 			to_chat(user, "\The [src] is already loaded.")
 			return
@@ -55,10 +61,9 @@
 	else 
 		return ..()
 
-/obj/machinery/disease2/incubator/attack_hand(mob/user as mob)
-	if(inoperable()) 
-		return
+/obj/machinery/disease2/incubator/interface_interact(mob/user)
 	ui_interact(user)
+	return TRUE
 
 /obj/machinery/disease2/incubator/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	user.set_machine(src)

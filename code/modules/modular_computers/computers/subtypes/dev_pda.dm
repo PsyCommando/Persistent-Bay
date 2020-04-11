@@ -10,9 +10,9 @@
 	light_strength = 2
 	slot_flags = SLOT_ID | SLOT_BELT
 	stores_pen = TRUE
-	stored_pen = /obj/item/weapon/pen
-	receives_updates = FALSE
-	sprite_sheets = list(SPECIES_RESOMI = 'icons/mob/species/resomi/id.dmi')
+	stored_pen = /obj/item/weapon/pen/retractable
+	interact_sounds = list('sound/machines/pda_click.ogg')
+	interact_sound_volume = 20
 
 /obj/item/modular_computer/pda/Initialize()
 	. = ..()
@@ -22,18 +22,18 @@
 	if(!CanPhysicallyInteract(user))
 		return
 	if(card_slot && istype(card_slot.stored_card))
-		eject_id()
+		card_slot.eject_id(user)
 	else
 		..()
 
 // PDA box
-/obj/item/weapon/storage/box/large/PDAs
+/obj/item/weapon/storage/box/PDAs
 	name = "box of spare PDAs"
 	desc = "A box of spare PDA microcomputers."
 	icon = 'icons/obj/pda.dmi'
 	icon_state = "pdabox"
 
-/obj/item/weapon/storage/box/large/PDAs/Initialize()
+/obj/item/weapon/storage/box/PDAs/Initialize()
 	. = ..()
 
 	new /obj/item/modular_computer/pda(src)

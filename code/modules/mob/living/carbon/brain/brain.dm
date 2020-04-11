@@ -10,14 +10,8 @@
 	icon_state = "brain1"
 
 /mob/living/carbon/brain/New()
-	..()
-	ADD_SAVED_VAR(container)
-	ADD_SAVED_VAR(timeofhostdeath)
-	ADD_SAVED_VAR(emp_damage)
-
-/mob/living/carbon/brain/SetupReagents()
-	. = ..()
 	create_reagents(1000)
+	..()
 
 /mob/living/carbon/brain/Destroy()
 	if(key)				//If there is a mob connected to this thing. Have to check key twice to avoid false death reporting.
@@ -49,7 +43,7 @@
 	return ..()
 
 /mob/living/carbon/brain/UpdateLyingBuckledAndVerbStatus()
-	if(in_contents_of(/obj/mecha) || istype(loc, /obj/item/device/mmi))
+	if(istype(loc, /obj/item/device/mmi))
 		use_me = 1
 
 /mob/living/carbon/brain/isSynthetic()

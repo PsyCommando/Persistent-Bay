@@ -1,12 +1,16 @@
 /datum/species/human
 	name = SPECIES_HUMAN
 	name_plural = "Humans"
-	primitive_form = SPECIES_MONKEY
+	primitive_form = "Monkey"
 	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/punch, /datum/unarmed_attack/bite)
-	description = "Humanity originated in the Sol system, a has spread colonies across a wide swathe of space. They hold a wide range of forms and creeds."
+	description = "Humanity originated in the Sol system, and over the last five centuries has spread \
+	colonies across a wide swathe of space. They hold a wide range of forms and creeds.<br/><br/> \
+	While the central Sol government maintains control of its far-flung people, powerful corporate \
+	interests, rampant cyber and bio-augmentation and secretive factions make life on most human \
+	worlds tumultous at best."
 	assisted_langs = list(LANGUAGE_NABBER)
-	min_age = 19
-	max_age = 70
+	min_age = 17
+	max_age = 100
 	hidden_from_codex = FALSE
 	bandages_icon = 'icons/mob/bandage.dmi'
 
@@ -19,20 +23,22 @@
 
 	available_cultural_info = list(
 		TAG_CULTURE = list(
-			CULTURE_HUMAN_EARTH_POOR,
-			CULTURE_HUMAN_EARTH_MIDDLE,
-			CULTURE_HUMAN_EARTH_HIGH,
-			CULTURE_HUMAN_AGARTHA_POOR,
-			CULTURE_HUMAN_AGARTHA_MIDDLE,
-			CULTURE_HUMAN_COLONY
-		),
-		TAG_AMBITION = list(
-			AMBITION_FREEDOM,
-			AMBITION_OPPORTUNITY,
-			AMBITION_KNOWLEDGE
+			CULTURE_HUMAN_MARTIAN,
+			CULTURE_HUMAN_MARSTUN,
+			CULTURE_HUMAN_LUNAPOOR,
+			CULTURE_HUMAN_LUNARICH,
+			CULTURE_HUMAN_VENUSIAN,
+			CULTURE_HUMAN_VENUSLOW,
+			CULTURE_HUMAN_BELTER,
+			CULTURE_HUMAN_PLUTO,
+			CULTURE_HUMAN_EARTH,
+			CULTURE_HUMAN_CETI,
+			CULTURE_HUMAN_SPACER,
+			CULTURE_HUMAN_SPAFRO,
+			CULTURE_HUMAN_CONFED,
+			CULTURE_HUMAN_OTHER
 		)
 	)
-	spawns_with_stack = TRUE
 
 /datum/species/human/get_bodytype(var/mob/living/carbon/human/H)
 	return SPECIES_HUMAN
@@ -77,7 +83,7 @@
 
 		for(var/obj/item/organ/I in H.internal_organs)
 			if((I.status & ORGAN_DEAD) || BP_IS_ROBOTIC(I)) continue
-			if(I.get_damages() > 2) if(prob(2))
+			if(I.damage > 2) if(prob(2))
 				var/obj/item/organ/external/parent = H.get_organ(I.parent_organ)
 				H.custom_emote("clutches [T.his] [parent.name]!")
 
@@ -93,7 +99,7 @@
 	deform = 'icons/mob/human_races/species/skrell/deformed_body.dmi'
 	preview_icon = 'icons/mob/human_races/species/skrell/preview.dmi'
 	bandages_icon = 'icons/mob/bandage.dmi'
-	primitive_form = SPECIES_NEAERA
+	primitive_form = "Neaera"
 	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/punch, /datum/unarmed_attack/bite)
 	description = "An amphibious species, Skrell come from the star system known as Qerr'Vallis, which translates to 'Star of \
 	the royals' or 'Light of the Crown'.<br/><br/>Skrell are a highly advanced and logical race who live under the rule \
@@ -103,9 +109,9 @@
 	assisted_langs = list(LANGUAGE_NABBER)
 	health_hud_intensity = 1.75
 	meat_type = /obj/item/weapon/reagent_containers/food/snacks/fish/octopus
+	bone_material = MATERIAL_BONE_CARTILAGE
 	genders = list(PLURAL)
 	hidden_from_codex = FALSE
-
 	min_age = 19
 	max_age = 90
 
@@ -141,6 +147,9 @@
 	heat_level_2 = 480 //Default 400
 	heat_level_3 = 1100 //Default 1000
 
+	cold_discomfort_level = 292 //Higher than perhaps it should be, to avoid big speed reduction at normal room temp
+	heat_discomfort_level = 368
+
 	reagent_tag = IS_SKRELL
 
 	descriptors = list(
@@ -174,7 +183,7 @@
 			FACTION_SKRELL_QERRVOAL,
 			FACTION_SKRELL_QALAOA,
 			FACTION_SKRELL_YIITALANA,
-			FACTION_SKRELL_KRIGLI,
+			FACTION_SKRELL_KRRIGLI,
 			FACTION_SKRELL_QONPRRI,
 			FACTION_OTHER
 		),
@@ -183,11 +192,6 @@
 			RELIGION_ATHEISM,
 			RELIGION_DEISM,
 			RELIGION_AGNOSTICISM
-		),
-		TAG_AMBITION = list(
-			AMBITION_FREEDOM,
-			AMBITION_OPPORTUNITY,
-			AMBITION_KNOWLEDGE
 		)
 	)
 
@@ -200,185 +204,206 @@
 		BP_BRAIN =    /obj/item/organ/internal/brain,
 		BP_EYES =     /obj/item/organ/internal/eyes/skrell
 		)
-	spawns_with_stack = TRUE
 
-/datum/species/skrell/get_sex(var/mob/living/carbon/H)
-	return descriptors["headtail length"] == 1 ? MALE : FEMALE
+/datum/species/skrell/get_sex(var/mob/living/carbon/human/H)
+	return istype(H) && (H.descriptors["headtail length"] == 1 ? MALE : FEMALE)
 
 /datum/species/skrell/check_background()
 	return TRUE
 
-// /datum/species/diona
-// 	name = SPECIES_DIONA
-// 	name_plural = "Dionaea"
-// 	icobase = 'icons/mob/human_races/species/diona/body.dmi'
-// 	deform = 'icons/mob/human_races/species/diona/deformed_body.dmi'
-// 	preview_icon = 'icons/mob/human_races/species/diona/preview.dmi'
-// 	hidden_from_codex = FALSE
+/datum/species/diona
+	name = SPECIES_DIONA
+	name_plural = "Dionaea"
+	icobase = 'icons/mob/human_races/species/diona/body.dmi'
+	deform = 'icons/mob/human_races/species/diona/deformed_body.dmi'
+	preview_icon = 'icons/mob/human_races/species/diona/preview.dmi'
+	hidden_from_codex = FALSE
+	move_intents = list(/decl/move_intent/walk, /decl/move_intent/creep)
+	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/diona)
+	//primitive_form = "Nymph"
+	slowdown = 5
+	rarity_value = 3
+	hud_type = /datum/hud_data/diona
+	siemens_coefficient = 0.3
+	show_ssd = "completely quiescent"
+	strength = STR_VHIGH
+	assisted_langs = list(LANGUAGE_NABBER)
+	spawns_with_stack = 0
+	health_hud_intensity = 2
+	hunger_factor = 3
+	thirst_factor = 0.01
 
-// 	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/diona)
-// 	//primitive_form = "Nymph"
-// 	slowdown = 7
-// 	rarity_value = 3
-// 	hud_type = /datum/hud_data/diona
-// 	siemens_coefficient = 0.3
-// 	show_ssd = "completely quiescent"
-// 	strength = STR_VHIGH
-// 	assisted_langs = list(LANGUAGE_NABBER)
-// 	spawns_with_stack = 0
-// 	health_hud_intensity = 2
-// 	hunger_factor = 3
+	min_age = 1
+	max_age = 300
 
-// 	min_age = 1
-// 	max_age = 300
+	description = "Commonly referred to (erroneously) as 'plant people', the Dionaea are a strange space-dwelling collective \
+	species hailing from Epsilon Ursae Minoris. Each 'diona' is a cluster of numerous cat-sized organisms called nymphs; \
+	there is no effective upper limit to the number that can fuse in gestalt, and reports exist	of the Epsilon Ursae \
+	Minoris primary being ringed with a cloud of singing space-station-sized entities.<br/><br/>The Dionaea coexist peacefully with \
+	all known species, especially the Skrell. Their communal mind makes them slow to react, and they have difficulty understanding \
+	even the simplest concepts of other minds. Their alien physiology allows them survive happily off a diet of nothing but light, \
+	water and other radiation."
 
-// 	description = "Commonly referred to (erroneously) as 'plant people', the Dionaea are a strange space-dwelling collective \
-// 	species hailing from Epsilon Ursae Minoris. Each 'diona' is a cluster of numerous cat-sized organisms called nymphs; \
-// 	there is no effective upper limit to the number that can fuse in gestalt, and reports exist	of the Epsilon Ursae \
-// 	Minoris primary being ringed with a cloud of singing space-station-sized entities.<br/><br/>The Dionaea coexist peacefully with \
-// 	all known species, especially the Skrell. Their communal mind makes them slow to react, and they have difficulty understanding \
-// 	even the simplest concepts of other minds. Their alien physiology allows them survive happily off a diet of nothing but light, \
-// 	water and other radiation."
+	has_organ = list(
+		BP_NUTRIENT = /obj/item/organ/internal/diona/nutrients,
+		BP_STRATA =   /obj/item/organ/internal/diona/strata,
+		BP_RESPONSE = /obj/item/organ/internal/diona/node,
+		BP_GBLADDER = /obj/item/organ/internal/diona/bladder,
+		BP_POLYP =    /obj/item/organ/internal/diona/polyp,
+		BP_ANCHOR =   /obj/item/organ/internal/diona/ligament
+		)
 
-// 	has_organ = list(
-// 		BP_NUTRIENT = /obj/item/organ/internal/diona/nutrients,
-// 		BP_STRATA =   /obj/item/organ/internal/diona/strata,
-// 		BP_RESPONSE = /obj/item/organ/internal/diona/node,
-// 		BP_GBLADDER = /obj/item/organ/internal/diona/bladder,
-// 		BP_POLYP =    /obj/item/organ/internal/diona/polyp,
-// 		BP_ANCHOR =   /obj/item/organ/internal/diona/ligament
-// 		)
+	has_limbs = list(
+		BP_CHEST =  list("path" = /obj/item/organ/external/diona/chest),
+		BP_GROIN =  list("path" = /obj/item/organ/external/diona/groin),
+		BP_HEAD =   list("path" = /obj/item/organ/external/head/diona),
+		BP_L_ARM =  list("path" = /obj/item/organ/external/diona/arm),
+		BP_R_ARM =  list("path" = /obj/item/organ/external/diona/arm/right),
+		BP_L_LEG =  list("path" = /obj/item/organ/external/diona/leg),
+		BP_R_LEG =  list("path" = /obj/item/organ/external/diona/leg/right),
+		BP_L_HAND = list("path" = /obj/item/organ/external/diona/hand),
+		BP_R_HAND = list("path" = /obj/item/organ/external/diona/hand/right),
+		BP_L_FOOT = list("path" = /obj/item/organ/external/diona/foot),
+		BP_R_FOOT = list("path" = /obj/item/organ/external/diona/foot/right)
+		)
 
-// 	has_limbs = list(
-// 		BP_CHEST =  list("path" = /obj/item/organ/external/diona/chest),
-// 		BP_GROIN =  list("path" = /obj/item/organ/external/diona/groin),
-// 		BP_HEAD =   list("path" = /obj/item/organ/external/head/diona),
-// 		BP_L_ARM =  list("path" = /obj/item/organ/external/diona/arm),
-// 		BP_R_ARM =  list("path" = /obj/item/organ/external/diona/arm/right),
-// 		BP_L_LEG =  list("path" = /obj/item/organ/external/diona/leg),
-// 		BP_R_LEG =  list("path" = /obj/item/organ/external/diona/leg/right),
-// 		BP_L_HAND = list("path" = /obj/item/organ/external/diona/hand),
-// 		BP_R_HAND = list("path" = /obj/item/organ/external/diona/hand/right),
-// 		BP_L_FOOT = list("path" = /obj/item/organ/external/diona/foot),
-// 		BP_R_FOOT = list("path" = /obj/item/organ/external/diona/foot/right)
-// 		)
+	base_auras = list(
+		/obj/aura/regenerating/human/diona
+		)
 
-// 	base_auras = list(
-// 		/obj/aura/regenerating/human/diona
-// 		)
+	inherent_verbs = list(
+		/mob/living/carbon/human/proc/diona_heal_toggle
+		)
 
-// 	inherent_verbs = list(
-// 		/mob/living/carbon/human/proc/diona_heal_toggle
-// 		)
+	warning_low_pressure = 50
+	hazard_low_pressure = -1
 
-// 	warning_low_pressure = 50
-// 	hazard_low_pressure = -1
+	cold_level_1 = 50
+	cold_level_2 = -1
+	cold_level_3 = -1
 
-// 	cold_level_1 = 50
-// 	cold_level_2 = -1
-// 	cold_level_3 = -1
+	heat_level_1 = 2000
+	heat_level_2 = 3000
+	heat_level_3 = 4000
 
-// 	heat_level_1 = 2000
-// 	heat_level_2 = 3000
-// 	heat_level_3 = 4000
+	body_temperature = T0C + 15		//make the plant people have a bit lower body temperature, why not
 
-// 	body_temperature = T0C + 15		//make the plant people have a bit lower body temperature, why not
+	species_flags = SPECIES_FLAG_NO_SCAN | SPECIES_FLAG_IS_PLANT | SPECIES_FLAG_NO_PAIN | SPECIES_FLAG_NO_SLIP
+	appearance_flags = 0
+	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN
 
-// 	species_flags = SPECIES_FLAG_NO_SCAN | SPECIES_FLAG_IS_PLANT | SPECIES_FLAG_NO_PAIN | SPECIES_FLAG_NO_SLIP
-// 	appearance_flags = 0
-// 	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN | SPECIES_NO_LACE
+	blood_color = "#004400"
+	flesh_color = "#907e4a"
 
-// 	blood_color = "#004400"
-// 	flesh_color = "#907e4a"
+	reagent_tag = IS_DIONA
+	genders = list(PLURAL)
 
-// 	reagent_tag = IS_DIONA
-// 	genders = list(PLURAL)
+	available_cultural_info = list(
+		TAG_CULTURE =   list(CULTURE_DIONA),
+		TAG_HOMEWORLD = list(HOME_SYSTEM_DIONAEA),
+		TAG_FACTION =   list(FACTION_OTHER),
+		TAG_RELIGION =  list(RELIGION_OTHER)
+	)
 
-// 	available_cultural_info = list(
-// 		TAG_CULTURE =   list(CULTURE_DIONA),
-// 		TAG_HOMEWORLD = list(HOME_SYSTEM_DIONAEA),
-// 		TAG_FACTION =   list(FACTION_OTHER),
-// 		TAG_RELIGION =  list(RELIGION_OTHER)
-// 	)
+/proc/spawn_diona_nymph(var/turf/target)
+	if(!istype(target))
+		return 0
 
-// /proc/spawn_diona_nymph(var/turf/target)
-// 	if(!istype(target))
-// 		return 0
+	//This is a terrible hack and I should be ashamed.
+	var/datum/seed/diona = SSplants.seeds["diona"]
+	if(!diona)
+		return 0
 
-// 	//This is a terrible hack and I should be ashamed.
-// 	var/datum/seed/diona = SSplants.seeds["diona"]
-// 	if(!diona)
-// 		return 0
+	spawn(1) // So it has time to be thrown about by the gib() proc.
+		var/mob/living/carbon/alien/diona/D = new(target)
+		var/datum/ghosttrap/plant/P = get_ghost_trap("living plant")
+		P.request_player(D, "A diona nymph has split off from its gestalt. ")
+		spawn(60)
+			if(D)
+				if(!D.ckey || !D.client)
+					D.death()
+		return 1
 
-// 	spawn(1) // So it has time to be thrown about by the gib() proc.
-// 		var/mob/living/carbon/alien/diona/D = new(target)
-// 		var/datum/ghosttrap/plant/P = get_ghost_trap("living plant")
-// 		P.request_player(D, "A diona nymph has split off from its gestalt. ")
-// 		spawn(60)
-// 			if(D)
-// 				if(!D.ckey || !D.client)
-// 					D.death()
-// 		return 1
+#define DIONA_LIMB_DEATH_COUNT 9
+/datum/species/diona/handle_death_check(var/mob/living/carbon/human/H)
+	var/lost_limb_count = has_limbs.len - H.organs.len
+	if(lost_limb_count >= DIONA_LIMB_DEATH_COUNT)
+		return TRUE
+	for(var/thing in H.bad_external_organs)
+		var/obj/item/organ/external/E = thing
+		if(E && E.is_stump())
+			lost_limb_count++
+	return (lost_limb_count >= DIONA_LIMB_DEATH_COUNT)
+#undef DIONA_LIMB_DEATH_COUNT
 
-// #define DIONA_LIMB_DEATH_COUNT 9
-// /datum/species/diona/handle_death_check(var/mob/living/carbon/human/H)
-// 	var/lost_limb_count = has_limbs.len - H.organs.len
-// 	if(lost_limb_count >= DIONA_LIMB_DEATH_COUNT)
-// 		return TRUE
-// 	for(var/thing in H.bad_external_organs)
-// 		var/obj/item/organ/external/E = thing
-// 		if(E && E.is_stump())
-// 			lost_limb_count++
-// 	return (lost_limb_count >= DIONA_LIMB_DEATH_COUNT)
-// #undef DIONA_LIMB_DEATH_COUNT
+/datum/species/diona/can_understand(var/mob/other)
+	var/mob/living/carbon/alien/diona/D = other
+	if(istype(D))
+		return 1
+	return 0
 
-// /datum/species/diona/can_understand(var/mob/other)
-// 	var/mob/living/carbon/alien/diona/D = other
-// 	if(istype(D))
-// 		return 1
-// 	return 0
+/datum/species/diona/equip_survival_gear(var/mob/living/carbon/human/H)
+	if(istype(H.get_equipped_item(slot_back), /obj/item/weapon/storage/backpack))
+		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H.back), slot_in_backpack)
+	else
+		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H), slot_r_hand)
 
-// /datum/species/diona/equip_survival_gear(var/mob/living/carbon/human/H)
-// 	if(istype(H.get_equipped_item(slot_back), /obj/item/weapon/storage/backpack))
-// 		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H.back), slot_in_backpack)
-// 	else
-// 		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H), slot_r_hand)
+/datum/species/diona/skills_from_age(age)
+	switch(age)
+		if(101 to 200)	. = 12 // age bracket before this is 46 to 100 . = 8 making this +4
+		if(201 to 300)	. = 16 // + 8
+		else			. = ..()
+		
+// Dionaea spawned by hand or by joining will not have any
+// nymphs passed to them. This should take care of that.
+/datum/species/diona/handle_post_spawn(var/mob/living/carbon/human/H)
+	H.gender = NEUTER
+	. = ..()
+	addtimer(CALLBACK(src, .proc/fill_with_nymphs, H), 0)
 
-// // Dionaea spawned by hand or by joining will not have any
-// // nymphs passed to them. This should take care of that.
-// /datum/species/diona/handle_post_spawn(var/mob/living/carbon/human/H)
-// 	H.gender = NEUTER
-// 	. = ..()
-// 	addtimer(CALLBACK(src, .proc/fill_with_nymphs, H), 0)
+/datum/species/diona/proc/fill_with_nymphs(var/mob/living/carbon/human/H)
 
-// /datum/species/diona/proc/fill_with_nymphs(var/mob/living/carbon/human/H)
+	if(!H || H.species.name != name) return
 
-// 	if(!H || H.species.name != name) return
+	var/nymph_count = 0
+	for(var/mob/living/carbon/alien/diona/nymph in H)
+		nymph_count++
+		if(nymph_count >= 3) return
 
-// 	var/nymph_count = 0
-// 	for(var/mob/living/carbon/alien/diona/nymph in H)
-// 		nymph_count++
-// 		if(nymph_count >= 3) return
+	while(nymph_count < 3)
+		new /mob/living/carbon/alien/diona/sterile(H)
+		nymph_count++
 
-// 	while(nymph_count < 3)
-// 		new /mob/living/carbon/alien/diona/sterile(H)
-// 		nymph_count++
+/datum/species/diona/handle_death(var/mob/living/carbon/human/H)
 
-// /datum/species/diona/handle_death(var/mob/living/carbon/human/H)
+	if(H.isSynthetic())
+		var/mob/living/carbon/alien/diona/S = new(get_turf(H))
 
-// 	if(H.isSynthetic())
-// 		var/mob/living/carbon/alien/diona/S = new(get_turf(H))
+		if(H.mind)
+			H.mind.transfer_to(S)
+		H.visible_message("<span class='danger'>\The [H] collapses into parts, revealing a solitary diona nymph at the core.</span>")
+		return
+	else
+		split_into_nymphs(H)
 
-// 		if(H.mind)
-// 			H.mind.transfer_to(S)
-// 		H.visible_message("<span class='danger'>\The [H] collapses into parts, revealing a solitary diona nymph at the core.</span>")
-// 		return
-// 	else
-// 		split_into_nymphs(H)
+/datum/species/diona/get_blood_name()
+	return "sap"
 
-// /datum/species/diona/get_blood_name()
-// 	return "sap"
+/datum/species/diona/handle_environment_special(var/mob/living/carbon/human/H)
+	if(H.InStasis() || H.stat == DEAD)
+		return
 
-// /datum/species/diona/handle_environment_special(var/mob/living/carbon/human/H)
-// 	if(!H.InStasis() && H.stat != DEAD && H.nutrition < 10)
-// 		H.take_overall_damage(2,0)
+	if(H.nutrition < 10)
+		H.take_overall_damage(2,0)
+
+	if(H.hydration < 550 && H.loc)
+		var/is_in_water = FALSE
+		if(H.loc.is_flooded(lying_mob = TRUE))
+			is_in_water = TRUE
+		else
+			for(var/obj/structure/hygiene/shower/shower in H.loc)
+				if(shower.on)
+					is_in_water = TRUE
+					break
+		if(is_in_water)
+			H.adjust_hydration(100)

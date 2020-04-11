@@ -11,13 +11,13 @@ They sell generic supplies and ask for generic supplies.
 	origin = "Trading Beacon"
 	name_language = LANGUAGE_EAL
 	trade_flags = TRADER_MONEY|TRADER_GOODS
-	speech = list("hail_generic"    = "Greetings, I am MERCHANT, Artifical Intelligence onboard ORIGIN, tasked with trading goods in return for ethericoins and supplies.",
+	speech = list("hail_generic"    = "Greetings, I am MERCHANT, Artifical Intelligence onboard ORIGIN, tasked with trading goods in return for CURRENCY and supplies.",
 				"hail_deny"         = "We are sorry, your connection has been blacklisted. Have a nice day.",
 
 				"trade_complete"    = "Thank you for your patronage.",
 				"trade_not_enough"  = "I'm sorry, your offer is not worth what you are asking for.",
 				"trade_blacklisted" = "You have offered a blacklisted item. My laws do not allow me to trade for that.",
-				"how_much"          = "ITEM will cost you roughly VALUE ethericoins, or something of equal worth.",
+				"how_much"          = "ITEM will cost you roughly VALUE CURRENCY, or something of equal worth.",
 				"what_want"         = "I have logged need for",
 
 				"compliment_deny"   = "I'm sorry, I am not allowed to let compliments affect the trade.",
@@ -57,7 +57,7 @@ They sell generic supplies and ask for generic supplies.
 								/obj/item/weapon/storage/photo_album                 = TRADER_THIS_TYPE,
 								/obj/item/clothing/glasses                           = TRADER_SUBTYPES_ONLY,
 								/obj/item/clothing/glasses/hud                       = TRADER_BLACKLIST_ALL,
-								/obj/item/clothing/glasses/sunglasses/blindfold/tape = TRADER_BLACKLIST,
+								/obj/item/clothing/glasses/blindfold/tape = TRADER_BLACKLIST,
 								/obj/item/clothing/glasses/chameleon                 = TRADER_BLACKLIST
 								)
 
@@ -114,6 +114,6 @@ They sell generic supplies and ask for generic supplies.
 								/obj/structure/plushie              = TRADER_SUBTYPES_ONLY,
 								/obj/structure/sign                 = TRADER_SUBTYPES_ONLY,
 								/obj/structure/sign/double          = TRADER_BLACKLIST_ALL,
-								/obj/item/sign/goldenplaque    		= TRADER_BLACKLIST_ALL,
+								/obj/structure/sign/goldenplaque    = TRADER_BLACKLIST_ALL,
 								/obj/structure/sign/poster          = TRADER_BLACKLIST
 								)

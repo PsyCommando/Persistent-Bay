@@ -1,7 +1,7 @@
 //
 // Circuit boards
 //
-/obj/item/weapon/circuitboard/integrated_printer
+/obj/item/weapon/stock_parts/circuitboard/integrated_printer
 	name = "Circuit board (Integrated Circuit Printer)"
 	build_path = /obj/machinery/integrated_circuit_printer
 	board_type = "machine"

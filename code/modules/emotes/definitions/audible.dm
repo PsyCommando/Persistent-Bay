@@ -39,6 +39,11 @@
 	emote_message_3p = "USER chirps!"
 	emote_sound = 'sound/misc/nymphchirp.ogg'
 
+/decl/emote/audible/multichirp
+	key ="mchirp"
+	emote_message_3p = "USER chirps a chorus of notes!"
+	emote_sound = 'sound/misc/multichirp.ogg'
+
 /decl/emote/audible/alarm
 	key = "alarm"
 	emote_message_1p = "You sound an alarm."
@@ -137,17 +142,6 @@
 	key = "scream"
 	emote_message_3p = "USER screams!"
 
-/decl/emote/audible/scream/do_extra(var/atom/user)
-	var/mob/living/carbon/C = user
-	if(!istype(C)) return
-	if(C.gender=="female")
-		playsound(C.loc, pick('sound/emote/fear_woman1.ogg',\
-			'sound/emote/fear_woman2.ogg',\
-			'sound/emote/fear_woman3.ogg'), 50, 0)
-	else//i dont really care about "other" sounding like men
-		playsound(C.loc, pick('sound/emote/fear_scream1.ogg',\
-			'sound/emote/fear_scream2.ogg'), 50, 0)
-
 /decl/emote/audible/grunt
 	key = "grunt"
 	emote_message_3p = "USER grunts."
@@ -176,8 +170,39 @@
 	emote_message_3p = "USER chitters."
 	emote_sound = 'sound/voice/Bug.ogg'
 
-/decl/emote/audible/unathi_hiss
-	key ="hiss"
-	emote_message_3p_target = "USER hisses at TARGET."
-	emote_message_3p = "USER hisses."
-	emote_sound = 'sound/voice/unathihiss.ogg' //Credit for sound: www.zapsplat.com
+/decl/emote/audible/vox_shriek
+	key ="shriek"
+	emote_message_3p = "USER SHRIEKS!"
+	emote_sound = 'sound/voice/shriek1.ogg'
+
+/decl/emote/audible/roar
+	key = "roar"
+	emote_message_3p = "USER roars!"
+
+/decl/emote/audible/bellow
+	key = "bellow"
+	emote_message_3p = "USER bellows!"
+
+/decl/emote/audible/howl
+	key = "howl"
+	emote_message_3p = "USER howls!"
+
+/decl/emote/audible/wheeze
+	key = "wheeze"
+	emote_message_3p = "USER wheezes."
+
+/decl/emote/audible/hiss
+	key ="hiss_"
+	emote_message_3p_target = "USER hisses softly at TARGET."
+	emote_message_3p = "USER hisses softly."
+	
+/decl/emote/audible/lizard_bellow
+	key = "bellow"
+	emote_message_3p_target = "USER bellows deeply at TARGET!"
+	emote_message_3p = "USER bellows!"
+	emote_sound = 'sound/voice/LizardBellow.ogg'
+
+/decl/emote/audible/lizard_squeal
+	key = "squeal"
+	emote_message_3p = "USER squeals."
+	emote_sound = 'sound/voice/LizardSqueal.ogg'

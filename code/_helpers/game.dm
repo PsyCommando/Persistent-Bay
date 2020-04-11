@@ -19,8 +19,7 @@
 
 /proc/living_observers_present(var/list/zlevels)
 	if(LAZYLEN(zlevels))
-		for(var/A in GLOB.player_list) //if a tree ticks on the empty zlevel does it really tick
-			var/mob/M = A
+		for(var/mob/M in GLOB.player_list) //if a tree ticks on the empty zlevel does it really tick
 			if(M.stat != DEAD) //(no it doesn't)
 				var/turf/T = get_turf(M)
 				if(T && (T.z in zlevels))
@@ -44,11 +43,11 @@
 	if (isarea(A))
 		return A
 
-/proc/in_range(source, user)
+/proc/in_range(atom/source, mob/user)
 	if(get_dist(source, user) <= 1)
-		return 1
+		return TRUE
 
-	return 0 //not in range and not telekinetic
+	return FALSE //not in range and not telekinetic
 
 // Like view but bypasses luminosity check
 
@@ -127,17 +126,18 @@
 	return dist
 
 /proc/circlerangeturfs(center=usr,radius=3)
-
 	var/turf/centerturf = get_turf(center)
-	var/list/turfs = new/list()
+	. = list()
+	if(!centerturf)
+		return
+
 	var/rsq = radius * (radius+0.5)
 
 	for(var/turf/T in range(radius, centerturf))
 		var/dx = T.x - centerturf.x
 		var/dy = T.y - centerturf.y
 		if(dx*dx + dy*dy <= rsq)
-			turfs += T
-	return turfs
+			. += T
 
 /proc/circleviewturfs(center=usr,radius=3)		//Is there even a diffrence between this proc and circlerangeturfs()?
 
@@ -272,35 +272,40 @@
 		if(get_turf(O) in hearturfs)
 			objs |= O
 
-/proc/inLineOfSight(X1,Y1,X2,Y2,Z=1,PX1=16.5,PY1=16.5,PX2=16.5,PY2=16.5)
-	var/turf/T
-	if(X1==X2)
-		if(Y1==Y2)
-			return 1 //Light cannot be blocked on same tile
+
+
+
+
+proc
+	inLineOfSight(X1,Y1,X2,Y2,Z=1,PX1=16.5,PY1=16.5,PX2=16.5,PY2=16.5)
+		var/turf/T
+		if(X1==X2)
+			if(Y1==Y2)
+				return 1 //Light cannot be blocked on same tile
+			else
+				var/s = SIMPLE_SIGN(Y2-Y1)
+				Y1+=s
+				while(Y1!=Y2)
+					T=locate(X1,Y1,Z)
+					if(T.opacity)
+						return 0
+					Y1+=s
 		else
-			var/s = SIGN(Y2-Y1)
-			Y1+=s
-			while(Y1!=Y2)
+			var/m=(32*(Y2-Y1)+(PY2-PY1))/(32*(X2-X1)+(PX2-PX1))
+			var/b=(Y1+PY1/32-0.015625)-m*(X1+PX1/32-0.015625) //In tiles
+			var/signX = SIMPLE_SIGN(X2-X1)
+			var/signY = SIMPLE_SIGN(Y2-Y1)
+			if(X1<X2)
+				b+=m
+			while(X1!=X2 || Y1!=Y2)
+				if(round(m*X1+b-Y1))
+					Y1+=signY //Line exits tile vertically
+				else
+					X1+=signX //Line exits tile horizontally
 				T=locate(X1,Y1,Z)
 				if(T.opacity)
 					return 0
-				Y1+=s
-	else
-		var/m=(32*(Y2-Y1)+(PY2-PY1))/(32*(X2-X1)+(PX2-PX1))
-		var/b=(Y1+PY1/32-0.015625)-m*(X1+PX1/32-0.015625) //In tiles
-		var/signX = SIGN(X2-X1)
-		var/signY = SIGN(Y2-Y1)
-		if(X1<X2)
-			b+=m
-		while(X1!=X2 || Y1!=Y2)
-			if(round(m*X1+b-Y1))
-				Y1+=signY //Line exits tile vertically
-			else
-				X1+=signX //Line exits tile horizontally
-			T=locate(X1,Y1,Z)
-			if(T.opacity)
-				return 0
-	return 1
+		return 1
 
 proc/isInSight(var/atom/A, var/atom/B)
 	var/turf/Aturf = get_turf(A)
@@ -347,20 +352,6 @@ proc/isInSight(var/atom/A, var/atom/B)
 			if(((G.client.inactivity/10)/60) <= buffer + i) // the most active players are more likely to become an alien
 				if(!(G.mind && G.mind.current && G.mind.current.stat != DEAD))
 					candidates += G.key
-		i++
-	return candidates
-
-// Same as above but for alien candidates.
-
-/proc/get_alien_candidates()
-	var/list/candidates = list() //List of candidate KEYS to assume control of the new larva ~Carn
-	var/i = 0
-	while(candidates.len <= 0 && i < 5)
-		for(var/mob/observer/ghost/G in GLOB.player_list)
-			if(MODE_XENOMORPH in G.client.prefs.be_special_role)
-				if(((G.client.inactivity/10)/60) <= ALIEN_SELECT_AFK_BUFFER + i) // the most active players are more likely to become an alien
-					if(!(G.mind && G.mind.current && G.mind.current.stat != DEAD))
-						candidates += G.key
 		i++
 	return candidates
 

@@ -3,13 +3,11 @@
 	desc = "I Better stay away from that thing."
 	density = 1
 	anchored = 1
-	plane = OBJ_PLANE
 	layer = OBJ_LAYER
-	icon = 'icons/obj/weapons/mines.dmi'
+	icon = 'icons/obj/weapons.dmi'
 	icon_state = "uglymine"
 	var/triggerproc = "explode" //name of the proc thats called when the mine is triggered
 	var/triggered = 0
-	should_save = 1
 
 /obj/effect/mine/New()
 	icon_state = "uglyminearmed"

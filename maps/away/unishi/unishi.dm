@@ -13,7 +13,7 @@
 		/datum/job/submap/unishi_researcher
 	)
 
-/obj/effect/overmap/ship/unishi
+/obj/effect/overmap/visitable/ship/unishi
 	name = "SRV Verne"
 	desc = "Sensor array detects unknown class medium size vessel. The vessel appears unarmed.\
 	A small amount of radiation has been detected at the aft of the ship"
@@ -93,20 +93,23 @@ obj/item/weapon/paper/prof1
 
 obj/item/weapon/paper/prof2
 	name = "Error log"
-	info = "<large> COMPUTER ID: 15131 <br> Attempting recovery of document directory. <br> Three files recovered <br> Printing file (1/2) <br> </large> Email to iodc@net <br> To whom it may concern, <br> I recieved your email today in regards to the research I am conducting. You have no legal right to question our research or attempt to block it. Per article 323 of SGCL, scientific research is protected information, that you have absolutely zero claim to. The compound is secret in composition, but I can fully promise you that it contains zero traces of phoron, and thus you have no claim whatsoever to it or the technologies to it. Your threats are laughable at best, and have been forwarded to CTI legal. Do not contact me aga!#!41asjw. <br> <large> Printing file (2/2) <br> </large> Email from fuckyou@12cmal <br> We have ways of making you comply. "
+	info = "<large> COMPUTER ID: 15131 <br> Attempting recovery of document directory. <br> Three files recovered <br> Printing file (1/2) <br> </large> Email to iodc@net <br> To whom it may concern, <br> I received your email today in regards to the research I am conducting. You have no legal right to question our research or attempt to block it. Per article 323 of SGCL, scientific research is protected information, that you have absolutely zero claim to. The compound is secret in composition, but I can fully promise you that it contains zero traces of phoron, and thus you have no claim whatsoever to it or the technologies to it. Your threats are laughable at best, and have been forwarded to CTI legal. Do not contact me aga!#!41asjw. <br> <large> Printing file (2/2) <br> </large> Email from fuckyou@12cmal <br> We have ways of making you comply. "
 
 
 
-/obj/machinery/computer/log_printer/
+/obj/machinery/computer/log_printer
 	name = "Computer"
+	construct_state = null
+	base_type = /obj/machinery/computer/log_printer
 	var/logtype
 	var/used = 0
 
-/obj/machinery/computer/log_printer/attack_hand(mob/living/user as mob)
-	if(!used && !isghost(usr))
-		to_chat(usr, "Default Boot Device File Integrity Damaged. Startup aborted. Error log printing.")
+/obj/machinery/computer/log_printer/interface_interact(mob/living/user)
+	if(CanInteract(user, DefaultTopicState()))
+		to_chat(user, "Default Boot Device File Integrity Damaged. Startup aborted. Error log printing.")
 		new logtype(loc)
 		used = 1
+		return TRUE
 
 /obj/machinery/computer/log_printer/prof1
 	name = "Professor's Computer"

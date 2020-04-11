@@ -83,28 +83,6 @@ var/global/list/datum/dna/gene/dna_genes[0]
 	var/s_base = ""
 	var/list/body_markings = list()
 
-/datum/dna/New()
-	. = ..()
-	ADD_SAVED_VAR(uni_identity)
-	ADD_SAVED_VAR(struc_enzymes)
-	ADD_SAVED_VAR(unique_enzymes)
-	ADD_SAVED_VAR(dirtyUI)
-	ADD_SAVED_VAR(dirtySE)
-	ADD_SAVED_VAR(b_type)
-	ADD_SAVED_VAR(real_name)
-	ADD_SAVED_VAR(s_base)
-	ADD_SAVED_VAR(body_markings)
-	ADD_SAVED_VAR(SE)
-	ADD_SAVED_VAR(UI)
-
-/datum/dna/after_load()
-	. = ..()
-	//Don't reset anything. Otherwise it makes bad things happen
-	// unique_enzymes = md5(real_name)
-	// GLOB.reg_dna[unique_enzymes] = real_name
-	// UpdateUI()
-	// UpdateSE()
-
 // Make a copy of this strand.
 // USE THIS WHEN COPYING STUFF OR YOU'LL GET CORRUPTION!
 /datum/dna/proc/Clone()
@@ -138,9 +116,6 @@ var/global/list/datum/dna/gene/dna_genes[0]
 		UpdateUI()
 
 /datum/dna/proc/ResetUIFrom(var/mob/living/carbon/human/character)
-	if(!istype(character))
-		return //Only humans have hair styles and etc..
-
 	// INITIALIZE!
 	ResetUI(1)
 	// Hair
@@ -387,18 +362,15 @@ var/global/list/datum/dna/gene/dna_genes[0]
 	else
 		if(length(uni_identity) != 3*DNA_UI_LENGTH)
 			uni_identity = "00600200A00E0110148FC01300B0095BD7FD3F4"
-			log_debug("[character] has its dna's uni identity set to default [uni_identity]!!!")
 		if(length(struc_enzymes)!= 3*DNA_SE_LENGTH)
 			struc_enzymes = "43359156756131E13763334D1C369012032164D4FE4CD61544B6C03F251B6C60A42821D26BA3B0FD6"
-			log_debug("[character] has its dna's struct enzymes set to default [struc_enzymes]!!!")
 
 // BACK-COMPAT!
 //  Initial DNA setup.  I'm kind of wondering why the hell this doesn't just call the above.
 /datum/dna/proc/ready_dna(mob/living/carbon/human/character)
-	real_name = character.real_name
-	b_type = character.b_type
-	species = character.species? character.species.name : SPECIES_HUMAN
 	ResetUIFrom(character)
+
 	ResetSE()
+
 	unique_enzymes = md5(character.real_name)
 	GLOB.reg_dna[unique_enzymes] = character.real_name

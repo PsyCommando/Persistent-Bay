@@ -121,17 +121,13 @@ var/global/list/additional_antag_types = list()
 			return
 		var/datum/antagonist/antag = GLOB.all_antag_types_[choice]
 		if(antag)
-			if(!islist(antag_templates))
-				antag_templates = list()
-			antag_templates |= antag
+			if(!islist(SSticker.mode.antag_templates))
+				SSticker.mode.antag_templates = list()
+			SSticker.mode.antag_templates |= antag
 			message_admins("Admin [key_name_admin(usr)] added [antag.role_text] template to game mode.")
 
-	// I am very sure there's a better way to do this, but I'm not sure what it might be. ~Z
-	// spawn(1)
-	// 	for(var/datum/admins/admin in world)
-	// 		if(usr.client == admin.owner)
-	// 			admin.show_game_mode(usr)
-	// 			return
+	if (usr.client && usr.client.holder)
+		usr.client.holder.show_game_mode(usr)
 
 /datum/game_mode/proc/announce() //to be called when round starts
 	to_world("<B>The current game mode is [capitalize(name)]!</B>")
@@ -149,7 +145,7 @@ var/global/list/additional_antag_types = list()
 			antag_summary += "[antag.role_text_plural]"
 			i++
 		antag_summary += "."
-		if(antag_templates.len > 1 && master_mode != "secret")
+		if(antag_templates.len > 1 && SSticker.master_mode != "secret")
 			to_world("[antag_summary]")
 		else
 			message_admins("[antag_summary]")
@@ -236,7 +232,7 @@ var/global/list/additional_antag_types = list()
 		antag.post_spawn()
 
 	// Update goals, now that antag status and jobs are both resolved.
-	for(var/thing in GLOB.minds)
+	for(var/thing in SSticker.minds)
 		var/datum/mind/mind = thing
 		mind.generate_goals(mind.assigned_job, is_spawning=TRUE)
 		mind.current.show_goals()
@@ -245,6 +241,8 @@ var/global/list/additional_antag_types = list()
 		evacuation_controller.recall = 1
 
 	SSstatistics.set_field_details("round_start","[time2text(world.realtime)]")
+	if(SSticker.mode)
+		SSstatistics.set_field_details("game_mode","[SSticker.mode]")
 	SSstatistics.set_field_details("server_ip","[world.internet_address]:[world.port]")
 	return 1
 
@@ -282,7 +280,7 @@ var/global/list/additional_antag_types = list()
 		"artifacts of eldritch horror",
 		"a brain slug infestation",
 		"killer bugs that lay eggs in the husks of the living",
-		"a deserted transport carrying xenomorph specimens",
+		"a deserted transport carrying xenofauna specimens",
 		"an emissary for the gestalt requesting a security detail",
 		"radical Skrellian transevolutionaries",
 		"classified security operations",
@@ -291,6 +289,17 @@ var/global/list/additional_antag_types = list()
 	command_announcement.Announce("The presence of [pick(reasons)] in the region is tying up all available local emergency resources; emergency response teams cannot be called at this time, and post-evacuation recovery efforts will be substantially delayed.","Emergency Transmission")
 
 /datum/game_mode/proc/check_finished()
+	if(evacuation_controller.round_over() || station_was_nuked)
+		return 1
+	if(end_on_antag_death && antag_templates && antag_templates.len)
+		var/has_antags = 0
+		for(var/datum/antagonist/antag in antag_templates)
+			if(!antag.antags_are_dead())
+				has_antags = 1
+				break
+		if(!has_antags)
+			evacuation_controller.recall = 0
+			return 1
 	return 0
 
 /datum/game_mode/proc/cleanup()	//This is called when the round has ended but not the game, if any cleanup would be necessary in that case.
@@ -299,12 +308,10 @@ var/global/list/additional_antag_types = list()
 /datum/game_mode/proc/declare_completion()
 	set waitfor = FALSE
 
-	check_victory()
 	sleep(2)
 
 	var/list/all_antag_types = GLOB.all_antag_types_
 	for(var/datum/antagonist/antag in antag_templates)
-		antag.check_victory()
 		antag.print_player_summary()
 		sleep(2)
 	for(var/antag_type in all_antag_types)
@@ -370,6 +377,7 @@ var/global/list/additional_antag_types = list()
 		SSstatistics.set_field("escaped_total",escaped_total)
 
 	send2mainirc("A round of [src.name] has ended - [surviving_total] survivor\s, [ghosts] ghost\s.")
+	SSwebhooks.send(WEBHOOK_ROUNDEND, list("survivors" = surviving_total, "escaped" = escaped_total, "ghosts" = ghosts))
 
 	return 0
 
@@ -411,7 +419,7 @@ var/global/list/additional_antag_types = list()
 		// If we don't have enough antags, draft people who voted for the round.
 		if(candidates.len < required_enemies)
 			for(var/mob/new_player/player in players)
-				if(!antag_id || !(antag_id in player.client.prefs.never_be_special_role))
+				if(!antag_id || ((antag_id in player.client.prefs.be_special_role) || (antag_id in player.client.prefs.may_be_special_role)))
 					log_debug("[player.key] has not selected never for this role, so we are drafting them.")
 					candidates += player.mind
 					players -= player
@@ -455,8 +463,30 @@ var/global/list/additional_antag_types = list()
 	shuffle(antag_templates) //In the case of multiple antag types
 	newscaster_announcements = pick(newscaster_standard_feeds)
 
-/datum/game_mode/proc/check_victory()
-	return
+// Manipulates the end-game cinematic in conjunction with GLOB.cinematic
+/datum/game_mode/proc/nuke_act(obj/screen/cinematic_screen, station_missed = 0)
+	if(!cinematic_icon_states)
+		return
+	if(station_missed < 2)
+		var/intro = cinematic_icon_states[1]
+		if(intro)
+			flick(intro,cinematic_screen)
+			sleep(cinematic_icon_states[intro])
+		var/end = cinematic_icon_states[3]
+		var/to_flick = "station_intact_fade_red"
+		if(!station_missed)
+			end = cinematic_icon_states[2]
+			to_flick = "station_explode_fade_red"
+			for(var/mob/living/M in GLOB.living_mob_list_)
+				if(is_station_turf(get_turf(M)))
+					M.death()//No mercy
+		if(end)
+			flick(to_flick,cinematic_screen)
+			cinematic_screen.icon_state = end
+
+	else
+		sleep(50)
+	sound_to(world, sound('sound/effects/explosionfar.ogg'))
 
 //////////////////////////
 //Reports player logouts//
@@ -505,16 +535,6 @@ proc/display_roundstart_logout_report()
 	for(var/mob/M in SSmobs.mob_list)
 		if(M.client && M.client.holder)
 			to_chat(M, msg)
-proc/get_nt_opposed()
-	var/list/dudes = list()
-	for(var/mob/living/carbon/human/man in GLOB.player_list)
-		if(man.client)
-			if(man.client.prefs.nanotrasen_relation == COMPANY_OPPOSED)
-				dudes += man
-			else if(man.client.prefs.nanotrasen_relation == COMPANY_SKEPTICAL && prob(50))
-				dudes += man
-	if(dudes.len == 0) return null
-	return pick(dudes)
 
 /proc/show_objectives(var/datum/mind/player)
 
@@ -528,3 +548,22 @@ proc/get_nt_opposed()
 	for(var/datum/objective/objective in player.objectives)
 		to_chat(player.current, "<B>Objective #[obj_count]</B>: [objective.explanation_text]")
 		obj_count++
+
+/mob/verb/check_round_info()
+	set name = "Check Round Info"
+	set category = "OOC"
+
+	GLOB.using_map.map_info(src)
+
+	if(!SSticker.mode)
+		to_chat(usr, "Something is terribly wrong; there is no gametype.")
+		return
+
+	if(SSticker.master_mode != "secret")
+		to_chat(usr, "<b>The roundtype is [capitalize(SSticker.mode.name)]</b>")
+		if(SSticker.mode.round_description)
+			to_chat(usr, "<i>[SSticker.mode.round_description]</i>")
+		if(SSticker.mode.extended_round_description)
+			to_chat(usr, "[SSticker.mode.extended_round_description]")
+	else
+		to_chat(usr, "<i>Shhhh</i>. It's a secret.")

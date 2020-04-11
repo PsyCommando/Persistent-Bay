@@ -5,37 +5,18 @@
  *		Medical Record Cabinets
  */
 
-
 /*
  * Filing Cabinets
  */
 /obj/structure/filingcabinet
 	name = "filing cabinet"
 	desc = "A large cabinet with drawers."
-	icon = 'icons/obj/structures/fillingcabinets.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "filingcabinet"
 	density = 1
 	anchored = 1
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
-	obj_flags = OBJ_FLAG_ANCHORABLE | OBJ_FLAG_DAMAGEABLE
-	mass = 50
-	max_health = 250
-	damthreshold_brute 	= 5
-	damthreshold_brute 	= 5
-	armor = list(
-		DAM_BLUNT  	= 60,
-		DAM_PIERCE 	= 70,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 60,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
+	obj_flags = OBJ_FLAG_ANCHORABLE
 	var/list/can_hold = list(
 		/obj/item/weapon/paper,
 		/obj/item/weapon/folder,
@@ -52,7 +33,7 @@
 	desc = "A filing cabinet installed into a cavity in the wall to save space. Wow!"
 	icon_state = "wallcabinet"
 	density = 0
-	obj_flags = OBJ_FLAG_DAMAGEABLE
+	obj_flags = 0
 
 
 /obj/structure/filingcabinet/filingcabinet	//not changing the path to avoid unecessary map issues, but please don't name stuff like this in the future -Pete
@@ -73,18 +54,8 @@
 		to_chat(user, "<span class='notice'>You put [P] in [src].</span>")
 		flick("[initial(icon_state)]-open",src)
 		updateUsrDialog()
-		return
-	if(isWelder(P))
-		var/obj/item/weapon/tool/weldingtool/WT = P
-		if(WT.remove_fuel(0,user))
-			var/obj/item/stack/material/steel/new_item = new(usr.loc)
-			new_item.add_to_stacks(usr)
-			for (var/mob/M in viewers(src))
-				M.show_message("<span class='notice'>[src] is shaped into metal by [user.name] with the weldingtool.</span>", 3, "<span class='notice'>You hear welding.</span>", 2)
-			qdel(src)
-		return
 	else
-		return ..()
+		..()
 
 /obj/structure/filingcabinet/attack_hand(mob/user as mob)
 	if(contents.len <= 0)
@@ -96,28 +67,11 @@
 	for(var/obj/item/P in src)
 		dat += "<tr><td><a href='?src=\ref[src];retrieve=\ref[P]'>[P.name]</a></td></tr>"
 	dat += "</table></center>"
-	user << browse("<html><head><title>[name]</title></head><body>[jointext(dat,null)]</body></html>", "window=filingcabinet;size=350x300")
-
-/obj/structure/filingcabinet/attack_tk(mob/user)
-	if(anchored)
-		attack_self_tk(user)
-	else
-		..()
-
-/obj/structure/filingcabinet/attack_self_tk(mob/user)
-	if(contents.len)
-		if(prob(40 + contents.len * 5))
-			var/obj/item/I = pick(contents)
-			I.dropInto(loc)
-			if(prob(25))
-				step_rand(I)
-			to_chat(user, "<span class='notice'>You pull \a [I] out of [src] at random.</span>")
-			return
-	to_chat(user, "<span class='notice'>You find nothing in [src].</span>")
+	show_browser(user, "<html><head><title>[name]</title></head><body>[jointext(dat,null)]</body></html>", "window=filingcabinet;size=350x300")
 
 /obj/structure/filingcabinet/Topic(href, href_list)
 	if(href_list["retrieve"])
-		usr << browse("", "window=filingcabinet") // Close the menu
+		show_browser(usr, "", "window=filingcabinet") // Close the menu
 
 		//var/retrieveindex = text2num(href_list["retrieve"])
 		var/obj/item/P = locate(href_list["retrieve"])//contents[retrieveindex]

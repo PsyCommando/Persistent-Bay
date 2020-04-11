@@ -42,7 +42,7 @@
 
 	. = ..()
 
-/obj/structure/bed/roller/ironingboard/examine(var/mob/user)
+/obj/structure/bed/roller/ironingboard/examine(mob/user)
 	. = ..()
 	if(cloth)
 		to_chat(user, "<span class='notice'>\The \icon[cloth] [cloth] lies on it.</span>")
@@ -82,12 +82,6 @@
 	else if(istype(I,/obj/item/weapon/ironingiron))
 		var/obj/item/weapon/ironingiron/R = I
 
-		if(!holding && !R.enabled && user.unEquip(I, src))
-			holding = R
-			GLOB.destroyed_event.register(I, src, /obj/structure/bed/roller/ironingboard/proc/remove_item)
-			update_icon()
-			return
-
 		// anti-wrinkle "massage"
 		if(buckled_mob && ishuman(buckled_mob))
 			var/mob/living/carbon/human/H = buckled_mob
@@ -100,11 +94,16 @@
 			visible_message("<span class='danger'>[user] irons [src.buckled_mob]'s [parsed]!</span>", "<span class='danger'>You iron [buckled_mob]'s [parsed]!</span>")
 
 			var/obj/item/organ/external/affecting = H.get_organ(zone)
-			affecting.take_damage(15, DAM_BURN, used_weapon = "Hot metal")
+			affecting.take_external_damage(0, 15, used_weapon = "Hot metal")
 
 			return
 
 		if(!cloth)
+			if(!holding && !R.enabled && user.unEquip(I, src))
+				holding = R
+				GLOB.destroyed_event.register(I, src, /obj/structure/bed/roller/ironingboard/proc/remove_item)
+				update_icon()
+				return	
 			to_chat(user, "<span class='notice'>There isn't anything on the ironing board.</span>")
 			return
 
@@ -114,7 +113,6 @@
 
 		visible_message("[user] finishes ironing [cloth].")
 		cloth.ironed_state = WRINKLES_NONE
-
 		return
 
 	..()

@@ -5,9 +5,9 @@
 	name = "projectile"
 	icon = 'icons/obj/projectiles.dmi'
 	icon_state = "bullet"
-	density = TRUE
-	unacidable = TRUE
-	anchored = TRUE //There's a reason this is here, Mport. God fucking damn it -Agouri. Find&Fix by Pete. The reason this is here is to stop the curving of emitter shots.
+	density = 1
+	unacidable = 1
+	anchored = 1 //There's a reason this is here, Mport. God fucking damn it -Agouri. Find&Fix by Pete. The reason this is here is to stop the curving of emitter shots.
 	pass_flags = PASS_FLAG_TABLE
 	mouse_opacity = 0
 	var/bumped = 0		//Prevents it from hitting more than one guy at once
@@ -30,14 +30,13 @@
 	var/dispersion = 0.0
 	var/distance_falloff = 2  //multiplier, higher value means accuracy drops faster with distance
 
-	force = 10
-	damtype = DAM_BULLET
-	var/nodamage = FALSE //Determines if the projectile will skip any damage inflictions
-	var/taser_effect = 0 //If set then the projectile will apply it's agony damage using stun_effect_act() to mobs it hits, and other damage will be ignored
-	var/damage_flags = 0
+	var/damage = 10
+	var/damage_type = BRUTE //BRUTE, BURN, TOX, OXY, CLONE, ELECTROCUTE are the only things that should be in here, Try not to use PAIN as it doesn't go through stun_effect_act
+	var/nodamage = 0 //Determines if the projectile will skip any damage inflictions
+	var/damage_flags = DAM_BULLET
 	var/projectile_type = /obj/item/projectile
 	var/penetrating = 0 //If greater than zero, the projectile will pass through dense objects as specified by on_penetrate()
-	var/kill_count = 50 //This will de-increment every process(). When 0, it will delete the projectile.
+	var/life_span = 50 //This will de-increment every process(). When 0, it will delete the projectile.
 		//Effects
 	var/stun = 0
 	var/weaken = 0
@@ -50,7 +49,7 @@
 	var/embed = 0 // whether or not the projectile can embed itself in the mob
 	var/penetration_modifier = 0.2 //How much internal damage this projectile can deal, as a multiplier.
 
-	var/hitscan = FALSE		// whether the projectile should be hitscan
+	var/hitscan = 0		// whether the projectile should be hitscan
 	var/step_delay = 1	// the delay between iterations if not a hitscan projectile
 
 	// effect types to be used
@@ -60,18 +59,19 @@
 
 	var/fire_sound
 	var/miss_sounds
+	var/ricochet_sounds
+	var/list/impact_sounds	//for different categories, IMPACT_MEAT etc
 	var/shrapnel_type = /obj/item/weapon/material/shard/shrapnel
 
-	var/vacuum_traversal = TRUE //Determines if the projectile can exist in vacuum, if false, the projectile will be deleted if it enters vacuum.
+	var/vacuum_traversal = 1 //Determines if the projectile can exist in vacuum, if false, the projectile will be deleted if it enters vacuum.
 
 	var/datum/plot_vector/trajectory	// used to plot the path of the projectile
 	var/datum/vector_loc/location		// current location of the projectile in pixel space
 	var/matrix/effect_transform			// matrix to rotate and scale projectile effects - putting it here so it doesn't
 										//  have to be recreated multiple times
-	should_save = FALSE
 
 /obj/item/projectile/Initialize()
-	// damtype = damage_type //TODO unify these vars properly
+	damtype = damage_type //TODO unify these vars properly
 	if(!hitscan)
 		animate_movement = SLIDE_STEPS
 	else animate_movement = NO_STEPS
@@ -98,7 +98,7 @@
 //called when the projectile stops flying because it collided with something
 /obj/item/projectile/proc/on_impact(var/atom/A)
 	impact_effect(effect_transform)		// generate impact effect
-	if(force && IsDamageTypeBurn(damtype))
+	if(damage && damage_type == BURN)
 		var/turf/T = get_turf(A)
 		if(T)
 			T.hotspot_expose(700, 5)
@@ -106,13 +106,13 @@
 //Checks if the projectile is eligible for embedding. Not that it necessarily will.
 /obj/item/projectile/can_embed()
 	//embed must be enabled and damage type must be brute
-	if(!embed || !IsDamageTypeBrute(damtype))
+	if(!embed || damage_type != BRUTE)
 		return 0
 	return 1
 
 /obj/item/projectile/proc/get_structure_damage()
-	if(IsDamageTypePhysical(damtype))
-		return force
+	if(damage_type == BRUTE || damage_type == BURN)
+		return damage
 	return 0
 
 //return 1 if the projectile should be allowed to pass through after all, 0 if not.
@@ -313,7 +313,7 @@
 	var/first_step = 1
 
 	spawn while(src && src.loc)
-		if(kill_count-- < 1)
+		if(life_span-- < 1)
 			on_impact(src.loc) //for any final impact behaviours
 			qdel(src)
 			return
@@ -346,7 +346,7 @@
 		if(first_step)
 			muzzle_effect(effect_transform)
 			first_step = 0
-		else if(!bumped && kill_count > 0)
+		else if(!bumped && life_span > 0)
 			tracer_effect(effect_transform)
 		if(!hitscan)
 			sleep(step_delay)	//add delay between movement iterations if it's not a hitscan weapon
@@ -409,9 +409,9 @@
 
 /obj/item/projectile/proc/impact_effect(var/matrix/M)
 	if(ispath(impact_type))
-		var/obj/effect/projectile/P = new impact_type(location.loc)
+		var/obj/effect/projectile/P = new impact_type(location ? location.loc : get_turf(src))
 
-		if(istype(P))
+		if(istype(P) && location)
 			P.set_transform(M)
 			P.pixel_x = round(location.pixel_x, 1)
 			P.pixel_y = round(location.pixel_y, 1)
@@ -424,13 +424,13 @@
 	xo = null
 	var/result = 0 //To pass the message back to the gun.
 
-/obj/item/projectile/test/Bump(atom/A as mob|obj|turf|area)
+/obj/item/projectile/test/Bump(atom/A as mob|obj|turf|area, forced=0)
 	if(A == firer)
 		forceMove(A.loc)
 		return //cannot shoot yourself
 	if(istype(A, /obj/item/projectile))
 		return
-	if(istype(A, /mob/living) || istype(A, /obj/mecha) || istype(A, /obj/vehicle))
+	if(istype(A, /mob/living) || istype(A, /obj/vehicle))
 		result = 2 //We hit someone, return 1!
 		return
 	result = 1
@@ -486,4 +486,28 @@
 	qdel(trace) //No need for it anymore
 	return output //Send it back to the gun!
 
+/obj/item/projectile/after_wounding(obj/item/organ/external/organ, datum/wound/wound)
+	//Check if we even broke skin in first place
+	if(!wound || !(wound.damage_type == CUT || wound.damage_type == PIERCE))
+		return
+	//Check if we can do nasty stuff inside
+	if(!can_embed() || (organ.species.species_flags & SPECIES_FLAG_NO_EMBED))
+		return
+	//Embed or sever artery
+	var/damage_prob = 0.5 * wound.damage * penetration_modifier
+	if(prob(damage_prob))
+		var/obj/item/shrapnel = get_shrapnel()
+		if(shrapnel)
+			shrapnel.forceMove(organ)
+			organ.embed(shrapnel)
+	else if(prob(2 * damage_prob))
+		organ.sever_artery()
 
+	organ.owner.projectile_hit_bloody(src, wound.damage*5, null, organ)
+
+/obj/item/projectile/proc/get_shrapnel()
+	if(shrapnel_type)
+		var/obj/item/SP = new shrapnel_type()
+		SP.SetName((name != "shrapnel")? "[name] shrapnel" : "shrapnel")
+		SP.desc += " It looks like it was fired from [shot_from]."
+		return SP

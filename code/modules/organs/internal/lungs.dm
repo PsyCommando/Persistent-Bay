@@ -5,9 +5,9 @@
 	organ_tag = BP_LUNGS
 	parent_organ = BP_CHEST
 	w_class = ITEM_SIZE_NORMAL
-	min_bruised_damage = 72
-	min_broken_damage = 96
-	max_health = 128
+	min_bruised_damage = 25
+	min_broken_damage = 45
+	max_damage = 70
 	relative_size = 60
 
 	var/active_breathing = 1
@@ -19,7 +19,7 @@
 	var/min_breath_pressure
 	var/last_int_pressure
 	var/last_ext_pressure
-	var/max_pressure_diff = 2*ONE_ATMOSPHERE //Default
+	var/max_pressure_diff = 60
 
 	var/oxygen_deprivation = 0
 	var/safe_exhaled_max = 6
@@ -29,12 +29,6 @@
 	var/breathing = 0
 	var/last_successful_breath
 	var/breath_fail_ratio // How badly they failed a breath. Higher is worse.
-
-/obj/item/organ/internal/lungs/New(mob/living/carbon/holder)
-	. = ..()
-	ADD_SAVED_VAR(active_breathing)
-	ADD_SAVED_VAR(oxygen_deprivation)
-	ADD_SAVED_VAR(breathing)
 
 /obj/item/organ/internal/lungs/proc/can_drown()
 	return (is_broken() || !has_gills)
@@ -55,6 +49,9 @@
 		return 100
 	return round((oxygen_deprivation/species.total_health)*100)
 
+/obj/item/organ/internal/lungs/robotize()
+	. = ..()
+	icon_state = "lungs-prosthetic"
 
 /obj/item/organ/internal/lungs/set_dna(var/datum/dna/new_dna)
 	..()
@@ -64,15 +61,12 @@
 /obj/item/organ/internal/lungs/replaced()
 	..()
 	sync_breath_types()
-/obj/item/organ/internal/lungs/after_load()
-	..()
-	sync_breath_types()
 
 /**
  *  Set these lungs' breath types based on the lungs' species
  */
 /obj/item/organ/internal/lungs/proc/sync_breath_types()
-	min_breath_pressure = species.breath_pressure ? species.breath_pressure : 16
+	min_breath_pressure = species.breath_pressure
 	breath_type = species.breath_type ? species.breath_type : GAS_OXYGEN
 	poison_types = species.poison_types ? species.poison_types : list(GAS_PHORON = TRUE)
 	exhale_type = species.exhale_type ? species.exhale_type : GAS_CO2
@@ -111,29 +105,7 @@
 			else
 				to_chat(owner, "<span class='danger'>You're having trouble getting enough [breath_type]!</span>")
 
-			owner.losebreath += round(get_damages()/2)
-
-	var/scarring = get_scarring_level()
-	if(scarring && active_breathing && !owner.is_asystole())
-		if(prob(1) && scarring > 2) // Very bad scarring
-			owner.visible_message(
-				"<B>\The [owner]</B> coughs up blood!",
-				"<span class='warning'>You cough up blood!</span>",
-				"You hear someone coughing!",
-			)
-
-			owner.drip(1)
-
-		if(prob(1) && scarring > 1) // Normal scarring
-			var/msg_pick = pick("gasp", "cough")
-			owner.visible_message(
-				"<B>\The [owner]</B> [msg_pick]s, wheezing!",
-				"<span class='warning'>Your chest feels tight!</span>",
-				"You hear someone [msg_pick]ing with a wheeze!",
-			)
-
-		if(prob(2)) // Slight scarring
-			owner.emote("cough")
+			owner.losebreath += round(damage/2)
 
 /obj/item/organ/internal/lungs/proc/rupture()
 	var/obj/item/organ/external/parent = owner.get_organ(parent_organ)
@@ -149,16 +121,18 @@
 	var/datum/gas_mixture/environment = loc.return_air_for_internal_lifeform()
 	var/ext_pressure = environment && environment.return_pressure() // May be null if, say, our owner is in nullspace
 	var/int_pressure_diff = abs(last_int_pressure - breath_pressure)
-	var/ext_pressure_diff = abs(last_ext_pressure - ext_pressure) * owner.get_pressure_weakness()
+	var/ext_pressure_diff = abs(last_ext_pressure - ext_pressure) * owner.get_pressure_weakness(ext_pressure)
 	if(int_pressure_diff > max_pressure_diff && ext_pressure_diff > max_pressure_diff)
-		var/lung_rupture_prob = BP_IS_ROBOTIC(src) ? prob(5) : prob(30) //Robotic lungs are less likely to rupture.
+		var/lung_rupture_prob = BP_IS_ROBOTIC(src) ? prob(30) : prob(60) //Robotic lungs are less likely to rupture.
 		if(!is_bruised() && lung_rupture_prob) //only rupture if NOT already ruptured
 			rupture()
 
 /obj/item/organ/internal/lungs/proc/handle_breath(datum/gas_mixture/breath, var/forced)
+
 	if(!owner || !loc)
 		return 1
-	if(!breath || (max_health <= 0))
+
+	if(!breath || (max_damage <= 0))
 		breath_fail_ratio = 1
 		handle_failed_breath()
 		return 1
@@ -176,7 +150,7 @@
 
 	var/safe_pressure_min = min_breath_pressure // Minimum safe partial pressure of breathable gas in kPa
 	// Lung damage increases the minimum safe pressure.
-	safe_pressure_min *= 1 + rand(1,4) * (get_damages()/max_health)
+	safe_pressure_min *= 1 + rand(1,4) * damage/max_damage
 
 	if(!forced && owner.chem_effects[CE_BREATHLOSS] && !owner.chem_effects[CE_STABLE]) //opiates are bad mmkay
 		safe_pressure_min *= 1 + rand(1,4) * owner.chem_effects[CE_BREATHLOSS]
@@ -228,7 +202,7 @@
 				breath.adjust_gas(gasname, -breath.gas[gasname], update = 0) //update after
 
 	// Moved after reagent injection so we don't instantly poison ourselves with CO2 or whatever.
-	if(exhale_type)
+	if(exhale_type && (!istype(owner.wear_mask) || !(exhale_type in owner.wear_mask.filtered_gases)))
 		breath.adjust_gas_temp(exhale_type, inhaled_gas_used, owner.bodytemperature, update = 0) //update afterwards
 
 	// Were we able to breathe?
@@ -260,7 +234,7 @@
 		else
 			owner.emote(pick("shiver","twitch"))
 
-	if(isdamaged() || owner.chem_effects[CE_BREATHLOSS] || world.time > last_successful_breath + 2 MINUTES)
+	if(damage || owner.chem_effects[CE_BREATHLOSS] || world.time > last_successful_breath + 2 MINUTES)
 		owner.adjustOxyLoss(HUMAN_MAX_OXYLOSS*breath_fail_ratio)
 
 	owner.oxygen_alert = max(owner.oxygen_alert, 2)
@@ -282,9 +256,9 @@
 					damage = COLD_GAS_DAMAGE_LEVEL_1
 
 			if(prob(20))
-				owner.apply_damage(damage, DAM_BURN, BP_HEAD, used_weapon = "Excessive Cold")
+				owner.apply_damage(damage, BURN, BP_HEAD, used_weapon = "Excessive Cold")
 			else
-				src.rem_health(damage)
+				src.damage += damage
 			owner.fire_alert = 1
 		else if(breath.temperature >= species.heat_level_1)
 			if(prob(20))
@@ -299,9 +273,9 @@
 					damage = HEAT_GAS_DAMAGE_LEVEL_3
 
 			if(prob(20))
-				owner.apply_damage(damage, DAM_BURN, BP_HEAD, used_weapon = "Excessive Heat")
+				owner.apply_damage(damage, BURN, BP_HEAD, used_weapon = "Excessive Heat")
 			else
-				src.rem_health(damage)
+				src.damage += damage
 			owner.fire_alert = 2
 
 		//breathing in hot/cold air also heats/cools you a bit
@@ -349,10 +323,3 @@
 	. += "[english_list(breathtype)] breathing"
 
 	return english_list(.)
-
-/obj/item/organ/internal/lungs/on_update_icon()
-	. = ..()
-	if(BP_IS_ROBOTIC(src))
-		icon_state = "[initial(icon_state)]-prosthetic"
-	else
-		icon_state = initial(icon_state)

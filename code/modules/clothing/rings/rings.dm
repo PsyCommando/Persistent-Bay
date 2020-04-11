@@ -3,7 +3,7 @@
 /obj/item/clothing/ring/engagement
 	name = "engagement ring"
 	desc = "An engagement ring. It certainly looks expensive."
-	icon_state = MATERIAL_DIAMOND
+	icon_state = "diamond"
 
 /obj/item/clothing/ring/engagement/attack_self(mob/user)
 	user.visible_message("<span class='warning'>\The [user] gets down on one knee, presenting \the [src].</span>","<span class='warning'>You get down on one knee, presenting \the [src].</span>")
@@ -17,6 +17,16 @@
 	name = "Mariner University ring"
 	desc = "A ring commemorating graduation from Mariner University."
 	icon_state = "mariner-grad"
+
+/obj/item/clothing/ring/fleet
+	name = "Fleet ring"
+	desc = "A ring commemorating honorable service with the Sol Government's Fleet."
+	icon_state = "fleet"
+
+/obj/item/clothing/ring/ec
+	name = "Expeditionary Corps ring"
+	desc = "A ring commemorating honorable service with the Sol Government's Expeditionary Corps."
+	icon_state = "ec"
 
 /////////////////////////////////////////
 //Magic Rings
@@ -43,12 +53,11 @@
 
 /obj/item/clothing/ring/reagent
 	atom_flags = ATOM_FLAG_OPEN_CONTAINER
-	origin_tech = list(TECH_MATERIAL = 2, TECH_ILLEGAL = 4)
+	origin_tech = list(TECH_MATERIAL = 2, TECH_ESOTERIC = 4)
 
-/obj/item/clothing/ring/reagent/Initialize()
-	. = ..()
-	if(!reagents)
-		create_reagents(15)
+/obj/item/clothing/ring/reagent/New()
+	..()
+	create_reagents(15)
 
 /obj/item/clothing/ring/reagent/equipped(var/mob/living/carbon/human/H)
 	..()
@@ -67,12 +76,11 @@
 	name = "silver ring"
 	desc = "A ring made from what appears to be silver."
 	icon_state = "material"
-	origin_tech = list(TECH_MATERIAL = 2, TECH_ILLEGAL = 5)
+	origin_tech = list(TECH_MATERIAL = 2, TECH_ESOTERIC = 5)
 
-/obj/item/clothing/ring/reagent/sleepy/Initialize()
-	. = ..()
-	if(!reagents)
-		reagents.add_reagent(/datum/reagent/chloralhydrate, 15) // Less than a sleepy-pen, but still enough to knock someone out
+/obj/item/clothing/ring/reagent/sleepy/New()
+	..()
+	reagents.add_reagent(/datum/reagent/chloralhydrate, 15) // Less than a sleepy-pen, but still enough to knock someone out
 
 /////////////////////////////////////////
 //Seals and Signet Rings

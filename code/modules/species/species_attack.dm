@@ -2,7 +2,8 @@
 	attack_verb = list("bit", "chomped on")
 	attack_sound = 'sound/weapons/bite.ogg'
 	shredding = 0
-	sharpness = 1
+	sharp = 1
+	edge = 1
 	attack_name = "sharp bite"
 
 /datum/unarmed_attack/diona
@@ -19,11 +20,13 @@
 	eye_attack_text_victim = "sharp claws"
 	attack_sound = 'sound/weapons/slice.ogg'
 	miss_sound = 'sound/weapons/slashmiss.ogg'
-	sharpness = 2
+	sharp = 1
+	edge = 1
 	attack_name = "claws"
+	var/blocked_by_gloves = TRUE
 
 /datum/unarmed_attack/claws/is_usable(var/mob/living/carbon/human/user, var/mob/living/carbon/human/target, var/zone)
-	if(user.gloves)
+	if(user.gloves && blocked_by_gloves)
 		var/obj/item/clothing/gloves/gloves = user.gloves
 		if(istype(gloves) && !gloves.clipped)
 			return 0
@@ -72,6 +75,9 @@
 	damage = 5
 	shredding = 1
 	attack_name = "strong claws"
+
+/datum/unarmed_attack/claws/strong/gloves
+	blocked_by_gloves = FALSE
 
 /datum/unarmed_attack/bite/strong
 	attack_verb = list("mauled")
@@ -147,7 +153,8 @@
 	attack_noun = list("forelimb")
 	damage = 8
 	shredding = 1
-	sharpness = 2
+	sharp = 1
+	edge = 1
 	delay = 20
 	eye_attack_text = "a forelimb"
 	eye_attack_text_victim = "a forelimb"
@@ -159,7 +166,7 @@
 	attack_name = "starborn strike"
 
 /datum/unarmed_attack/punch/starborn/get_damage_type()
-	return DAM_BURN
+	return BURN
 
 /datum/unarmed_attack/bite/venom
 	attack_verb = list("bit", "sank their fangs into")
@@ -169,4 +176,4 @@
 	attack_name = "venomous bite"
 
 /datum/unarmed_attack/bite/venom/get_damage_type()
-	return DAM_BIO
+	return TOX

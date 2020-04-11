@@ -124,7 +124,7 @@
 	activate(var/mob/living/carbon/human/mob,var/multiplier)
 		mob.bodytemperature = max(mob.bodytemperature, 350)
 		scramble(0,mob,10)
-		mob.apply_damage(10, DAM_CLONE)
+		mob.apply_damage(10, CLONE)
 
 /datum/disease2/effect/organs
 	name = "Shutdown Syndrome"
@@ -161,7 +161,7 @@
 				break
 		for (var/internal in mob.internal_organs)
 			var/obj/item/organ/internal/I = internal
-			if (I.isdamaged() && prob(30))
+			if (I.is_damaged() && prob(30))
 				to_chat(mob, "<span class='notice'>Your [mob.get_organ(I.parent_organ)] feels a bit warm...</span>")
 				I.heal_damage(2*multiplier)
 				break
@@ -216,7 +216,7 @@
 	badness = VIRUS_COMMON
 	activate(var/mob/living/carbon/human/mob,var/multiplier)
 		var/obj/item/organ/internal/brain/B = mob.internal_organs_by_name[BP_BRAIN]
-		if (B && B.get_damages() < B.min_broken_damage)
+		if (B && B.damage < B.min_broken_damage)
 			B.take_internal_damage(5)
 
 /datum/disease2/effect/deaf
@@ -237,7 +237,7 @@
 	stage = 3
 	badness = VIRUS_COMMON
 	activate(var/mob/living/carbon/human/mob,var/multiplier)
-		mob.apply_damage(2, DAM_CLONE)
+		mob.apply_damage(2, CLONE)
 
 /datum/disease2/effect/chem_synthesis
 	name = "Chemical Synthesis"
@@ -303,7 +303,7 @@
 	name = "Appetiser Effect"
 	stage = 2
 	activate(var/mob/living/carbon/human/mob,var/multiplier)
-		mob.nutrition = max(0, mob.nutrition - 200)
+		mob.adjust_nutrition(-200)
 
 /datum/disease2/effect/fridge
 	name = "Refridgerator Syndrome"
@@ -410,3 +410,68 @@
 	badness = VIRUS_EXOTIC
 	chance_max = 0
 	allow_multiple = 1
+
+///////////////////////////////////custom virus for prisoners to spread
+/datum/disease2/disease/lar_maria
+	infectionchance = 90//very aggressive
+	speed = 10
+	spreadtype = "Airborne"
+
+/datum/disease2/disease/lar_maria/New()
+	..()
+	var/datum/disease2/effect/sneeze/E1 = new()
+	E1.stage = 1
+	effects += E1
+	var/datum/disease2/effect/stimulant/E2 = new()
+	E2.stage = 2
+	effects += E2
+	var/datum/disease2/effect/stimulant/E3 = new()
+	E3.stage = 3
+	effects += E3
+	var/datum/disease2/effect/rage/E4 = new()
+	E4.stage = 4
+	effects += E4
+
+/datum/disease2/effect/rage //custom effect, fills PC with uncontrollable rage
+	name = "Rampage Syndrome"
+	stage = 4
+	badness = VIRUS_EXOTIC
+	delay = 20 SECONDS
+	var/first_message_shown = FALSE
+
+/datum/disease2/effect/rage/activate(var/mob/living/carbon/human/mob,var/multiplier)
+	if (!first_message_shown)
+		first_message_shown = TRUE
+		to_chat(mob, "<span class='warning'>Your muscles start tensing up, and you can feel your pulse rising, throbbing at the back of your head. Your breathing increases, and you feel... angry. An urge wells up inside you. Everything is making you angry, and you want it to <i>pay</i> for it.</span>")
+		return //nothing else happens first time giving chance to adjust RP
+	if(prob(50))
+		to_chat(mob, "<span class='warning'>You feel uncontrollable rage filling you! You want to hurt and destroy!</span>")
+		if (mob.reagents.get_reagent_amount(/datum/reagent/hyperzine) < 10)
+			mob.reagents.add_reagent(/datum/reagent/hyperzine, 4)
+	if(prob(50) && mob.check_has_mouth())//go crazy and bite someone
+		var/list/mouth_status = mob.can_eat_status()
+		if (mouth_status[1] == 1)//if no mouth HUMAN_EATING_NBP_MOUTH
+			to_chat(mob, "<span class='warning'>You angrily attempt to bite someone but you can't without a mouth!</span>")
+			return
+		if (mouth_status[1] == 2)//if something covers mouth HUMAN_EATING_BLOCKED_MOUTH
+			to_chat(mob, "<span class='warning'>You angrily chew \the [mouth_status[2]] covering your mouth!</span>")
+			return
+		var/list/mobs_to_bite = list()
+		for (var/mob/living/carbon/human/L in trange(1))
+			if (L == mob)
+				continue
+			mobs_to_bite += L
+		if (mobs_to_bite.len < 1)//nobody to bite
+			return
+		var/mob/living/carbon/human/Target = pick(mobs_to_bite)
+		mob.visible_message("<span class='warning'>[mob] violently bites [Target]!</span>")
+		Target.adjustBruteLoss(5)
+		if (prob(50))
+			infect_virus2(Target, src, 1)
+
+/datum/species
+	var/virus_immune
+
+/datum/species/proc/get_virus_immune(var/mob/living/carbon/human/H)
+	return ((H && H.isSynthetic()) ? 1 : virus_immune)
+

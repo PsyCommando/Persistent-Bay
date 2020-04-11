@@ -40,8 +40,9 @@
 	icon_state = "waterballoon-e"
 	item_state = "balloon-empty"
 
-/obj/item/toy/water_balloon/SetupReagents()
+/obj/item/toy/water_balloon/New()
 	create_reagents(10)
+	..()
 
 /obj/item/toy/water_balloon/attack(mob/living/carbon/human/M as mob, mob/user as mob)
 	return
@@ -151,14 +152,6 @@
 	attack_verb = list("attacked", "struck", "hit")
 	var/bullets = 5
 
-	New()
-		. = ..()
-		ADD_SAVED_VAR(bullets)
-
-	examine(mob/user)
-		if(..(user, 2) && bullets)
-			to_chat(user, "<span class='notice'>It is loaded with [bullets] foam darts!</span>")
-
 	attackby(obj/item/I as obj, mob/user as mob)
 		if(istype(I, /obj/item/toy/ammo/crossbow))
 			if(bullets <= 4)
@@ -239,6 +232,11 @@
 				if (O.client)	O.show_message(text("<span class='danger'>\The [] casually lines up a shot with []'s head, pulls the trigger, then realizes they are out of ammo and drops to the floor in search of some!</span>", user, M), 1, "<span class='warning'>You hear someone fall</span>", 2)
 			user.Weaken(5)
 		return
+		
+/obj/item/toy/crossbow/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 2 && bullets)
+		to_chat(user, "<span class='notice'>It is loaded with [bullets] foam darts!</span>")
 
 /obj/item/toy/ammo/crossbow
 	name = "foam dart"
@@ -263,7 +261,7 @@
 /obj/item/toy/sword
 	name = "toy sword"
 	desc = "A cheap, plastic replica of an energy sword. Realistic sounds! Ages 8 and up."
-	icon = 'icons/obj/weapons/melee/energy.dmi'
+	icon = 'icons/obj/weapons.dmi'
 	icon_state = "sword0"
 	item_state = "sword0"
 	var/active = 0.0
@@ -363,6 +361,7 @@
 	icon = 'icons/obj/toy.dmi'
 	icon_state = "ripleytoy"
 	var/cooldown = 0
+	w_class = ITEM_SIZE_TINY
 
 //all credit to skasi for toy mech fun ideas
 /obj/item/toy/prize/attack_self(mob/user as mob)
@@ -380,58 +379,58 @@
 			return
 	..()
 
-/obj/item/toy/prize/ripley
+/obj/item/toy/prize/powerloader
 	name = "toy ripley"
-	desc = "Mini-Mecha action figure! Collect them all! 1/11."
+	desc = "Mini-mech action figure! Collect them all! 1/11."
 
 /obj/item/toy/prize/fireripley
 	name = "toy firefighting ripley"
-	desc = "Mini-Mecha action figure! Collect them all! 2/11."
+	desc = "Mini-mech action figure! Collect them all! 2/11."
 	icon_state = "fireripleytoy"
 
 /obj/item/toy/prize/deathripley
 	name = "toy deathsquad ripley"
-	desc = "Mini-Mecha action figure! Collect them all! 3/11."
+	desc = "Mini-mech action figure! Collect them all! 3/11."
 	icon_state = "deathripleytoy"
 
 /obj/item/toy/prize/gygax
 	name = "toy gygax"
-	desc = "Mini-Mecha action figure! Collect them all! 4/11."
+	desc = "Mini-mech action figure! Collect them all! 4/11."
 	icon_state = "gygaxtoy"
 
 /obj/item/toy/prize/durand
 	name = "toy durand"
-	desc = "Mini-Mecha action figure! Collect them all! 5/11."
+	desc = "Mini-mech action figure! Collect them all! 5/11."
 	icon_state = "durandprize"
 
 /obj/item/toy/prize/honk
 	name = "toy H.O.N.K."
-	desc = "Mini-Mecha action figure! Collect them all! 6/11."
+	desc = "Mini-mech action figure! Collect them all! 6/11."
 	icon_state = "honkprize"
 
 /obj/item/toy/prize/marauder
 	name = "toy marauder"
-	desc = "Mini-Mecha action figure! Collect them all! 7/11."
+	desc = "Mini-mech action figure! Collect them all! 7/11."
 	icon_state = "marauderprize"
 
 /obj/item/toy/prize/seraph
 	name = "toy seraph"
-	desc = "Mini-Mecha action figure! Collect them all! 8/11."
+	desc = "Mini-mech action figure! Collect them all! 8/11."
 	icon_state = "seraphprize"
 
 /obj/item/toy/prize/mauler
 	name = "toy mauler"
-	desc = "Mini-Mecha action figure! Collect them all! 9/11."
+	desc = "Mini-mech action figure! Collect them all! 9/11."
 	icon_state = "maulerprize"
 
 /obj/item/toy/prize/odysseus
 	name = "toy odysseus"
-	desc = "Mini-Mecha action figure! Collect them all! 10/11."
+	desc = "Mini-mech action figure! Collect them all! 10/11."
 	icon_state = "odysseusprize"
 
 /obj/item/toy/prize/phazon
 	name = "toy phazon"
-	desc = "Mini-Mecha action figure! Collect them all! 11/11."
+	desc = "Mini-mech action figure! Collect them all! 11/11."
 	icon_state = "phazonprize"
 
 /*
@@ -443,6 +442,7 @@
 	desc = "A \"Space Life\" brand... wait, what the hell is this thing? It seems to be requesting the sweet release of death."
 	icon_state = "assistant"
 	icon = 'icons/obj/toy.dmi'
+	w_class = ITEM_SIZE_TINY
 
 /obj/item/toy/figure/cmo
 	name = "Chief Medical Officer action figure"
@@ -500,8 +500,8 @@
 	icon_state = "chef"
 
 /obj/item/toy/figure/chemist
-	name = "Chemist action figure"
-	desc = "A \"Space Life\" brand Chemist action figure."
+	name = "Pharmacist action figure"
+	desc = "A \"Space Life\" brand Pharmacist action figure."
 	icon_state = "chemist"
 
 /obj/item/toy/figure/clown
@@ -590,8 +590,8 @@
 	icon_state = "wizard"
 
 /obj/item/toy/figure/rd
-	name = "Research Director action figure"
-	desc = "A \"Space Life\" brand Research Director action figure."
+	name = "Chief Science Officer action figure"
+	desc = "A \"Space Life\" brand Chief Science Officer action figure."
 	icon_state = "rd"
 
 /obj/item/toy/figure/roboticist
@@ -861,14 +861,6 @@
 
 	var/on = 0
 	var/activation_sound = 'sound/effects/flashlight.ogg'
-
-/obj/item/toy/desk/New()
-	. = ..()
-	ADD_SAVED_VAR(on)
-
-/obj/item/toy/desk/after_load()
-	. = ..()
-	queue_icon_update()
 
 /obj/item/toy/desk/on_update_icon()
 	if(on)

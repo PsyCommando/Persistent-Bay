@@ -11,14 +11,14 @@
 	program_menu_icon = "flag"
 	nanomodule_path = /datum/nano_module/program/comm
 	extended_desc = "Used to command and control. Can relay long-range communications. This program can not be run on tablet computers."
-	required_access = core_access_command_programs
-	requires_ntnet = TRUE
+	required_access = access_bridge
+	requires_ntnet = 1
 	size = 12
-	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP | PROGRAM_TELESCREEN
+	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP
 	network_destination = "long-range communication array"
 	category = PROG_COMMAND
 	var/datum/comm_message_listener/message_core = new
-	democratic = 1
+
 /datum/computer_file/program/comm/clone()
 	var/datum/computer_file/program/comm/temp = ..()
 	temp.message_core.messages = null
@@ -46,11 +46,11 @@
 	var/list/data = host.initial_data()
 
 	if(program)
-		data["emagged"] = program.computer_emagged
 		data["net_comms"] = !!program.get_signal(NTNET_COMMUNICATION) //Double !! is needed to get 1 or 0 answer
 		data["net_syscont"] = !!program.get_signal(NTNET_SYSTEMCONTROL)
 		if(program.computer)
-			data["have_printer"] = !!program.computer.nano_printer
+			data["emagged"] = program.computer.emagged()
+			data["have_printer"] =  program.computer.has_component(PART_PRINTER)
 		else
 			data["have_printer"] = 0
 	else
@@ -125,7 +125,6 @@
 	var/ntn_comm = program ? !!program.get_signal(NTNET_COMMUNICATION) : 1
 	var/ntn_cont = program ? !!program.get_signal(NTNET_SYSTEMCONTROL) : 1
 	var/datum/comm_message_listener/l = obtain_message_listener()
-	var/datum/world_faction/connected_faction = program.computer.network_card.connected_network.holder
 	switch(href_list["action"])
 		if("sw_menu")
 			. = 1
@@ -141,26 +140,19 @@
 				if(announcment_cooldown)
 					to_chat(usr, "Please allow at least one minute to pass between announcements")
 					return TRUE
-				var/input = input(usr, "Please write a message to announce to the [station_name()].", "Priority Announcement") as null|text
+				var/input = input(usr, "Please write a message to announce to the [station_name()].", "Priority Announcement") as null|message
 				if(!input || !can_still_topic())
 					return 1
-				var/affected_zlevels = GLOB.using_map.contact_levels
-				var/atom/A = host
-				if(istype(A))
-					affected_zlevels = GetConnectedZlevels(A.z)
-				crew_announcement.faction = connected_faction.name
-				crew_announcement.sector = program.computer.z+(program.computer.z % 2)
+				var/affected_zlevels = GetConnectedZlevels(get_host_z())
 				crew_announcement.Announce(input, zlevels = affected_zlevels)
-				GLOB.discord_api.broadcast("(Announcement by [usr.real_name]) [input]")
 				announcment_cooldown = 1
 				spawn(600)//One minute cooldown
 					announcment_cooldown = 0
-					
 		if("message")
 			. = 1
 			if(href_list["target"] == "emagged")
 				if(program)
-					if(is_autenthicated(user) && program.computer_emagged && !issilicon(usr) && ntn_comm)
+					if(is_autenthicated(user) && program.computer.emagged() && !issilicon(usr) && ntn_comm)
 						if(centcomm_message_cooldown)
 							to_chat(usr, "<span class='warning'>Arrays recycling. Please stand by.</span>")
 							SSnano.update_uis(src)
@@ -253,11 +245,14 @@
 		if("printmessage")
 			. = 1
 			if(is_autenthicated(user) && ntn_comm)
-				if(program && program.computer && program.computer.nano_printer)
-					if(!program.computer.nano_printer.print_text(current_viewing_message["contents"],current_viewing_message["title"]))
-						to_chat(usr, "<span class='notice'>Hardware Error: Printer was unable to print the selected file.</span>")
-					else
-						program.computer.visible_message("<span class='notice'>\The [program.computer] prints out a paper.</span>")
+				if(!program.computer.print_paper(current_viewing_message["contents"],current_viewing_message["title"]))
+					to_chat(usr, "<span class='notice'>Hardware Error: Printer was unable to print the selected file.</span>")
+		if("unbolt_doors")
+			GLOB.using_map.unbolt_saferooms()
+			to_chat(usr, "<span class='notice'>The console beeps, confirming the signal was sent to have the saferooms unbolted.</span>")
+		if("bolt_doors")
+			GLOB.using_map.bolt_saferooms()
+			to_chat(usr, "<span class='notice'>The console beeps, confirming the signal was sent to have the saferooms bolted.</span>")
 
 #undef STATE_DEFAULT
 #undef STATE_MESSAGELIST
@@ -301,12 +296,11 @@ var/last_message_id = 0
 
 /proc/post_status(var/command, var/data1, var/data2)
 
-	var/datum/radio_frequency/frequency = radio_controller.return_frequency(STATUS_FREQ)
+	var/datum/radio_frequency/frequency = radio_controller.return_frequency(1435)
 
 	if(!frequency) return
 
 	var/datum/signal/status_signal = new
-	status_signal.source = src
 	status_signal.transmission_method = 1
 	status_signal.data["command"] = command
 
@@ -314,19 +308,18 @@ var/last_message_id = 0
 		if("message")
 			status_signal.data["msg1"] = data1
 			status_signal.data["msg2"] = data2
-			log_admin("STATUS: [key_name(usr)] set status screen message with [src]: [data1] [data2]")
+			log_admin("STATUS: [key_name(usr)] set status screen message with: [data1] [data2]")
 		if("image")
 			status_signal.data["picture_state"] = data1
 
-	frequency.post_signal(src, status_signal)
+	frequency.post_signal(signal = status_signal)
 
 /proc/cancel_call_proc(var/mob/user)
 	if (!evacuation_controller)
 		return
 
 	if(evacuation_controller.cancel_evacuation())
-		log_game("[key_name(user)] has cancelled the evacuation.")
-		message_admins("[key_name_admin(user)] has cancelled the evacuation.", 1)
+		log_and_message_admins("has cancelled the evacuation.", user)
 
 	return
 

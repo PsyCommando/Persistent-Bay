@@ -37,22 +37,14 @@ var/list/mining_floors = list()
 	var/image/ore_overlay
 
 	has_resources = 1
-	has_gas_resources = 1
-	skip_icon_state = 1
 
 /turf/simulated/mineral/Initialize()
 	. = ..()
 	if (!mining_walls["[src.z]"])
 		mining_walls["[src.z]"] = list()
 	mining_walls["[src.z]"] += src
-
-/turf/simulated/mineral/proc/setup()
 	MineralSpread()
 	update_icon(1)
-
-/turf/simulated/mineral/after_load()
-	queue_icon_update(0)
-	..()
 
 /turf/simulated/mineral/Destroy()
 	if (mining_walls["[src.z]"])
@@ -122,11 +114,6 @@ var/list/mining_floors = list()
 			mined_ore = 1
 			GetDrilled()
 
-	//Plasma Cutter Blasts
-	else if(istype(Proj, /obj/item/projectile/beam/plasmacutter))
-		mined_ore = 1
-		GetDrilled()
-
 /turf/simulated/mineral/Bumped(AM)
 	. = ..()
 	if(istype(AM,/mob/living/carbon/human))
@@ -140,11 +127,6 @@ var/list/mining_floors = list()
 		var/mob/living/silicon/robot/R = AM
 		if(istype(R.module_active,/obj/item/weapon/pickaxe))
 			attackby(R.module_active,R)
-
-	else if(istype(AM,/obj/mecha))
-		var/obj/mecha/M = AM
-		if(istype(M.selected,/obj/item/mecha_parts/mecha_equipment/tool/drill))
-			M.selected.action(src)
 
 /turf/simulated/mineral/proc/MineralSpread()
 	if(istype(mineral) && mineral.ore_spread_chance > 0)
@@ -203,7 +185,6 @@ var/list/mining_floors = list()
 		last_act = world.time
 
 		playsound(user, P.drill_sound, 20, 1)
-
 
 		var/newDepth = excavation_level + P.excavation_amount // Used commonly below
 		//handle any archaeological finds we might uncover
@@ -350,7 +331,7 @@ var/list/mining_floors = list()
 		N.updateMineralOverlays(1)
 
 /turf/simulated/mineral/proc/excavate_find(var/prob_clean = 0, var/datum/find/F)
-	/**
+
 	//many finds are ancient and thus very delicate - luckily there is a specialised energy suspension field which protects them when they're being extracted
 	if(prob(F.prob_delicate))
 		var/obj/effect/suspension_field/S = locate() in src
@@ -370,7 +351,7 @@ var/list/mining_floors = list()
 		rock.geologic_data = geologic_data
 
 	finds.Remove(F)
-	**/
+
 
 /turf/simulated/mineral/proc/artifact_debris(var/severity = 0)
 	//cael's patented random limited drop componentized loot system!
@@ -437,7 +418,7 @@ var/list/mining_floors = list()
 	base_desc = "Gritty and unpleasant."
 	base_icon = 'icons/turf/flooring/asteroid.dmi'
 	base_icon_state = "asteroid"
-	footstep_type = FOOTSTEP_ASTEROID
+	footstep_type = /decl/footsteps/asteroid
 
 	initial_flooring = null
 	initial_gas = null
@@ -445,18 +426,9 @@ var/list/mining_floors = list()
 	var/dug = 0       //0 = has not yet been dug, 1 = has already been dug
 	var/overlay_detail
 	has_resources = 1
-	has_gas_resources = 1
-
-/turf/simulated/floor/asteroid/Entered(atom/movable/M)
-	. = ..()
-	if(istype(M, /mob/living/carbon) || istype(M, /mob/living/silicon))
-		SSasteroid.agitate(M)
-
-/turf/simulated/floor/asteroid/after_load()
-	updateMineralOverlays(1)
-	..()
 
 /turf/simulated/floor/asteroid/Initialize()
+	. = ..()
 	if (!mining_floors["[src.z]"])
 		mining_floors["[src.z]"] = list()
 	mining_floors["[src.z]"] += src
@@ -468,11 +440,6 @@ var/list/mining_floors = list()
 		mining_floors["[src.z]"] -= src
 	return ..()
 
-
-/turf/simulated/floor/asteroid/ReplaceWithLattice()
-	new /obj/structure/lattice(src)
-
-
 /turf/simulated/floor/asteroid/ex_act(severity)
 	switch(severity)
 		if(3.0)
@@ -483,10 +450,6 @@ var/list/mining_floors = list()
 		if(1.0)
 			gets_dug()
 	return
-/turf/simulated/floor/asteroid/can_build_cable(var/mob/user)
-	return 1
-/turf/simulated/floor/asteroid/is_plating()
-	return density
 
 /turf/simulated/floor/asteroid/is_plating()
 	return !density
@@ -495,89 +458,35 @@ var/list/mining_floors = list()
 	if(!W || !user)
 		return 0
 
-	if (istype(W, /obj/item/stack/material/rods))
-		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
-		if(L)
-			return L.attackby(W, user)
-		var/obj/item/stack/material/rods/R = W
-		if (R.use(1))
-			to_chat(user, "<span class='notice'>Constructing support lattice ...</span>")
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
-			ReplaceWithLattice()
-		return
-
-	if (istype(W, /obj/item/stack/tile/floor))
-		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
-		if(L)
-			var/obj/item/stack/tile/floor/S = W
-			if (S.get_amount() < 1)
-				return
-			qdel(L)
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
-			S.use(1)
-			ChangeTurf(/turf/simulated/floor/airless)
-			return
-		else
-			to_chat(user, "<span class='warning'>The plating is going to need some support.</span>")
-
 	var/list/usable_tools = list(
+		/obj/item/weapon/shovel,
 		/obj/item/weapon/pickaxe/diamonddrill,
 		/obj/item/weapon/pickaxe/drill,
 		/obj/item/weapon/pickaxe/borgdrill
 		)
 
-	var/obj/item/weapon/pickaxe/valid_tool
+	var/valid_tool
 	for(var/valid_type in usable_tools)
 		if(istype(W,valid_type))
-			valid_tool = W
+			valid_tool = 1
 			break
 
 	if(valid_tool)
+		if (dug)
+			to_chat(user, "<span class='warning'>This area has already been dug</span>")
+			return
 
 		var/turf/T = user.loc
 		if (!(istype(T)))
 			return
 
-		to_chat(user, "<span class='warning'>You start digging for ores.</span>")
-		playsound(user.loc, 'sound/effects/rustle1.ogg', 50, 1)
-
-		if(!do_after(user,valid_tool.digspeed, src)) return
-
-
-		gets_dug()
-		var/found_ore = 0
-		var/list/random_ore_types = shuffle(valid_tool.ore_types.Copy())
-		for(var/metal in random_ore_types)
-			if(resources[metal])
-				resources[metal] -= 1
-				var/obj/item/stack/ore/st = new(src, metal)
-				st.drop_to_stacks(src)
-				found_ore=1
-				break
-		if(found_ore)
-			to_chat(user, "<span class='notice'>You dig up an ore.</span>")
-		else
-			to_chat(user, "<span class='notice'>You are unable to collect any more usable ores from this tile.</span>")
-
-
-	else if(istype(W, /obj/item/weapon/shovel))
-
-		var/turf/T = user.loc
-		if (!(istype(T)))
-			return
-
-		to_chat(user, "<span class='warning'>You start digging up sand.</span>")
+		to_chat(user, "<span class='warning'>You start digging.</span>")
 		playsound(user.loc, 'sound/effects/rustle1.ogg', 50, 1)
 
 		if(!do_after(user,40, src)) return
+
+		to_chat(user, "<span class='notice'>You dug a hole.</span>")
 		gets_dug()
-		if(resources[MATERIAL_SAND])
-			to_chat(user, "<span class='notice'>You dig up some sand.</span>")
-			resources[MATERIAL_SAND] -= 1
-			var/obj/item/stack/ore/st = new(src, MATERIAL_SAND)
-			st.drop_to_stacks(src)
-		else
-			to_chat(user, "<span class='notice'>You are unable to collect any more usable sand from this tile.</span>")
 
 	else if(istype(W,/obj/item/weapon/storage/ore))
 		var/obj/item/weapon/storage/ore/S = W

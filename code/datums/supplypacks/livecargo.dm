@@ -1,8 +1,7 @@
 /decl/hierarchy/supply_pack/livecargo
-	name = "Living cargo"
+	name = "Live cargo"
 	containertype = /obj/structure/closet/crate/hydroponics
 
-//monkeys
 /decl/hierarchy/supply_pack/livecargo/monkey
 	name = "Inert - Monkey cubes"
 	contains = list (/obj/item/weapon/storage/box/monkeycubes)
@@ -17,7 +16,7 @@
 	containertype = /obj/structure/closet/crate/freezer
 	containername = "farwa crate"
 
-/decl/hierarchy/supply_pack/livecargo/neaera
+/decl/hierarchy/supply_pack/livecargo/skrell
 	name = "Inert - Neaera cubes"
 	contains = list (/obj/item/weapon/storage/box/monkeycubes/neaeracubes)
 	cost = 30
@@ -40,46 +39,41 @@
 	contraband = 1
 	security_level = null
 
-//slimes
-/decl/hierarchy/supply_pack/livecargo/greyslime
-	name = "Slimes - Grey extract"
-	contains = list(/obj/item/slime_extract/grey = 2)
-	cost = 50
-	containertype = /obj/structure/closet/crate/freezer
-	containername = "slime core crate"
-
 
 //actual live animals
 
 /decl/hierarchy/supply_pack/livecargo/corgi
-	name = "Pets - Corgi"
+	name = "Live - Corgi"
 	contains = list()
 	cost = 50
 	containertype = /obj/structure/largecrate/animal/corgi
-	containername = "corgi carrier"
+	containername = "corgi crate"
 
-/decl/hierarchy/supply_pack/livecargo/cat
-	name = "Pets - Cat"
-	contains = list()
-	cost = 50
-	containertype = /obj/structure/largecrate/animal/cat
-	containername = "cat carrier"
-
-//livestock
+//farm animals - useless and annoying, but potentially a good source of food. expensive because they're live animals and their produce is available cheaper
 /decl/hierarchy/supply_pack/livecargo/cow
-	name = "Livestock - Cow"
-	cost = 45
+	name = "Live - Cow"
+	cost = 80
 	containertype = /obj/structure/largecrate/animal/cow
 	containername = "cow crate"
+	access = access_hydroponics
 
 /decl/hierarchy/supply_pack/livecargo/goat
-	name = "Livestock - Goat"
-	cost = 35
+	name = "Live - Goat"
+	cost = 75
 	containertype = /obj/structure/largecrate/animal/goat
 	containername = "goat crate"
+	access = access_hydroponics
+
+/decl/hierarchy/supply_pack/livecargo/goose
+	name = "Live - Goose"
+	cost = 75
+	containertype = /obj/structure/largecrate/animal/goose
+	containername = "goose containment unit"
+	access = access_hydroponics
 
 /decl/hierarchy/supply_pack/livecargo/chicken
-	name = "Livestock - Chicken"
-	cost = 25
+	name = "Live - Chicken"
+	cost = 70
 	containertype = /obj/structure/largecrate/animal/chick
 	containername = "chicken crate"
+	access = access_hydroponics

@@ -6,11 +6,11 @@
 		NETWORK_ENGINEERING
 	)
 	equipment = list(
-		/obj/item/weapon/tool/weldingtool,
-		/obj/item/weapon/tool/screwdriver,
-		/obj/item/weapon/tool/wrench,
-		/obj/item/weapon/tool/crowbar,
-		/obj/item/weapon/tool/wirecutters,
+		/obj/item/weapon/weldingtool,
+		/obj/item/weapon/screwdriver,
+		/obj/item/weapon/wrench,
+		/obj/item/weapon/crowbar,
+		/obj/item/weapon/wirecutters,
 		/obj/item/device/multitool,
 		/obj/item/device/lightreplacer,
 		/obj/item/weapon/gripper,
@@ -44,6 +44,12 @@
 		/datum/matter_synth/wire =    30
 	)
 	emag = /obj/item/weapon/gun/energy/plasmacutter
+	skills = list(
+		SKILL_ATMOS        = SKILL_EXPERT,
+		SKILL_ENGINES      = SKILL_EXPERT,
+		SKILL_CONSTRUCTION = SKILL_EXPERT,
+		SKILL_ELECTRICAL   = SKILL_EXPERT
+	)
 
 /obj/item/weapon/robot_module/drone/finalize_equipment(var/mob/living/silicon/robot/R)
 	. = ..()

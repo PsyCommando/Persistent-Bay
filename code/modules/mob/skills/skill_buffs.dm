@@ -5,11 +5,8 @@
 	var/datum/skillset/skillset //The skillset to which this buff belongs.
 
 /datum/skill_buff/New(buff)
-	if(buff)
-		buffs = buff
+	buffs = buff
 	..()
-	ADD_SAVED_VAR(buffs)
-	ADD_SKIP_EMPTY(buffs)
 
 /datum/skill_buff/Destroy()
 	if(skillset)

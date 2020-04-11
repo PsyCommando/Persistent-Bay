@@ -18,13 +18,9 @@
 	icon_state = "longtie"
 	color = "#a02929"
 
-/obj/item/clothing/accessory/white
-	name = "white tie"
-
 /obj/item/clothing/accessory/black
 	name = "black tie"
 	color = "#1e1e1e"
-	desc = "A tie made from real silk, or so the label leads you to believe."
 
 /obj/item/clothing/accessory/yellow
 	name = "yellow tie"
@@ -67,17 +63,7 @@
 
 //Bowties
 /obj/item/clothing/accessory/bowtie
-	var/icon_tied
 	var/tied = TRUE
-/obj/item/clothing/accessory/bowtie/New()
-	icon_tied = icon_tied || icon_state
-	..()
-
-/obj/item/clothing/accessory/bowtie/after_load()
-	if(has_suit)
-		has_suit.verbs += /obj/item/clothing/accessory/bowtie/verb/toggle
-	icon_tied = icon_tied || icon_state
-	..()
 
 /obj/item/clothing/accessory/bowtie/on_attached(obj/item/clothing/under/S, mob/user as mob)
 	..()

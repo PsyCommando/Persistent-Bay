@@ -65,6 +65,8 @@ var/list/spells = typesof(/spell) //needed for the badmin verb for now
 	var/mob/living/deity/connected_god //Do we have this spell based off a boon from a god?
 	var/obj/screen/connected_button
 
+	var/hidden_from_codex = FALSE
+
 ///////////////////////
 ///SETUP AND PROCESS///
 ///////////////////////
@@ -305,7 +307,7 @@ var/list/spells = typesof(/spell) //needed for the badmin verb for now
 
 	var/list/valid_targets = view_or_range(range, holder, selection_type)
 	for(var/target in targets)
-		if(!target in valid_targets)
+		if(!(target in valid_targets))
 			return 0
 	return 1
 

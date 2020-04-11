@@ -12,10 +12,12 @@
 
 	antaghud_offset_y = 8
 
-	assisted_langs = list(LANGUAGE_GALCOM, LANGUAGE_GUTTER, LANGUAGE_UNATHI, LANGUAGE_SKRELLIAN, LANGUAGE_HUMAN_EURO, LANGUAGE_EAL, LANGUAGE_HUMAN_RUSSIAN)
+	assisted_langs = list(LANGUAGE_GUTTER, LANGUAGE_UNATHI_SINTA, LANGUAGE_SKRELLIAN, LANGUAGE_HUMAN_EURO, LANGUAGE_EAL, LANGUAGE_HUMAN_RUSSIAN)
 	min_age = 8
 	max_age = 40
 
+	skin_material = MATERIAL_SKIN_CHITIN
+	bone_material = null
 	speech_sounds = list('sound/voice/bug.ogg')
 	speech_chance = 2
 
@@ -47,14 +49,20 @@
 	total_health = 200
 	brute_mod = 0.9
 	burn_mod =  1.35
-	natural_armour_values = list(melee = 30, bullet = 15, laser = 0, energy = 0, bomb = 30, bio = 100, rad = 10)
+	natural_armour_values = list(
+		melee = ARMOR_MELEE_KNIVES,
+		bullet = ARMOR_BALLISTIC_MINOR,
+		bomb = ARMOR_BOMB_PADDED,
+		bio = ARMOR_BIO_SHIELDED,
+		rad = 0.5*ARMOR_RAD_MINOR
+		)
 
 	gluttonous = GLUT_SMALLER
 	mob_size = MOB_LARGE
 	strength = STR_HIGH
 	breath_pressure = 25
 	blood_volume = 840
-	spawns_with_stack = TRUE
+	spawns_with_stack = 0
 
 	heat_level_1 = 410 //Default 360 - Higher is better
 	heat_level_2 = 440 //Default 400
@@ -62,7 +70,7 @@
 
 	species_flags = SPECIES_FLAG_NO_SLIP | SPECIES_FLAG_NO_BLOCK | SPECIES_FLAG_NO_MINOR_CUT | SPECIES_FLAG_NEED_DIRECT_ABSORB
 	appearance_flags = HAS_SKIN_COLOR | HAS_EYE_COLOR | HAS_SKIN_TONE_NORMAL | HAS_BASE_SKIN_COLOURS
-	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN //| SPECIES_NO_LACE
+	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN
 
 	bump_flag = HEAVY
 	push_flags = ALLMOBS
@@ -73,11 +81,11 @@
 	move_trail = /obj/effect/decal/cleanable/blood/tracks/snake
 
 	has_organ = list(    // which required-organ checks are conducted.
-		BP_BRAIN =    /obj/item/organ/internal/brain/nabber,
-		BP_EYES =     /obj/item/organ/internal/eyes/nabber,
-		BP_TRACH =    /obj/item/organ/internal/lungs/nabber,
+		BP_BRAIN =    /obj/item/organ/internal/brain/insectoid/nabber,
+		BP_EYES =     /obj/item/organ/internal/eyes/insectoid/nabber,
+		BP_TRACH =    /obj/item/organ/internal/lungs/insectoid/nabber,
+		BP_LIVER =    /obj/item/organ/internal/liver/insectoid/nabber,
 		BP_HEART =    /obj/item/organ/internal/heart/open,
-		BP_LIVER =    /obj/item/organ/internal/liver/nabber,
 		BP_STOMACH =  /obj/item/organ/internal/stomach,
 		BP_PHORON =   /obj/item/organ/internal/phoron,
 		BP_ACETONE =  /obj/item/organ/internal/acetone,
@@ -85,17 +93,17 @@
 		)
 
 	has_limbs = list(
-		BP_CHEST =  list("path" = /obj/item/organ/external/chest/nabber),
-		BP_GROIN =  list("path" = /obj/item/organ/external/groin/nabber),
-		BP_HEAD =   list("path" = /obj/item/organ/external/head/nabber),
-		BP_L_ARM =  list("path" = /obj/item/organ/external/arm/nabber),
-		BP_L_HAND = list("path" = /obj/item/organ/external/hand/nabber),
-		BP_R_ARM =  list("path" = /obj/item/organ/external/arm/right/nabber),
-		BP_R_HAND = list("path" = /obj/item/organ/external/hand/right/nabber),
-		BP_R_LEG =  list("path" = /obj/item/organ/external/leg/right/nabber),
-		BP_L_LEG =  list("path" = /obj/item/organ/external/leg/nabber),
-		BP_L_FOOT = list("path" = /obj/item/organ/external/foot/nabber),
-		BP_R_FOOT = list("path" = /obj/item/organ/external/foot/right/nabber)
+		BP_CHEST =  list("path" = /obj/item/organ/external/chest/insectoid/nabber),
+		BP_GROIN =  list("path" = /obj/item/organ/external/groin/insectoid/nabber),
+		BP_HEAD =   list("path" = /obj/item/organ/external/head/insectoid/nabber),
+		BP_L_ARM =  list("path" = /obj/item/organ/external/arm/insectoid),
+		BP_L_HAND = list("path" = /obj/item/organ/external/hand/insectoid),
+		BP_R_ARM =  list("path" = /obj/item/organ/external/arm/right/insectoid),
+		BP_R_HAND = list("path" = /obj/item/organ/external/hand/right/insectoid),
+		BP_R_LEG =  list("path" = /obj/item/organ/external/leg/right/insectoid),
+		BP_L_LEG =  list("path" = /obj/item/organ/external/leg/insectoid),
+		BP_L_FOOT = list("path" = /obj/item/organ/external/foot/insectoid),
+		BP_R_FOOT = list("path" = /obj/item/organ/external/foot/right/insectoid)
 		)
 
 	base_skin_colours = list(
@@ -130,19 +138,18 @@
 		),
 		TAG_RELIGION =  list(
 			RELIGION_OTHER
-		),
-		TAG_AMBITION = list(
-			AMBITION_FREEDOM,
-			AMBITION_OPPORTUNITY,
-			AMBITION_KNOWLEDGE
 		)
+	)
+	pain_emotes_with_pain_level = list(
+			list(/decl/emote/audible/bug_hiss) = 40
 	)
 
 /datum/species/nabber/New()
 	equip_adjust = list(
-		slot_back_str =    list("[NORTH]" = list("x" = 0, "y" = 7), "[EAST]" = list("x" = 0, "y" = 8), "[SOUTH]" = list("x" = 0, "y" = 8), "[WEST]" = list("x" = 0, "y" = 8)),
-		slot_belt_str =    list("[NORTH]" = list("x" = 0, "y" = 0), "[EAST]" = list("x" = 8, "y" = 0), "[SOUTH]" = list("x" = 0, "y" = 0), "[WEST]" = list("x" = -8, "y" = 0)),
-		slot_glasses_str = list("[NORTH]" = list("x" = 0, "y" = 10), "[EAST]" = list("x" = 0, "y" = 11), "[SOUTH]" = list("x" = 0, "y" = 11), "[WEST]" = list("x" = 0, "y" = 11)),
+		slot_head_str =    list("[NORTH]" = list("x" = 0, "y" = 7),  "[EAST]" = list("x" = 0, "y" = 8),  "[SOUTH]" = list("x" = 0, "y" = 8),  "[WEST]" = list("x" = 0, "y" = 8)),
+		slot_back_str =    list("[NORTH]" = list("x" = 0, "y" = 7),  "[EAST]" = list("x" = 0, "y" = 8),  "[SOUTH]" = list("x" = 0, "y" = 8),  "[WEST]" = list("x" = 0, "y" = 8)),
+		slot_belt_str =    list("[NORTH]" = list("x" = 0, "y" = 0),  "[EAST]" = list("x" = 8, "y" = 0),  "[SOUTH]" = list("x" = 0, "y" = 0),  "[WEST]" = list("x" = -8, "y" = 0)),
+		slot_glasses_str = list("[NORTH]" = list("x" = 0, "y" = 10), "[EAST]" = list("x" = 0, "y" = 11), "[SOUTH]" = list("x" = 0, "y" = 11), "[WEST]" = list("x" = 0, "y" = 11))
 	)
 	..()
 
@@ -220,8 +227,8 @@
 	H.remove_cloaking_source(src)
 
 	var/obj/item/organ/internal/B = H.internal_organs_by_name[BP_BRAIN]
-	if(istype(B,/obj/item/organ/internal/brain/nabber))
-		var/obj/item/organ/internal/brain/nabber/N = B
+	if(istype(B,/obj/item/organ/internal/brain/insectoid/nabber))
+		var/obj/item/organ/internal/brain/insectoid/nabber/N = B
 
 		tally += N.lowblood_tally * 2
 	return tally
@@ -233,7 +240,7 @@
 /obj/item/grab/nab/special/init()
 	if(!(. = ..()))
 		return
-	affecting.apply_damage(15, DAM_PIERCE, BP_CHEST, used_weapon = "organic punctures")
+	affecting.apply_damage(15, BRUTE, BP_CHEST, DAM_SHARP, "organic punctures")
 	affecting.visible_message("<span class='danger'>[assailant]'s spikes dig in painfully!</span>")
 	affecting.Stun(10)
 
@@ -311,6 +318,9 @@
 
 	if(grabber.pulling_punches)
 		return ..()
+	if(grabber == target)
+		return ..()
+
 	grabber.unEquip(grabber.l_hand)
 	grabber.unEquip(grabber.r_hand)
 	to_chat(grabber, "<span class='warning'>You drop everything as you spring out to nab \the [target]!.</span>")

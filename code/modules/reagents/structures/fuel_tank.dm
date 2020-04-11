@@ -39,7 +39,7 @@
 
 /obj/structure/reagent_dispensers/fueltank/attackby(obj/item/weapon/W as obj, mob/user as mob)
 
-	if (istype(W,/obj/item/weapon/tool/wrench))
+	if (istype(W,/obj/item/weapon/wrench))
 		user.visible_message("[user] wrenches [src]'s faucet [modded ? "closed" : "open"].", \
 			"You wrench [src]'s faucet [modded ? "closed" : "open"]")
 		modded = modded ? 0 : 1
@@ -105,10 +105,10 @@
 		if(!istype(Proj ,/obj/item/projectile/beam/lastertag) && !istype(Proj ,/obj/item/projectile/beam/practice) )
 			explode()
 
-/obj/structure/reagent_dispensers/fueltank/destroyed(damagetype, user)
-	if(IsDamageTypeBurn(damagetype)) //explode only when the damage type is one that burns
-		explode(FALSE)
-	. = ..()
+// /obj/structure/reagent_dispensers/fueltank/destroyed(damagetype, user)
+// 	if(damagetype == BURN) //explode only when the damage type is one that burns
+// 		explode(FALSE)
+// 	. = ..()
 
 /obj/structure/reagent_dispensers/fueltank/proc/explode(var/deleteafter = TRUE)
 	if (reagents.total_volume > 500)

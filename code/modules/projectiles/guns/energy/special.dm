@@ -1,5 +1,5 @@
 /obj/item/weapon/gun/energy/ionrifle
-	name = "Mk60 EW Halicon ion rifle"
+	name = "ion rifle"
 	desc = "The NT Mk60 EW Halicon is a man portable anti-armor weapon designed to disable mechanical threats, produced by NT. Not the best of its type."
 	icon = 'icons/obj/guns/ion_rifle.dmi'
 	icon_state = "ionrifle"
@@ -11,7 +11,8 @@
 	slot_flags = SLOT_BACK
 	one_hand_penalty = 4
 	charge_cost = 30
-	max_shots = 10
+	max_shots = 8
+	fire_delay = 30
 	projectile_type = /obj/item/projectile/ion
 	wielded_item_state = "ionrifle-wielded"
 	combustion = 0
@@ -20,7 +21,7 @@
 	..(max(severity, 2)) //so it doesn't EMP itself, I guess
 
 /obj/item/weapon/gun/energy/ionrifle/small
-	name = "Mk72 EW Preston ion pistol"
+	name = "ion pistol"
 	desc = "The NT Mk72 EW Preston is a personal defense weapon designed to disable mechanical threats."
 	icon = 'icons/obj/guns/ion_pistol.dmi'
 	icon_state = "ionpistol"
@@ -30,8 +31,8 @@
 	force = 5
 	slot_flags = SLOT_BELT|SLOT_HOLSTER
 	one_hand_penalty = 0
-	charge_cost = 25
-	max_shots = 8
+	charge_cost = 20
+	max_shots = 4
 	projectile_type = /obj/item/projectile/ion/small
 
 /obj/item/weapon/gun/energy/decloner
@@ -44,7 +45,6 @@
 	max_shots = 10
 	projectile_type = /obj/item/projectile/energy/declone
 	combustion = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/floragun
 	name = "floral somatoray"
@@ -66,7 +66,6 @@
 		list(mode_name="increase yield", projectile_type=/obj/item/projectile/energy/florayield, modifystate="florayield"),
 		list(mode_name="induce specific mutations", projectile_type=/obj/item/projectile/energy/floramut/gene, modifystate="floramut"),
 		)
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/floragun/resolve_attackby(atom/A)
 	if(istype(A,/obj/machinery/portable_atmospherics/hydroponics))
@@ -97,7 +96,6 @@
 
 	return
 
-
 /obj/item/weapon/gun/energy/floragun/consume_next_projectile()
 	. = ..()
 	var/obj/item/projectile/energy/floramut/gene/G = .
@@ -118,7 +116,6 @@
 	recharge_time = 5 //Time it takes for shots to recharge (in ticks)
 	charge_meter = 0
 	combustion = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/meteorgun/pen
 	name = "meteor pen"
@@ -128,8 +125,6 @@
 	item_state = "pen"
 	w_class = ITEM_SIZE_TINY
 	slot_flags = SLOT_BELT
-	load_method = ENERGY_LOAD_FIXED_CELL
-
 
 /obj/item/weapon/gun/energy/mindflayer
 	name = "mind flayer"
@@ -138,7 +133,7 @@
 	icon_state = "xray"
 	origin_tech = list(TECH_COMBAT = 5, TECH_MAGNET = 4)
 	projectile_type = /obj/item/projectile/beam/mindflayer
-	load_method = ENERGY_LOAD_FIXED_CELL
+
 /obj/item/weapon/gun/energy/toxgun
 	name = "phoron pistol"
 	desc = "A specialized firearm designed to fire lethal bolts of phoron."
@@ -147,60 +142,6 @@
 	w_class = ITEM_SIZE_NORMAL
 	origin_tech = list(TECH_COMBAT = 5, TECH_PHORON = 4)
 	projectile_type = /obj/item/projectile/energy/phoron
-	load_method = ENERGY_LOAD_FIXED_CELL
-/* Staves */
-
-/obj/item/weapon/gun/energy/staff
-	name = "staff of change"
-	desc = "An artefact that spits bolts of coruscating energy which cause the target's very form to reshape itself."
-	icon = 'icons/obj/guns/staff.dmi'
-	item_icons = null
-	icon_state = "staffofchange"
-	item_state = "staffofchange"
-	fire_sound = 'sound/weapons/emitter.ogg'
-	obj_flags =  OBJ_FLAG_CONDUCTIBLE
-	slot_flags = SLOT_BELT|SLOT_BACK
-	w_class = ITEM_SIZE_LARGE
-	max_shots = 5
-	projectile_type = /obj/item/projectile/change
-	origin_tech = null
-	self_recharge = 1
-	charge_meter = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
-	var/required_antag_type = MODE_WIZARD
-
-/obj/item/weapon/gun/energy/staff/special_check(var/mob/user)
-	if(required_antag_type)
-		var/datum/antagonist/antag = get_antag_data(required_antag_type)
-		if(user.mind && !antag.is_antagonist(user.mind))
-			to_chat(usr, "<span class='warning'>You focus your mind on \the [src], but nothing happens!</span>")
-			return 0
-
-	return ..()
-
-/obj/item/weapon/gun/energy/staff/handle_click_empty(mob/user = null)
-	if (user)
-		user.visible_message("*fizzle*", "<span class='danger'>*fizzle*</span>")
-	else
-		src.visible_message("*fizzle*")
-	playsound(src.loc, 'sound/effects/sparks1.ogg', 100, 1)
-
-/obj/item/weapon/gun/energy/staff/animate
-	name = "staff of animation"
-	desc = "An artefact that spits bolts of life-force which causes objects which are hit by it to animate and come to life! This magic doesn't affect machines."
-	max_shots = 5
-	recharge_time = 5 SECONDS
-	projectile_type = /obj/item/projectile/animate
-	load_method = ENERGY_LOAD_FIXED_CELL
-
-/obj/item/weapon/gun/energy/staff/focus
-	name = "mental focus"
-	desc = "An artefact that channels the will of the user into destructive bolts of force. If you aren't careful with it, you might poke someone's brain out."
-	icon = 'icons/obj/wizard.dmi'
-	icon_state = "focus"
-	item_state = "focus"
-	projectile_type = /obj/item/projectile/forcebolt
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/plasmacutter
 	name = "plasma cutter"
@@ -218,11 +159,43 @@
 	projectile_type = /obj/item/projectile/beam/plasmacutter
 	max_shots = 10
 	self_recharge = 1
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
-	mass = 0.8
+	var/datum/effect/effect/system/spark_spread/spark_system
 
 /obj/item/weapon/gun/energy/plasmacutter/mounted
 	name = "mounted plasma cutter"
 	use_external_power = 1
 	max_shots = 4
 	has_safety = FALSE
+
+/obj/item/weapon/gun/energy/plasmacutter/Initialize()
+	. = ..()
+	spark_system = new /datum/effect/effect/system/spark_spread
+	spark_system.set_up(5, 0, src)
+	spark_system.attach(src)
+
+/obj/item/weapon/gun/energy/plasmacutter/Destroy()
+	QDEL_NULL(spark_system)
+	return ..()
+
+/obj/item/weapon/gun/energy/plasmacutter/proc/slice(var/mob/M = null)
+	if(!safety() && power_supply.checked_use(charge_cost)) //consumes a shot per use
+		if(M)
+			M.welding_eyecheck()//Welding tool eye check
+			if(check_accidents(M, "[M] loses grip on [src] from its sudden recoil!",SKILL_CONSTRUCTION, 60, SKILL_ADEPT))
+				return 0
+		spark_system.start()
+		return 1
+	handle_click_empty(M)
+	return 0
+
+/obj/item/weapon/gun/energy/incendiary_laser
+	name = "dispersive blaster"
+	desc = "The A&M 'Shayatin' was the first of a now-banned class of dispersive laser weapons which, instead of firing a focused beam, scan over a target rapidly with the goal of setting it ablaze."
+	icon = 'icons/obj/guns/incendiary_laser.dmi'
+	icon_state = "incen"
+	item_state = "incen"
+	safety_icon = "safety"
+	origin_tech = list(TECH_COMBAT = 7, TECH_MAGNET = 4, TECH_ESOTERIC = 4)
+	matter = list(MATERIAL_ALUMINIUM = 1000, MATERIAL_PLASTIC = 500, MATERIAL_DIAMOND = 500)
+	projectile_type = /obj/item/projectile/beam/incendiary_laser
+	max_shots = 4

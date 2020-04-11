@@ -19,7 +19,7 @@
 	if(GLOB.use_preloader && (src.type == GLOB._preloader.target_path))//in case the instanciated atom is creating other atoms in New()
 		GLOB._preloader.load(src)
 
-	var/do_initialize = SSatoms.init_state
+	var/do_initialize = SSatoms.atom_init_stage
 	var/list/created = SSatoms.created_atoms
 	if(do_initialize > INITIALIZATION_INSSATOMS_LATE)
 		args[1] = do_initialize == INITIALIZATION_INNEW_MAPLOAD
@@ -35,25 +35,15 @@
 
 	if(atom_flags & ATOM_FLAG_CLIMBABLE)
 		verbs += /atom/proc/climb_on
-	
-	ADD_SAVED_VAR(reagents)
-	ADD_SAVED_VAR(blood_DNA)
-	ADD_SAVED_VAR(was_bloodied)
-	ADD_SAVED_VAR(blood_color)
-	ADD_SAVED_VAR(germ_level)
-	ADD_SKIP_EMPTY(reagents)
 
 //Called after New if the map is being loaded. mapload = TRUE
 //Called from base of New if the map is not being loaded. mapload = FALSE
 //This base must be called or derivatives must set initialized to TRUE
 //must not sleep
-//Other parameters are passed from New (excluding loc), this does not happen if mapload is TRUE
+//Other parameters are passed from New (excluding loc)
 //Must return an Initialize hint. Defined in __DEFINES/subsystems.dm
 
 /atom/proc/Initialize(mapload, ...)
-	if(QDELETED(src) || QDELING(src))
-		return INITIALIZE_HINT_QDEL //Happens because of map loading shennanigans
-
 	if(atom_flags & ATOM_FLAG_INITIALIZED)
 		crash_with("Warning: [src]([type]) initialized multiple times!")
 	atom_flags |= ATOM_FLAG_INITIALIZED
@@ -66,9 +56,6 @@
 		var/turf/T = loc
 		if(istype(T))
 			T.handle_opacity_change(src)
-	
-	if(!reagents)
-		SetupReagents()
 
 	return INITIALIZE_HINT_NORMAL
 
@@ -102,7 +89,17 @@
 		return 0
 	return -1
 
+//Return flags that may be added as part of a mobs sight
+/atom/proc/additional_sight_flags()
+	return 0
+
+/atom/proc/additional_see_invisible()
+	return 0
+
 /atom/proc/on_reagent_change()
+	return
+
+/atom/proc/on_color_transfer_reagent_change()
 	return
 
 /atom/proc/Bumped(AM as mob|obj)
@@ -134,7 +131,7 @@
 /atom/proc/emp_act(var/severity)
 	return
 
-/atom/set_density(var/new_density)
+/atom/proc/set_density(var/new_density)
 	if(density != new_density)
 		density = !!new_density
 
@@ -247,8 +244,10 @@ its easier to just keep the beam vertical.
 	for(var/obj/effect/overlay/beam/O in orange(10,src)) if(O.BeamSource==src) qdel(O)
 
 
-//All atoms
-/atom/proc/examine(mob/user, var/distance = -1, var/infix = "", var/suffix = "")
+// A type overriding /examine() should either return the result of ..() or return TRUE if not calling ..()
+// Calls to ..() should generally not supply any arguments and instead rely on BYOND's automatic argument passing
+// There is no need to check the return value of ..(), this is only done by the calling /examinate() proc to validate the call chain
+/atom/proc/examine(mob/user, distance, infix = "", suffix = "")
 	//This reformat names to get a/an properly working on item descriptions when they are bloody
 	var/f_name = "\a [src][infix]."
 	if(blood_color && !istype(src, /obj/effect/decal))
@@ -260,8 +259,7 @@ its easier to just keep the beam vertical.
 
 	to_chat(user, "\icon[src] That's [f_name] [suffix]")
 	to_chat(user, desc)
-
-	return distance == -1 || (get_dist(src, user) <= distance)
+	return TRUE
 
 // called by mobs when e.g. having the atom as their machine, pulledby, loc (AKA mob being inside the atom) or buckled var set.
 // see code/modules/mob/mob_movement.dm for more.
@@ -285,8 +283,6 @@ its easier to just keep the beam vertical.
 		icon_state = new_icon_state
 
 /atom/proc/update_icon()
-	if(QDELETED(src)) //Handy little thing
-		return
 	on_update_icon(arglist(args))
 
 /atom/proc/on_update_icon()
@@ -310,11 +306,10 @@ its easier to just keep the beam vertical.
 	qdel(src)
 	. = TRUE
 
-/atom/proc/hitby(atom/movable/AM as mob|obj)
-	if (density)
-		AM.throwing = 0
-	return
-
+/atom/proc/hitby(atom/movable/AM, var/datum/thrownthing/TT)//already handled by throw impact
+	if(isliving(AM))
+		var/mob/living/M = AM
+		M.apply_damage(TT.speed*5, BRUTE)
 
 //returns 1 if made bloody, returns 0 otherwise
 /atom/proc/add_blood(mob/living/carbon/human/M as mob)
@@ -554,7 +549,7 @@ its easier to just keep the beam vertical.
 
 			if(affecting)
 				to_chat(M, "<span class='danger'>You land heavily on your [affecting.name]!</span>")
-				affecting.take_damage(damage, DAM_BLUNT)
+				affecting.take_external_damage(damage, 0)
 				if(affecting.parent)
 					affecting.parent.add_autopsy_data("Misadventure", damage)
 			else
@@ -576,15 +571,4 @@ its easier to just keep the beam vertical.
 	return color
 
 /atom/proc/get_cell()
-	return
-
-// Returns an amount of power drawn from the object (-1 if it's not viable).
-// If drain_check is set it will not actually drain power, just return a value.
-// If surge is set, it will destroy/damage the recipient and not return any power.
-// Not sure where to define this, so it can sit here for the rest of time.
-/atom/proc/drain_power(var/drain_check,var/surge, var/amount = 0)
-	return -1
-
-//This is used to set the initial reagents for an atom. Its called only on an atom that wasn't loaded from save
-/atom/proc/SetupReagents()
 	return

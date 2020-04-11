@@ -7,20 +7,15 @@
 	var/object
 
 /obj/item/weapon/sample/New(var/newloc, var/atom/supplied)
-	..()
-	ADD_SAVED_VAR(evidence)
-	ADD_SAVED_VAR(object)
-
-/obj/item/weapon/sample/Initialize(mapload, var/atom/supplied)
-	. = ..()
+	..(newloc)
 	if(supplied)
 		copy_evidence(supplied)
 		name = "[initial(name)] (\the [supplied])"
 		object = "[supplied], [get_area(supplied)]"
 
-/obj/item/weapon/sample/examine(var/user)
-	. = ..(user, 1)
-	if(. && object)
+/obj/item/weapon/sample/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1 && object)
 		to_chat(user, "The label says: '[object]'")
 
 /obj/item/weapon/sample/print/New(var/newloc, var/atom/supplied)

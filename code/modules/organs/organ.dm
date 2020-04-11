@@ -4,12 +4,8 @@ var/list/organ_cache = list()
 	name = "organ"
 	icon = 'icons/obj/surgery.dmi'
 	germ_level = 0
-	obj_flags = OBJ_FLAG_DAMAGEABLE
 	w_class = ITEM_SIZE_TINY
 	default_action_type = /datum/action/item_action/organ
-	matter = list(MATERIAL_PINK_GOO = 100)
-	damthreshold_brute = 0
-	damthreshold_burn  = 0
 
 	// Strings.
 	var/organ_tag = "organ"           // Unique identifier.
@@ -25,23 +21,10 @@ var/list/organ_cache = list()
 	var/datum/species/species         // Original species.
 
 	// Damage vars.
+	var/damage = 0                    // Current damage to the organ
 	var/min_broken_damage = 30        // Damage before becoming broken
-	max_health = 30               // Damage cap
+	var/max_damage = 30               // Damage cap
 	var/rejecting                     // Is this organ already being rejected?
-	armor = list(
-		DAM_BLUNT  	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 0,
-		DAM_BULLET 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 0,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0,
-		DAM_PAIN	= 0,
-		DAM_CLONE   = 0) 	//Resistance for various types of damages
 
 	var/death_time
 
@@ -49,22 +32,22 @@ var/list/organ_cache = list()
 	var/can_be_printed = TRUE
 	var/print_cost
 
+/obj/item/organ/Destroy()
+	owner = null
+	dna = null
+	return ..()
+
 /obj/item/organ/proc/refresh_action_button()
 	return action
 
 /obj/item/organ/attack_self(var/mob/user)
 	return (owner && loc == owner && owner == user)
 
-//Already handled in /obj/
-// /obj/item/organ/proc/update_health()
-// 	return
-/obj/item/organ/proc/is_broken()
-	return ((max_health - health) >= min_broken_damage || (status & ORGAN_CUT_AWAY) || (status & ORGAN_BROKEN))
+/obj/item/organ/proc/update_health()
+	return
 
-/obj/item/organ/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		health = max_health
+/obj/item/organ/proc/is_broken()
+	return (damage >= min_broken_damage || (status & ORGAN_CUT_AWAY) || (status & ORGAN_BROKEN))
 
 //Second argument may be a dna datum; if null will be set to holder's dna.
 /obj/item/organ/New(var/mob/living/carbon/holder, var/datum/dna/given_dna)
@@ -72,10 +55,10 @@ var/list/organ_cache = list()
 	if(!istype(given_dna))
 		given_dna = null
 
-	if(max_health)
-		min_broken_damage = Floor(max_health / 2)
+	if(max_damage)
+		min_broken_damage = Floor(max_damage / 2)
 	else
-		max_health = min_broken_damage * 2
+		max_damage = min_broken_damage * 2
 
 	if(istype(holder))
 		owner = holder
@@ -84,64 +67,16 @@ var/list/organ_cache = list()
 			given_dna = holder.dna
 		else
 			log_debug("[src] spawned in [holder] without a proper DNA.")
-		species = owner.species
 
 	if (given_dna)
 		set_dna(given_dna)
 	if (!species)
 		species = all_species[SPECIES_HUMAN]
 
-	if(!reagents)
-		create_reagents(5 * (w_class-1)**2)
-		reagents.add_reagent(/datum/reagent/nutriment/protein, reagents.maximum_volume)
+	create_reagents(5 * (w_class-1)**2)
+	reagents.add_reagent(/datum/reagent/nutriment/protein, reagents.maximum_volume)
 
-	queue_icon_update()
-	
-	//Setup saved vars
-	ADD_SAVED_VAR(min_broken_damage)
-	ADD_SAVED_VAR(status)
-	ADD_SAVED_VAR(owner)
-	ADD_SAVED_VAR(dna)
-	ADD_SAVED_VAR(species)
-	ADD_SAVED_VAR(rejecting)
-	ADD_SAVED_VAR(death_time)
-	ADD_SAVED_VAR(organ_tag)
-
-/obj/item/organ/Destroy()
-#ifdef TESTING
-	testing("Destroying [src]\ref[src]([x], [y], [z]), in \the '[loc]'\ref[loc]([loc?.x], [loc?.y], [loc?.z]), with owner: [owner? owner : "null"]\ref[owner]([owner?.x], [owner?.y], [owner?.z])!")
-#endif
-	owner = null
-	dna = null
-	species = null
-	return ..()
-
-/obj/item/organ/after_load()
-	. = ..()
-	if(istype(owner))
-		w_class = max(w_class + mob_size_difference(owner.mob_size, MOB_MEDIUM), 1) //smaller mobs have smaller organs.
-		if(!dna)
-			set_dna(owner.dna)
-		if(!species)
-			species = owner.species
-		if (!species)
-			species = all_species[SPECIES_HUMAN]
-
-	if(BP_IS_ROBOTIC(src))
-		robotize()
-
-/obj/item/organ/proc/heal_damage(var/amount)
-	add_health(round(amount, 0.1))
-
-/obj/item/organ/update_health()
-	if(!isdamageable())
-		return
-	if(health <= min_health)
-		die()
 	update_icon()
-
-/obj/item/organ/destroyed()
-	die()
 
 /obj/item/organ/proc/set_dna(var/datum/dna/new_dna)
 	if(new_dna)
@@ -155,13 +90,12 @@ var/list/organ_cache = list()
 			crash_with("Invalid DNA species. Expected a valid species name as string, was: [log_info_line(dna.species)]")
 
 /obj/item/organ/proc/die()
-	health = min_health
+	damage = max_damage
 	status |= ORGAN_DEAD
 	STOP_PROCESSING(SSobj, src)
 	death_time = world.time
 	if(owner && vital)
 		owner.death()
-	queue_icon_update()
 
 /obj/item/organ/Process()
 
@@ -199,16 +133,13 @@ var/list/organ_cache = list()
 		handle_germ_effects()
 
 	//check if we've hit max_damage
-	if(health <= min_health)
+	if(damage >= max_damage)
 		die()
 
 /obj/item/organ/proc/is_preserved()
 	if(istype(loc,/obj/item/organ))
 		var/obj/item/organ/O = loc
 		return O.is_preserved()
-	else if(loc && loc.return_air())
-		var/datum/gas_mixture/G = loc.return_air()
-		return (G.temperature < T0C)
 	else
 		return (istype(loc,/obj/item/device/mmi) || istype(loc,/obj/structure/closet/body_bag/cryobag) || istype(loc,/obj/structure/closet/crate/freezer) || istype(loc,/obj/item/weapon/storage/box/freezer))
 
@@ -222,15 +153,19 @@ var/list/organ_cache = list()
 
 /obj/item/organ/proc/handle_germ_effects()
 	//** Handle the effects of infections
+	var/virus_immunity = owner.virus_immunity() //reduces the amount of times we need to call this proc
 	var/antibiotics = owner.reagents.get_reagent_amount(/datum/reagent/spaceacillin)
 
-	if (germ_level > 0 && germ_level < INFECTION_LEVEL_ONE/2 && prob(owner.virus_immunity()*0.3))
+	if (germ_level > 0 && germ_level < INFECTION_LEVEL_ONE/2 && prob(virus_immunity*0.3))
 		germ_level--
 
 	if (germ_level >= INFECTION_LEVEL_ONE/2)
-		//aiming for germ level to go from ambient to INFECTION_LEVEL_TWO in an average of 15 minutes
+		//aiming for germ level to go from ambient to INFECTION_LEVEL_TWO in an average of 15 minutes, when immunity is full.
 		if(antibiotics < 5 && prob(round(germ_level/6 * owner.immunity_weakness() * 0.01)))
-			germ_level++
+			if(virus_immunity > 0)
+				germ_level += Clamp(round(1/virus_immunity), 1, 10) // Immunity starts at 100. This doubles infection rate at 50% immunity. Rounded to nearest whole.
+			else // Will only trigger if immunity has hit zero. Once it does, 10x infection rate.
+				germ_level += 10
 
 	if(germ_level >= INFECTION_LEVEL_ONE)
 		var/fever_temperature = (owner.species.heat_level_1 - owner.species.body_temperature - 5)* min(germ_level/INFECTION_LEVEL_TWO, 1) + owner.species.body_temperature
@@ -277,8 +212,8 @@ var/list/organ_cache = list()
 	qdel(src)
 
 /obj/item/organ/proc/rejuvenate(var/ignore_prosthetic_prefs)
-	set_health(max_health)
-	status = 0
+	damage = 0
+	status = initial(status)
 	if(!ignore_prosthetic_prefs && owner && owner.client && owner.client.prefs && owner.client.prefs.real_name == owner.real_name)
 		var/status = owner.client.prefs.organ_data[organ_tag]
 		if(status == "assisted")
@@ -310,13 +245,16 @@ var/list/organ_cache = list()
 /obj/item/organ/proc/take_general_damage(var/amount, var/silent = FALSE)
 	CRASH("Not Implemented")
 
+/obj/item/organ/proc/heal_damage(amount)
+	if (can_recover())
+		damage = between(0, damage - round(amount, 0.1), max_damage)
+
+
 /obj/item/organ/proc/robotize() //Being used to make robutt hearts, etc
 	status = ORGAN_ROBOTIC
-	queue_icon_update()
 
 /obj/item/organ/proc/mechassist() //Used to add things like pacemakers, etc
 	status = ORGAN_ASSISTED
-	queue_icon_update()
 
 /**
  *  Remove an organ
@@ -327,9 +265,7 @@ var/list/organ_cache = list()
  */
 /obj/item/organ/proc/removed(var/mob/living/user, var/drop_organ=1)
 
-	if(!istype(owner) || QDELETED(owner))
-		rejecting = null
-		owner = null
+	if(!istype(owner))
 		return
 	GLOB.dismembered_event.raise_event(owner, src)
 
@@ -362,7 +298,7 @@ var/list/organ_cache = list()
 
 /obj/item/organ/attack(var/mob/target, var/mob/user)
 
-	if(BP_IS_ROBOTIC(src) || !istype(target) || !istype(user) || (user != target && user.a_intent == I_HELP))
+	if(status & ORGAN_ROBOTIC || !istype(target) || !istype(user) || (user != target && user.a_intent == I_HELP))
 		return ..()
 
 	if(alert("Do you really want to use this organ as food? It will be useless for anything else afterwards.",,"Ew, no.","Bon appetit!") == "Ew, no.")
@@ -387,7 +323,7 @@ var/list/organ_cache = list()
 	return !(status & (ORGAN_CUT_AWAY|ORGAN_MUTATED|ORGAN_DEAD))
 
 /obj/item/organ/proc/can_recover()
-	return (max_health > 0) && !(status & ORGAN_DEAD) || (death_time >= world.time - ORGAN_RECOVERY_THRESHOLD)
+	return (max_damage > 0) && !(status & ORGAN_DEAD) || death_time >= world.time - ORGAN_RECOVERY_THRESHOLD
 
 /obj/item/organ/proc/get_scan_results(var/tag = FALSE)
 	. = list()
@@ -446,8 +382,5 @@ var/list/organ_cache = list()
 /obj/item/organ/proc/listen()
 	return
 
-/obj/item/organ/vulnerable_to_damtype(var/damtype)
-	if(BP_IS_ROBOTIC(src))
-		return DAMAGE_AFFECT_OBJ(damtype)
-	else
-		return DAMAGE_AFFECT_MOB(damtype)
+/obj/item/organ/proc/get_mechanical_assisted_descriptor()
+	return "mechanically-assisted [name]"

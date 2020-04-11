@@ -7,7 +7,7 @@
 	var/global/global_uid = 0
 	var/uid
 	var/area_flags
-	var/shuttle = 0
+
 /area/New()
 	icon_state = ""
 	uid = ++global_uid
@@ -32,14 +32,32 @@
 		power_environ = 0
 	power_change()		// all machines set to current power level, also updates lighting icon
 
+/area/Destroy()
+	..()
+	return QDEL_HINT_HARDDEL
+
+// Changes the area of T to A. Do not do this manually.
+// Area is expected to be a non-null instance.
+/proc/ChangeArea(var/turf/T, var/area/A)
+	if(!istype(A))
+		CRASH("Area change attempt failed: invalid area supplied.")
+	var/area/old_area = get_area(T)
+	if(old_area == A)
+		return
+	A.contents.Add(T)
+	if(old_area)
+		old_area.Exited(T, A)
+		for(var/atom/movable/AM in T)
+			old_area.Exited(AM, A)  // Note: this _will_ raise exited events.
+	A.Entered(T, old_area)
+	for(var/atom/movable/AM in T)
+		A.Entered(AM, old_area) // Note: this will _not_ raise moved or entered events. If you change this, you must also change everything which uses them.
+
+	for(var/obj/machinery/M in T)
+		M.area_changed(old_area, A) // They usually get moved events, but this is the one way an area can change without triggering one.
+
 /area/proc/get_contents()
 	return contents
-
-/area/proc/get_turfs()
-	var/list/all_turfs = list()
-	for(var/turf/T in src)
-		all_turfs |= T
-	return all_turfs
 
 /area/proc/get_cameras()
 	var/list/cameras = list()
@@ -58,7 +76,7 @@
 
 	//Check all the alarms before lowering atmosalm. Raising is perfectly fine.
 	for (var/obj/machinery/alarm/AA in src)
-		if (AA.operable() && !AA.shorted && AA.report_danger_level)
+		if (!(AA.stat & (NOPOWER|BROKEN)) && !AA.shorted && AA.report_danger_level)
 			danger_level = max(danger_level, AA.danger_level)
 
 	if(danger_level != atmosalm)
@@ -215,17 +233,13 @@ var/list/mob/living/forced_ambiance_list = new
 	play_ambience(L)
 	L.lastarea = newarea
 
-	if(apc && apc.operating && !apc.shorted && !apc.failure_timer && !apc.stat & (BROKEN|MAINT))
-		apc.AlarmOnEntered(A)
-
 /area/proc/play_ambience(var/mob/living/L)
 	// Ambience goes down here -- make sure to list each area seperately for ease of adding things in later, thanks! Note: areas adjacent to each other should have the same sounds to prevent cutoff when possible.- LastyScratch
-	if(!(L && L.client && L.get_preference_value(/datum/client_preference/play_ambiance) == GLOB.PREF_YES) || L.ear_deaf)
-		return FALSE
+	if(!(L && L.client && L.get_preference_value(/datum/client_preference/play_ambiance) == GLOB.PREF_YES))	return
 
 	var/turf/T = get_turf(L)
 	var/hum = 0
-	if(!L.ear_deaf && !always_unpowered && power_environ)
+	if(L.get_sound_volume_multiplier() >= 0.2 && !always_unpowered && power_environ)
 		for(var/obj/machinery/atmospherics/unary/vent_pump/vent in src)
 			if(vent.can_pump())
 				hum = 1
@@ -233,7 +247,7 @@ var/list/mob/living/forced_ambiance_list = new
 	if(hum)
 		if(!L.client.ambience_playing)
 			L.client.ambience_playing = 1
-			L.playsound_local(T,sound('sound/ambience/vents.ogg', repeat = 1, wait = 0, volume = 20, channel = GLOB.ambience_sound_channel))
+			L.playsound_local(T,sound('sound/ambience/shipambience.ogg', repeat = 1, wait = 0, volume = 20, channel = GLOB.ambience_sound_channel))
 	else
 		if(L.client.ambience_playing)
 			L.client.ambience_playing = 0
@@ -246,9 +260,8 @@ var/list/mob/living/forced_ambiance_list = new
 		else	//stop any old area's forced ambience, and try to play our non-forced ones
 			sound_to(L, sound(null, channel = GLOB.lobby_sound_channel))
 			forced_ambiance_list -= L
-		if(LAZYLEN(ambience))
-			L.playsound_local(T, sound(pick(ambience), repeat = 0, wait = 0, volume = 15, channel = GLOB.lobby_sound_channel))
-	if(LAZYLEN(ambience) && prob(35) && (world.time >= L.client.played + 3 MINUTES))
+	if(ambience.len && prob(5) && (world.time >= L.client.played + 3 MINUTES))
+		L.playsound_local(T, sound(pick(ambience), repeat = 0, wait = 0, volume = 15, channel = GLOB.lobby_sound_channel))
 		L.client.played = world.time
 
 /area/proc/gravitychange(var/gravitystate = 0)
@@ -315,4 +328,3 @@ var/list/mob/living/forced_ambiance_list = new
 
 /area/proc/has_turfs()
 	return !!(locate(/turf) in src)
-

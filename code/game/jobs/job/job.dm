@@ -19,10 +19,10 @@
 	var/minimal_player_age = 0            // If you have use_age_restriction_for_jobs config option enabled and the database set up, this option will add a requirement for players to be at least minimal_player_age days old. (meaning they first signed in at least that many days before.)
 	var/department = null                 // Does this position have a department tag?
 	var/head_position = 0                 // Is this position Command?
-	var/minimum_character_age = 0
+	var/minimum_character_age			  // List of species = age, if species is not here, it's auto-pass
 	var/ideal_character_age = 30
 	var/create_record = 1                 // Do we announce/make records for people who spawn on this job?
-
+	var/is_semi_antagonist = FALSE        // Whether or not this job is given semi-antagonist status.
 	var/account_allowed = 1               // Does this job type come with a station account?
 	var/economic_power = 2             // With how much does this job modify the initial account amount?
 
@@ -51,6 +51,9 @@
 	var/list/species_branch_rank_cache_ = list()
 	var/list/psi_faculties                // Starting psi faculties, if any.
 	var/psi_latency_chance = 0            // Chance of an additional psi latency, if any.
+	var/give_psionic_implant_on_join = TRUE // If psionic, will be implanted for control.
+
+	var/required_language
 
 /datum/job/New()
 
@@ -68,6 +71,14 @@
 
 /datum/job/proc/equip(var/mob/living/carbon/human/H, var/alt_title, var/datum/mil_branch/branch, var/datum/mil_rank/grade)
 
+	if (required_language)
+		H.add_language(required_language)
+		H.set_default_language(all_languages[required_language])
+
+	if (!H.languages.len)
+		H.add_language(LANGUAGE_SPACER)
+		H.set_default_language(all_languages[LANGUAGE_SPACER])
+
 	if(psi_latency_chance && prob(psi_latency_chance))
 		H.set_psi_rank(pick(PSI_COERCION, PSI_REDACTION, PSI_ENERGISTICS, PSI_PSYCHOKINESIS), 1, defer_update = TRUE)
 	if(islist(psi_faculties))
@@ -75,7 +86,17 @@
 			H.set_psi_rank(psi, psi_faculties[psi], take_larger = TRUE, defer_update = TRUE)
 	if(H.psi)
 		H.psi.update()
-		H.give_psi_implant()
+		if(give_psionic_implant_on_join)
+			var/obj/item/weapon/implant/psi_control/imp = new
+			imp.implanted(H)
+			imp.forceMove(H)
+			imp.imp_in = H
+			imp.implanted = TRUE
+			var/obj/item/organ/external/affected = H.get_organ(BP_HEAD)
+			if(affected)
+				affected.implants += imp
+				imp.part = affected
+			to_chat(H, SPAN_DANGER("As a registered psionic, you are fitted with a psi-dampening control implant. Using psi-power while the implant is active will result in neural shocks and your violation being reported."))
 
 	var/decl/hierarchy/outfit/outfit = get_outfit(H, alt_title, branch, grade)
 	if(outfit) . = outfit.equip(H, title, alt_title)
@@ -118,20 +139,18 @@
 		return // You are too poor for an account.
 
 	//give them an account in the station database
-	var/datum/money_account/M = create_account(H.real_name, money_amount, null)
+	var/datum/money_account/M = create_account("[H.real_name]'s account", H.real_name, money_amount)
 	if(H.mind)
 		var/remembered_info = ""
 		remembered_info += "<b>Your account number is:</b> #[M.account_number]<br>"
 		remembered_info += "<b>Your account pin is:</b> [M.remote_access_pin]<br>"
-		remembered_info += "<b>Your account funds are:</b> T[M.money]<br>"
+		remembered_info += "<b>Your account funds are:</b> [GLOB.using_map.local_currency_name_short][M.money]<br>"
 
 		if(M.transaction_log.len)
 			var/datum/transaction/T = M.transaction_log[1]
-			remembered_info += "<b>Your account was created:</b> [T.time], [T.date] at [T.source_terminal]<br>"
-		H.mind.store_memory(remembered_info)
+			remembered_info += "<b>Your account was created:</b> [T.time], [T.date] at [T.get_source_name()]<br>"
+		H.StoreMemory(remembered_info, /decl/memory_options/system)
 		H.mind.initial_account = M
-
-	to_chat(H, "<span class='notice'><b>Your account number is: [M.account_number], your account pin is: [M.remote_access_pin]</b></span>")
 
 // overrideable separately so AIs/borgs can have cardborg hats without unneccessary new()/qdel()
 /datum/job/proc/equip_preview(mob/living/carbon/human/H, var/alt_title, var/datum/mil_branch/branch, var/datum/mil_rank/grade, var/additional_skips)
@@ -176,37 +195,38 @@
 
 /datum/job/proc/is_restricted(var/datum/preferences/prefs, var/feedback)
 
-	if(minimum_character_age && (prefs.age < minimum_character_age))
-		to_chat(feedback, "<span class='boldannounce'>Not old enough. Minimum character age is [minimum_character_age].</span>")
+
+	if(!isnull(allowed_branches) && (!prefs.branches[title] || !is_branch_allowed(prefs.branches[title])))
+		to_chat(feedback, "<span class='boldannounce'>Wrong branch of service for [title]. Valid branches are: [get_branches()].</span>")
 		return TRUE
 
-	// if(!isnull(allowed_branches) && (!prefs.branches[title] || !is_branch_allowed(prefs.branches[title])))
-	// 	to_chat(feedback, "<span class='boldannounce'>Wrong branch of service for [title]. Valid branches are: [get_branches()].</span>")
-	// 	return TRUE
-
-	// if(!isnull(allowed_ranks) && (!prefs.ranks[title] || !is_rank_allowed(prefs.branches[title], prefs.ranks[title])))
-	// 	to_chat(feedback, "<span class='boldannounce'>Wrong rank for [title]. Valid ranks in [prefs.branches[title]] are: [get_ranks(prefs.branches[title])].</span>")
-	// 	return TRUE
+	if(!isnull(allowed_ranks) && (!prefs.ranks[title] || !is_rank_allowed(prefs.branches[title], prefs.ranks[title])))
+		to_chat(feedback, "<span class='boldannounce'>Wrong rank for [title]. Valid ranks in [prefs.branches[title]] are: [get_ranks(prefs.branches[title])].</span>")
+		return TRUE
 
 	var/datum/species/S = all_species[prefs.species]
 	if(!is_species_allowed(S))
 		to_chat(feedback, "<span class='boldannounce'>Restricted species, [S], for [title].</span>")
 		return TRUE
 
+	if(LAZYACCESS(minimum_character_age, S.get_bodytype()) && (prefs.age < minimum_character_age[S.get_bodytype()]))
+		to_chat(feedback, "<span class='boldannounce'>Not old enough. Minimum character age is [minimum_character_age[S.get_bodytype()]].</span>")
+		return TRUE
+	
 	if(!S.check_background(src, prefs))
 		to_chat(feedback, "<span class='boldannounce'>Incompatible background for [title].</span>")
 		return TRUE
 
 	return FALSE
 
-///datum/job/proc/get_join_link(var/client/caller, var/href_string, var/show_invalid_jobs)
-//	if(is_available(caller))
-//		if(is_restricted(caller.prefs))
-//			if(show_invalid_jobs)
-//				return "<tr><td><a style='text-decoration: line-through' href='[href_string]'>[title]</a></td><td>[current_positions]</td><td>(Active: [get_active_count()])</td></tr>"
-//		else
-//			return "<tr><td><a href='[href_string]'>[title]</a></td><td>[current_positions]</td><td>(Active: [get_active_count()])</td></tr>"
-//	return ""
+/datum/job/proc/get_join_link(var/client/caller, var/href_string, var/show_invalid_jobs)
+	if(is_available(caller))
+		if(is_restricted(caller.prefs))
+			if(show_invalid_jobs)
+				return "<tr><td><a style='text-decoration: line-through' href='[href_string]'>[title]</a></td><td>[current_positions]</td><td>(Active: [get_active_count()])</td></tr>"
+		else
+			return "<tr><td><a href='[href_string]'>[title]</a></td><td>[current_positions]</td><td>(Active: [get_active_count()])</td></tr>"
+	return ""
 
 // Only players with the job assigned and AFK for less than 10 minutes count as active
 /datum/job/proc/check_is_active(var/mob/M)
@@ -223,31 +243,31 @@
 	if(GLOB.using_map.is_species_job_restricted(S, src))
 		return FALSE
 	// We also make sure that there is at least one valid branch-rank combo for the species.
-//	if(!allowed_branches || !GLOB.using_map || !(GLOB.using_map.flags & MAP_HAS_BRANCH))
-//		return TRUE
-//	return LAZYLEN(get_branch_rank(S))
+	if(!allowed_branches || !GLOB.using_map || !(GLOB.using_map.flags & MAP_HAS_BRANCH))
+		return TRUE
+	return LAZYLEN(get_branch_rank(S))
 
 // Don't use if the map doesn't use branches but jobs do.
-///datum/job/proc/get_branch_rank(var/datum/species/S)
-//	. = species_branch_rank_cache_[S]
-//	if(.)
-//		return
-//
-//	species_branch_rank_cache_[S] = list()
-//	. = species_branch_rank_cache_[S]
-//
-//	var/spawn_branches = mil_branches.spawn_branches(S)
-//	for(var/branch_type in allowed_branches)
-//		var/datum/mil_branch/branch = mil_branches.get_branch_by_type(branch_type)
-//		if(branch.name in spawn_branches)
-//			if(!allowed_ranks || !(GLOB.using_map.flags & MAP_HAS_RANK))
-//				LAZYADD(., branch.name)
-//				continue // Screw this rank stuff, we're good.
-//			var/spawn_ranks = branch.spawn_ranks(S)
-//			for(var/rank_type in allowed_ranks)
-//				var/datum/mil_rank/rank = rank_type
-//				if(initial(rank.name) in spawn_ranks)
-//					LAZYADD(.[branch.name], initial(rank.name))
+/datum/job/proc/get_branch_rank(var/datum/species/S)
+	. = species_branch_rank_cache_[S]
+	if(.)
+		return
+
+	species_branch_rank_cache_[S] = list()
+	. = species_branch_rank_cache_[S]
+
+	var/spawn_branches = mil_branches.spawn_branches(S)
+	for(var/branch_type in allowed_branches)
+		var/datum/mil_branch/branch = mil_branches.get_branch_by_type(branch_type)
+		if(branch.name in spawn_branches)
+			if(!allowed_ranks || !(GLOB.using_map.flags & MAP_HAS_RANK))
+				LAZYADD(., branch.name)
+				continue // Screw this rank stuff, we're good.
+			var/spawn_ranks = branch.spawn_ranks(S)
+			for(var/rank_type in allowed_ranks)
+				var/datum/mil_rank/rank = rank_type
+				if(initial(rank.name) in spawn_ranks)
+					LAZYADD(.[branch.name], initial(rank.name))
 
 /**
  *  Check if members of the given branch are allowed in the job
@@ -334,14 +354,16 @@
 	var/list/reasons = list()
 	if(jobban_isbanned(caller, title))
 		reasons["You are jobbanned."] = TRUE
+	if(is_semi_antagonist && jobban_isbanned(caller, MODE_MISC_AGITATOR))
+		reasons["You are semi-antagonist banned."] = TRUE
 	if(!player_old_enough(caller))
 		reasons["Your player age is too low."] = TRUE
 	if(!is_position_available())
 		reasons["There are no positions left."] = TRUE
-	// if(!isnull(allowed_branches) && (!caller.prefs.branches[title] || !is_branch_allowed(caller.prefs.branches[title])))
-	// 	reasons["Your branch of service does not allow it."] = TRUE
-	// else if(!isnull(allowed_ranks) && (!caller.prefs.ranks[title] || !is_rank_allowed(caller.prefs.branches[title], caller.prefs.ranks[title])))
-	// 	reasons["Your rank choice does not allow it."] = TRUE
+	if(!isnull(allowed_branches) && (!caller.prefs.branches[title] || !is_branch_allowed(caller.prefs.branches[title])))
+		reasons["Your branch of service does not allow it."] = TRUE
+	else if(!isnull(allowed_ranks) && (!caller.prefs.ranks[title] || !is_rank_allowed(caller.prefs.branches[title], caller.prefs.ranks[title])))
+		reasons["Your rank choice does not allow it."] = TRUE
 	var/datum/species/S = all_species[caller.prefs.species]
 	if(S)
 		if(!is_species_allowed(S))
@@ -359,6 +381,8 @@
 	if(!is_position_available())
 		return FALSE
 	if(jobban_isbanned(caller, title))
+		return FALSE
+	if(is_semi_antagonist && jobban_isbanned(caller, MODE_MISC_AGITATOR))
 		return FALSE
 	if(!player_old_enough(caller))
 		return FALSE
@@ -425,8 +449,9 @@
 
 	return spawnpos
 
-/datum/job/proc/post_equip_rank(var/mob/person)
-	return
+/datum/job/proc/post_equip_rank(var/mob/person, var/alt_title)
+	if(is_semi_antagonist && person.mind)
+		GLOB.provocateurs.add_antagonist(person.mind)
 
 /datum/job/proc/get_alt_title_for(var/client/C)
 	return C.prefs.GetPlayerAltTitle(src)
@@ -436,3 +461,6 @@
 		current_positions -= 1
 		return TRUE
 	return FALSE
+
+/datum/job/proc/handle_variant_join(var/mob/living/carbon/human/H, var/alt_title)
+	return

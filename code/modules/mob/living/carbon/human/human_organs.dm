@@ -18,10 +18,10 @@
 	last_dam = damage_this_tick
 
 // Takes care of organ related updates, such as broken and missing limbs
-/mob/living/carbon/human/proc/handle_organs(var/force = 0)
+/mob/living/carbon/human/proc/handle_organs()
 
 	var/force_process = recheck_bad_external_organs()
-	if(force) force_process = 1
+
 	if(force_process)
 		bad_external_organs.Cut()
 		for(var/obj/item/organ/external/Ex in organs)
@@ -148,7 +148,7 @@
 			if(limb_pain)
 				emote("scream")
 			custom_emote(VISIBLE_MESSAGE, "collapses!")
-		Weaken(5) //can't emote while weakened, apparently.
+		Weaken(3) //can't emote while weakened, apparently.
 
 /mob/living/carbon/human/proc/handle_grasp()
 	if(!l_hand && !r_hand)
@@ -176,7 +176,7 @@
 		return
 
 	for (var/obj/item/organ/external/E in organs)
-		if(!E || !E.can_grasp())
+		if(!E || !(E.limb_flags & ORGAN_FLAG_CAN_GRASP))
 			continue
 		if(((E.is_broken() || E.is_dislocated()) && !E.splinted) || E.is_malfunctioning())
 			grasp_damage_disarm(E)
@@ -186,12 +186,18 @@
 	if(affected)
 		switch(affected.body_part)
 			if(FOOT_LEFT, FOOT_RIGHT)
-				to_chat(src, "<span class='warning'>You lose your footing as your [affected.name] spasms!</span>")
+				if(!BP_IS_ROBOTIC(affected))
+					to_chat(src, SPAN_WARNING("You lose your footing as your [affected.name] spasms!"))
+				else
+					to_chat(src, SPAN_WARNING("You lose your footing as your [affected.name] [pick("twitches", "shudders")]!"))
 			if(LEG_LEFT, LEG_RIGHT)
-				to_chat(src, "<span class='warning'>Your [affected.name] buckles from the shock!</span>")
+				if(!BP_IS_ROBOTIC(affected))
+					to_chat(src, SPAN_WARNING("Your [affected.name] buckles from the shock!"))
+				else
+					to_chat(src, SPAN_WARNING("You lose your balance as [affected.name] [pick("malfunctions", "freezes","shudders")]!"))
 			else
 				return
-	Weaken(5)
+	Weaken(4)
 
 /mob/living/carbon/human/proc/grasp_damage_disarm(var/obj/item/organ/external/affected)
 	var/disarm_slot
@@ -252,7 +258,7 @@
 	if(isSynthetic())
 		var/obj/item/organ/internal/cell/C = internal_organs_by_name[BP_CELL]
 		if(istype(C))
-			if(!C.is_usable())
+			if(!C.is_usable() || !C.percent())
 				return TRUE
 	else if(should_have_organ(BP_HEART))
 		var/obj/item/organ/internal/heart/heart = internal_organs_by_name[BP_HEART]

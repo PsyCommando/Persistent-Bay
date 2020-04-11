@@ -10,15 +10,7 @@ var/global/list/plant_seed_sprites = list()
 	var/seed_type
 	var/datum/seed/seed
 	var/modified = 0
-/obj/item/seeds/New()
-	. = ..()
-	ADD_SAVED_VAR(seed_type)
-	ADD_SAVED_VAR(seed)
-	ADD_SAVED_VAR(modified)
 
-/obj/item/seeds/after_load()
-	..()
-	update_seed()
 /obj/item/seeds/Initialize()
 	update_seed()
 	. = ..()
@@ -66,7 +58,7 @@ var/global/list/plant_seed_sprites = list()
 		src.desc = "It's labelled as coming from [seed.display_name]."
 
 /obj/item/seeds/examine(mob/user)
-	. = ..(user)
+	. = ..()
 	if(seed && !seed.roundstart)
 		to_chat(user, "It's tagged as variety #[seed.uid].")
 
@@ -82,14 +74,13 @@ var/global/list/plant_seed_sprites = list()
 	seed_type = null
 
 /obj/item/seeds/random/Initialize()
-	if(!map_storage_loaded)
-		seed = SSplants.create_random_seed()
-		seed_type = seed.name
+	seed = SSplants.create_random_seed()
+	seed_type = seed.name
 	. = ..()
-/*
+
 /obj/item/seeds/replicapod
 	seed_type = "diona"
-*/
+
 /obj/item/seeds/chiliseed
 	seed_type = "chili"
 
@@ -269,9 +260,6 @@ var/global/list/plant_seed_sprites = list()
 
 /obj/item/seeds/tobaccoseed
 	seed_type = "tobacco"
-	
-/obj/item/seeds/badtobaccoseed
-	seed_type = "badtobacco"
 
 /obj/item/seeds/finetobaccoseed
 	seed_type = "finetobacco"

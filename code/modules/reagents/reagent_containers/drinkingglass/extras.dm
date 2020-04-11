@@ -51,9 +51,8 @@
 	desc = "This goes on a glass."
 	var/glass_addition
 	var/glass_desc
-	var/glass_color
 	w_class = ITEM_SIZE_TINY
-	icon = DRINK_ICON_FILE
+	icon = 'icons/obj/drink_glasses/extras.dmi'
 
 /obj/item/weapon/glass_extra/stick
 	name = "stick"
@@ -61,7 +60,12 @@
 	glass_addition = "stick"
 	glass_desc = "There is a stick in the glass."
 	icon_state = "stick"
-	matter = list(MATERIAL_WOOD = 0.01 SHEETS)
+	color = COLOR_BLACK
+	
+/obj/item/weapon/glass_extra/stick/Initialize()
+	. = ..()
+	if(prob(50))
+		color = get_random_colour(0,50,150)
 
 /obj/item/weapon/glass_extra/straw
 	name = "straw"
@@ -69,6 +73,3 @@
 	glass_addition = "straw"
 	glass_desc = "There is a straw in the glass."
 	icon_state = "straw"
-	matter = list(MATERIAL_PLASTIC = 0.01 SHEETS)
-
-#undef DRINK_ICON_FILE

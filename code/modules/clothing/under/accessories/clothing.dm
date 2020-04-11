@@ -12,14 +12,15 @@
 	desc = "They suspend the illusion of the mime's play."
 	icon_state = "suspenders"
 
+/obj/item/clothing/accessory/suspenders/colorable
+	name = "suspenders"
+	desc = "They suspend the illusion of the mime's play."
+	icon_state = "suspenders_color"
+
 /obj/item/clothing/accessory/tunic
 	name = "researcher's tunic"
 	desc = "A fashionable tunic that EXO provides to their lab workers."
 	icon_state = "tunic"
-/obj/item/clothing/accessory/maidapron
-	name = "maid apron"
-	desc = "An white apron."
-	icon_state = "maidapron"
 
 /obj/item/clothing/accessory/tunic/nanotrasen
 	name = "\improper NanoTrasen tunic"
@@ -117,13 +118,6 @@
 		icon_closed = icon_state
 	..()
 
-/obj/item/clothing/accessory/toggleable/after_load()
-	if(!icon_closed)
-		icon_closed = icon_state
-	if(has_suit)
-		has_suit.verbs += /obj/item/clothing/accessory/toggleable/verb/toggle
-	..()
-
 /obj/item/clothing/accessory/toggleable/on_attached(obj/item/clothing/under/S, mob/user as mob)
 	..()
 	has_suit.verbs += /obj/item/clothing/accessory/toggleable/verb/toggle
@@ -162,11 +156,12 @@
 	update_clothing_icon()	//so our overlays update
 
 /obj/item/clothing/accessory/toggleable/vest
-	name = "black vest"
+	name = "vest"
 	desc = "A slick suit vest."
 	icon_state = "det_vest"
 
 /obj/item/clothing/accessory/toggleable/vest/black
+	name = "black vest"
 	color = COLOR_GRAY15
 
 /obj/item/clothing/accessory/toggleable/tan_jacket
@@ -222,7 +217,7 @@
 	name = "flower-pattern shirt"
 	desc = "You probably need some welder googles to look at this."
 	icon_state = "hawaii"
-	sprite_sheets = list(SPECIES_MONKEY = 'icons/mob/species/monkey/onmob_accessories_monkey.dmi')
+	sprite_sheets = list("Monkey" = 'icons/mob/species/monkey/onmob_accessories_monkey.dmi')
 
 /obj/item/clothing/accessory/toggleable/hawaii/red
 	icon_state = "hawaii2"
@@ -249,15 +244,6 @@
 	var/rolled = 0
 	var/tucked = 0
 	var/buttoned = 0
-
-/obj/item/clothing/accessory/toggleable/flannel/red
-	name = "red flannel shirt"
-	desc = "A comfy, red plaid flannel shirt."
-	icon_state = "flannel"
-	rolled = 0
-	tucked = 0
-	buttoned = 0
-	color = "#da0205"
 
 /obj/item/clothing/accessory/toggleable/flannel/on_attached(obj/item/clothing/under/S, mob/user as mob)
 	..()
@@ -338,3 +324,39 @@
 	name = "tangzhuang jacket"
 	desc = "A traditional Chinese coat tied together with straight, symmetrical knots."
 	icon_state = "tangzhuang"  //This was originally intended to have the ability to roll sleeves. I can't into code. Will be done later (hopefully.)
+
+/obj/item/clothing/accessory/fire_overpants
+	name = "fire overpants"
+	desc = "some overpants made of fire-resistant synthetic fibers. To be worn over the uniform."
+	icon_state = "fire_overpants"
+	gas_transfer_coefficient = 0.90
+	permeability_coefficient = 0.50
+	body_parts_covered = LEG_LEFT | LEG_RIGHT | LOWER_TORSO
+	cold_protection = LOWER_TORSO | LEG_LEFT | LEG_RIGHT
+	heat_protection = LOWER_TORSO | LEG_LEFT | LEG_RIGHT
+	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
+	armor = list(melee = 0, bullet = 0, laser = 10, energy = 10, bomb = 10, bio = 0, rad = 0)
+
+/obj/item/clothing/accessory/fire_overpants/Initialize()
+	. = ..()
+	slowdown_per_slot[slot_wear_suit] = 0.2
+
+/obj/item/clothing/accessory/space_adapted/venter
+	name = "venter assembly"
+	desc = "A series of complex tubes, meant to dissipate heat from the skin passively."
+	icon_state = "venter"
+	item_state = "venter"
+	slot = "over"
+
+/obj/item/clothing/accessory/space_adapted/bracer
+	name = "legbrace"
+	desc = "A lightweight polymer frame meant to brace and hold someone's legs upright comfortably, protecting their bones from high levels of gravity."
+	icon_state = "legbrace"
+	item_state = "legbrace"
+
+/obj/item/clothing/accessory/space_adapted/bracer/neckbrace
+	name = "neckbrace"
+	desc = "A lightweight polymer frame meant to brace and hold someone's neck upright comfortably, protecting their bones from high levels of gravity."
+	icon_state = "neckbrace"
+	item_state = "neckbrace"

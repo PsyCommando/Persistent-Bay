@@ -10,10 +10,9 @@ LEGACY_RECORD_STRUCTURE(all_warrants, warrant)
 	program_icon_state = "warrant"
 	program_key_state = "security_key"
 	program_menu_icon = "star"
-	requires_ntnet = TRUE
-	available_on_ntnet = TRUE
-	required_access = core_access_security_programs
-	usage_flags = PROGRAM_ALL
+	requires_ntnet = 1
+	available_on_ntnet = 1
+	required_access = access_security
 	nanomodule_path = /datum/nano_module/digitalwarrant/
 	category = PROG_SEC
 
@@ -85,7 +84,7 @@ LEGACY_RECORD_STRUCTURE(all_warrants, warrant)
 	if(!istype(user))
 		return
 	var/obj/item/weapon/card/id/I = user.GetIdCard()
-	if(!istype(I) || !I.registered_name || !(core_access_security_programs in I.access))
+	if(!istype(I) || !I.registered_name || !(access_security in I.access))
 		to_chat(user, "Authentication error: Unable to locate ID with apropriate access to allow this operation.")
 		return
 
@@ -131,7 +130,7 @@ LEGACY_RECORD_STRUCTURE(all_warrants, warrant)
 	if(href_list["deletewarrant"])
 		. = 1
 		if(!activewarrant)
-			for(var/datum/computer_file/report/crew_record/W in GLOB.all_crew_records)
+			for(var/datum/computer_file/data/warrant/W in GLOB.all_warrants)
 				if(W.uid == text2num(href_list["deletewarrant"]))
 					activewarrant = W
 					break

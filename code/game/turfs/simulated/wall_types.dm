@@ -35,7 +35,7 @@
 		if(spacefacing)
 			var/bleach_factor = rand(10,50)
 			paint_color = adjust_brightness(paint_color, bleach_factor)
-	queue_icon_update()
+	update_icon()
 
 /turf/simulated/wall/titanium
 	icon_state = "titanium"
@@ -140,6 +140,9 @@
 
 /turf/simulated/wall/voxshuttle/attackby()
 	return
+
+/turf/simulated/wall/concrete/New(var/newloc)
+	..(newloc,MATERIAL_CONCRETE)
 
 //Alien metal walls
 /turf/simulated/wall/alium

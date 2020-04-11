@@ -1,6 +1,6 @@
 /obj/item/weapon/spacecash
-	name = "0 Ethericoin"
-	desc = "It's worth 0 Ethericoins."
+	name = "0 thalers"
+	desc = "It's worth 0 thalers."
 	gender = PLURAL
 	icon = 'icons/obj/items.dmi'
 	icon_state = "spacecash1"
@@ -17,10 +17,6 @@
 	var/worth = 0
 	var/global/denominations = list(1000,500,200,100,50,20,10,1)
 
-/obj/item/weapon/spacecash/after_load()
-	..()
-	queue_icon_update()
-
 /obj/item/weapon/spacecash/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/weapon/spacecash))
 		if(istype(W, /obj/item/weapon/spacecash/ewallet)) return 0
@@ -28,7 +24,6 @@
 		var/obj/item/weapon/spacecash/bundle/bundle
 		if(!istype(W, /obj/item/weapon/spacecash/bundle))
 			var/obj/item/weapon/spacecash/cash = W
-			user.drop_from_inventory(cash)
 			bundle = new (src.loc)
 			bundle.worth += cash.worth
 			qdel(cash)
@@ -38,10 +33,9 @@
 		bundle.update_icon()
 		if(istype(user, /mob/living/carbon/human))
 			var/mob/living/carbon/human/h_user = user
-			h_user.drop_from_inventory(src)
 			h_user.drop_from_inventory(bundle)
 			h_user.put_in_hands(bundle)
-		to_chat(user, "<span class='notice'>You add [src.worth] Ethericoins worth of money to the bundles.<br>It holds [bundle.worth] Ethericoins now.</span>")
+		to_chat(user, "<span class='notice'>You add [src.worth] [GLOB.using_map.local_currency_name] worth of money to the bundles.<br>It holds [bundle.worth] [GLOB.using_map.local_currency_name] now.</span>")
 		qdel(src)
 
 	else if(istype(W, /obj/item/weapon/gun/launcher/money))
@@ -53,10 +47,14 @@
 		return list(icon_state)
 
 /obj/item/weapon/spacecash/bundle
-	name = "pile of ethericoins"
+	name = "pile of thalers"
 	icon_state = ""
-	desc = "They are worth 0 Ethericoins."
+	desc = "They are worth 0 Thalers."
 	worth = 0
+
+/obj/item/weapon/spacecash/bundle/Initialize()
+	. = ..()
+	update_icon()
 
 /obj/item/weapon/spacecash/bundle/getMoneyImages()
 	if(icon_state)
@@ -69,7 +67,7 @@
 			sum -= i
 			num++
 			. += "spacecash[i]"
-	if(num == 0) // Less than one ethericoin, let's just make it look like 1 for ease
+	if(num == 0) // Less than one thaler, let's just make it look like 1 for ease
 		. += "spacecash1"
 
 /obj/item/weapon/spacecash/bundle/on_update_icon()
@@ -84,11 +82,11 @@
 		banknote.transform = M
 		src.overlays += banknote
 
-	src.desc = "They are worth [worth] Ethericoins."
+	src.desc = "They are worth [worth] [GLOB.using_map.local_currency_name]."
 	if(worth in denominations)
-		src.SetName("[worth] Ethericoin")
+		src.SetName("[worth] [GLOB.using_map.local_currency_name]")
 	else
-		src.SetName("pile of [worth] ethericoins")
+		src.SetName("pile of [worth] [GLOB.using_map.local_currency_name]")
 
 	if(overlays.len <= 2)
 		w_class = ITEM_SIZE_TINY
@@ -96,14 +94,12 @@
 		w_class = ITEM_SIZE_SMALL
 
 /obj/item/weapon/spacecash/bundle/attack_self()
-	var/amount = input(usr, "How many Ethericoins do you want to take? (0 to [src.worth])", "Take Money", 20) as num
+	var/amount = input(usr, "How many [GLOB.using_map.local_currency_name] do you want to take? (0 to [src.worth])", "Take Money", 20) as num
 	amount = round(Clamp(amount, 0, src.worth))
 	if(amount==0) return 0
 
 	src.worth -= amount
 	src.update_icon()
-	if(!worth)
-		usr.drop_from_inventory(src)
 	if(amount in list(1000,500,200,100,50,20,1))
 		var/cashtype = text2path("/obj/item/weapon/spacecash/bundle/c[amount]")
 		var/obj/cash = new cashtype (usr.loc)
@@ -117,51 +113,51 @@
 		qdel(src)
 
 /obj/item/weapon/spacecash/bundle/c1
-	name = "1 Ethericoin"
+	name = "1 Thaler"
 	icon_state = "spacecash1"
 	desc = "It's worth 1 credit."
 	worth = 1
 
 /obj/item/weapon/spacecash/bundle/c10
-	name = "10 Ethericoin"
+	name = "10 Thaler"
 	icon_state = "spacecash10"
-	desc = "It's worth 10 Ethericoins."
+	desc = "It's worth 10 Thalers."
 	worth = 10
 
 /obj/item/weapon/spacecash/bundle/c20
-	name = "20 Ethericoin"
+	name = "20 Thaler"
 	icon_state = "spacecash20"
-	desc = "It's worth 20 Ethericoins."
+	desc = "It's worth 20 Thalers."
 	worth = 20
 
 /obj/item/weapon/spacecash/bundle/c50
-	name = "50 Ethericoin"
+	name = "50 Thaler"
 	icon_state = "spacecash50"
-	desc = "It's worth 50 Ethericoins."
+	desc = "It's worth 50 Thalers."
 	worth = 50
 
 /obj/item/weapon/spacecash/bundle/c100
-	name = "100 Ethericoin"
+	name = "100 Thaler"
 	icon_state = "spacecash100"
-	desc = "It's worth 100 Ethericoins."
+	desc = "It's worth 100 Thalers."
 	worth = 100
 
 /obj/item/weapon/spacecash/bundle/c200
-	name = "200 Ethericoin"
+	name = "200 Thaler"
 	icon_state = "spacecash200"
-	desc = "It's worth 200 Ethericoins."
+	desc = "It's worth 200 Thalers."
 	worth = 200
 
 /obj/item/weapon/spacecash/bundle/c500
-	name = "500 Ethericoin"
+	name = "500 Thaler"
 	icon_state = "spacecash500"
-	desc = "It's worth 500 Ethericoins."
+	desc = "It's worth 500 Thalers."
 	worth = 500
 
 /obj/item/weapon/spacecash/bundle/c1000
-	name = "1000 Ethericoin"
+	name = "1000 Thaler"
 	icon_state = "spacecash1000"
-	desc = "It's worth 1000 Ethericoins."
+	desc = "It's worth 1000 Thalers."
 	worth = 1000
 
 proc/spawn_money(var/sum, spawnloc, mob/living/carbon/human/human_user as mob)
@@ -184,7 +180,7 @@ proc/spawn_money(var/sum, spawnloc, mob/living/carbon/human/human_user as mob)
 	desc = "A card that holds an amount of money."
 	var/owner_name = "" //So the ATM can set it so the EFTPOS can put a valid name on transactions.
 
-/obj/item/weapon/spacecash/ewallet/examine(mob/user)
+/obj/item/weapon/spacecash/ewallet/examine(mob/user, distance)
 	. = ..(user)
-	if (!(user in view(2)) && user!=src.loc) return
-	to_chat(user, "<span class='notice'>Charge card's owner: [src.owner_name]. Ethericoins remaining: [src.worth].</span>")
+	if (distance > 2 && user != loc) return
+	to_chat(user, "<span class='notice'>Charge card's owner: [src.owner_name]. [GLOB.using_map.local_currency_name] remaining: [src.worth].</span>")

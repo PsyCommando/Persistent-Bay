@@ -1,13 +1,7 @@
 /mob/living/carbon/human/gib()
-	//Drop the lace out
-	var/obj/item/organ/internal/stack/ST = get_stack()
-	if(ST)
-		ST.removed(usr)
-		ST.dropInto(get_turf(src))
-
 	for(var/obj/item/organ/I in internal_organs)
 		I.removed()
-		if(istype(loc,/turf))
+		if(!QDELETED(I) && isturf(loc))
 			I.throw_at(get_edge_target_turf(src,pick(GLOB.alldirs)),rand(1,3),30)
 
 	for(var/obj/item/organ/external/E in src.organs)
@@ -16,25 +10,14 @@
 	sleep(1)
 
 	for(var/obj/item/I in src)
-		if(istype(I, /obj/item/organ/external/stump))
-			var/obj/item/organ/external/stump/S = I
-			S.removed()
-			S.loc = null
-			qdel(S) //Don't drop stumps!
-			continue
 		drop_from_inventory(I)
-		I.throw_at(get_edge_target_turf(src,pick(GLOB.alldirs)), rand(1,3), round(30/I.w_class))
+		if(!QDELETED(I))
+			I.throw_at(get_edge_target_turf(src,pick(GLOB.alldirs)), rand(1,3), round(30/I.w_class))
 
 	..(species.gibbed_anim)
 	gibs(loc, dna, null, species.get_flesh_colour(src), species.get_blood_colour(src))
 
 /mob/living/carbon/human/dust()
-	//Drop the lace out
-	var/obj/item/organ/internal/stack/ST = get_stack()
-	if(ST)
-		ST.removed(usr)
-		ST.dropInto(get_turf(src))
-
 	if(species)
 		..(species.dusted_anim, species.remains_type)
 	else
@@ -47,12 +30,7 @@
 	BITSET(hud_updateflag, HEALTH_HUD)
 	BITSET(hud_updateflag, STATUS_HUD)
 	BITSET(hud_updateflag, LIFE_HUD)
-
-	//backs up lace if available.
-	var/obj/item/organ/internal/stack/s = get_stack()
-	if(s)
-		s.do_backup()
-
+	
 	//Handle species-specific deaths.
 	species.handle_death(src)
 
@@ -80,6 +58,9 @@
 
 	callHook("death", list(src, gibbed))
 
+	if(SSticker.mode)
+		SSticker.mode.check_win()
+
 	if(wearing_rig)
 		wearing_rig.notify_ai("<span class='danger'>Warning: user death event. Mobility control passed to integrated intelligence system.</span>")
 
@@ -89,8 +70,6 @@
 		if(species.death_sound)
 			playsound(loc, species.death_sound, 80, 1, 1)
 	handle_hud_list()
-	if(s)
-		s.transfer_identity(src)
 
 /mob/living/carbon/human/proc/ChangeToHusk()
 	if(MUTATION_HUSK in mutations)	return

@@ -25,8 +25,6 @@ GLOBAL_VAR_CONST(PREF_SHORTHAND, "Shorthand")
 GLOBAL_VAR_CONST(PREF_NEVER, "Never")
 GLOBAL_VAR_CONST(PREF_NON_ANTAG, "Non-Antag Only")
 GLOBAL_VAR_CONST(PREF_ALWAYS, "Always")
-GLOBAL_VAR_CONST(PREF_PLEASANTLY, "Pleasantly")
-GLOBAL_VAR_CONST(PREF_LOUDLY, "Loudly")
 
 var/list/_client_preferences
 var/list/_client_preferences_by_key
@@ -97,7 +95,7 @@ var/list/_client_preferences_by_type
 /datum/client_preference/play_lobby_music/changed(var/mob/preference_mob, var/new_value)
 	if(new_value == GLOB.PREF_YES)
 		if(isnewplayer(preference_mob))
-			GLOB.using_map.lobby_music.play_to(preference_mob)
+			GLOB.using_map.lobby_track.play_to(preference_mob)
 	else
 		sound_to(preference_mob, sound(null, repeat = 0, wait = 0, volume = 85, channel = GLOB.lobby_sound_channel))
 
@@ -128,7 +126,7 @@ var/list/_client_preferences_by_type
 /datum/client_preference/language_display
 	description = "Display Language Names"
 	key = "LANGUAGE_DISPLAY"
-	options = list(GLOB.PREF_FULL, GLOB.PREF_SHORTHAND, GLOB.PREF_OFF)
+	options = list(GLOB.PREF_SHORTHAND, GLOB.PREF_FULL, GLOB.PREF_OFF)
 
 /datum/client_preference/ghost_follow_link_length
 	description ="Ghost Follow Links"
@@ -174,16 +172,6 @@ var/list/_client_preferences_by_type
 	key = "SHOW_PROGRESS"
 	options = list(GLOB.PREF_SHOW, GLOB.PREF_HIDE)
 
-/datum/client_preference/tgui_style
-	description ="tgui Style"
-	key = "TGUI_FANCY"
-	options = list(GLOB.PREF_FANCY, GLOB.PREF_PLAIN)
-
-/datum/client_preference/tgui_monitor
-	description ="tgui Monitor"
-	key = "TGUI_MONITOR"
-	options = list(GLOB.PREF_PRIMARY, GLOB.PREF_ALL)
-
 /datum/client_preference/browser_style
 	description = "Fake NanoUI Browser Style"
 	key = "BROWSER_STYLED"
@@ -208,7 +196,7 @@ var/list/_client_preferences_by_type
 	key = "SHOW_CREDITS"
 
 /datum/client_preference/show_ckey_credits
-	description = "Show Ckey in End Credits"
+	description = "Show Ckey in End Credits/Special Role List"
 	key = "SHOW_CKEY_CREDITS"
 	options = list(GLOB.PREF_HIDE, GLOB.PREF_SHOW)
 
@@ -255,14 +243,9 @@ var/list/_client_preferences_by_type
 	options = list(GLOB.PREF_SHOW, GLOB.PREF_HIDE)
 
 /datum/client_preference/staff/play_adminhelp_ping
-	description = "Ahelp Ping"
+	description = "Adminhelps"
 	key = "SOUND_ADMINHELP"
 	options = list(GLOB.PREF_HEAR, GLOB.PREF_SILENT)
-
-/datum/client_preference/staff/bwoink_urgency
-	description = "Admin PM Players"
-	key = "BWOINK_URGENCY"
-	options = list(GLOB.PREF_PLEASANTLY, GLOB.PREF_LOUDLY)
 
 /datum/client_preference/staff/show_rlooc
 	description ="Remote LOOC chat"

@@ -1,34 +1,31 @@
-GLOBAL_VAR_CONST(HIGHEST_CONNECTABLE_ZLEVEL_INDEX, 27)
+// If you add a more comprehensive system, just untick this file.
+var/list/z_levels = list()// Each bit re... haha just kidding this is a list of bools now
 
-var/list/z_level_connections
-/obj/effect/landmark/map_data/New()
+// If the height is more than 1, we mark all contained levels as connected.
+/obj/effect/landmark/map_data/New(turf/loc, _height)
 	..()
-	if(height == 1) return
-	if(!z_level_connections)
-		z_level_connections = list()
-	ASSERT(height <= z)
-	ASSERT(height + z - 1 <= world.maxz)
-	for(var/i = z - height + 2, i <= z, i++)
-		ConnectLowerZ(i)
+	if(!istype(loc)) // Using loc.z is safer when using the maploader and New.
+		return
+	if(_height)
+		height = _height
+	for(var/i = (loc.z - height + 1) to (loc.z-1))
+		if (z_levels.len <i)
+			z_levels.len = i
+		z_levels[i] = TRUE
 
-/proc/ConnectLowerZ(var/z)
-	if(!z_level_connections)
-		z_level_connections = list()
-	z_level_connections["[z]"] |= DOWN
-	z_level_connections["[z - 1]"] |= UP
-
-/proc/DisconnectLowerZ(var/z)
-	if(!z_level_connections) return
-	z_level_connections["[z]"] &= DOWN
-	z_level_connections["[z - 1]"] &= UP
+/obj/effect/landmark/map_data/Initialize()
+	..()
+	return INITIALIZE_HINT_QDEL
 
 /proc/HasAbove(var/z)
-	if(!z_level_connections) return 0
-	return z_level_connections["[z]"] & UP
+	if(z >= world.maxz || z < 1 || z > z_levels.len)
+		return 0
+	return z_levels[z]
 
 /proc/HasBelow(var/z)
-	if(!z_level_connections) return 0
-	return z_level_connections["[z]"] & DOWN
+	if(z > world.maxz || z < 2 || (z-1) > z_levels.len)
+		return 0
+	return z_levels[z-1]
 
 // Thankfully, no bitwise magic is needed here.
 /proc/GetAbove(var/atom/atom)
@@ -43,7 +40,7 @@ var/list/z_level_connections
 		return null
 	return HasBelow(turf.z) ? get_step(turf, DOWN) : null
 
-/proc/GetConnectedZlevels(var/z)
+/proc/GetConnectedZlevels(z)
 	. = list(z)
 	for(var/level = z, HasBelow(level), level--)
 		. |= level-1
@@ -60,4 +57,3 @@ var/list/z_level_connections
 		. = GetBelow(ref)
 	else
 		. = get_step(ref, dir)
-

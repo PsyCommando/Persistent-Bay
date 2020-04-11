@@ -40,9 +40,10 @@ var/global/list/image/fluidtrack_cache=list()
 /obj/effect/decal/cleanable/blood/tracks
 	amount = 0
 	random_icon_states = null
-	var/dirs=0
 	icon = 'icons/effects/fluidtracks.dmi'
-	icon_state = ""
+	cleanable_scent = null
+
+	var/dirs=0
 	var/coming_state="blood1"
 	var/going_state="blood2"
 	var/updatedtracks=0
@@ -61,13 +62,6 @@ var/global/list/image/fluidtrack_cache=list()
 
 	// List of laid tracks and their colors.
 	var/list/datum/fluidtrack/stack=list()
-
-/obj/effect/decal/cleanable/blood/tracks/New()
-	. = ..()
-	ADD_SAVED_VAR(dirs)
-	ADD_SAVED_VAR(coming_state)
-	ADD_SAVED_VAR(going_state)
-	ADD_SAVED_VAR(setdirs)
 
 	/**
 	* Add tracks to an existing trail.

@@ -9,19 +9,12 @@
 	var/excavation_level = 0
 	var/datum/geosample/geological_data
 	var/datum/artifact_find/artifact_find
-	var/tmp/last_act = 0
+	var/last_act = 0
 
 /obj/structure/boulder/New()
 	..()
-	ADD_SAVED_VAR(excavation_level)
-	ADD_SAVED_VAR(geological_data)
-	ADD_SAVED_VAR(artifact_find)
-
-/obj/structure/boulder/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		icon_state = "boulder[rand(1,4)]"
-		excavation_level = rand(5, 50)
+	icon_state = "boulder[rand(1,4)]"
+	excavation_level = rand(5, 50)
 
 /obj/structure/boulder/Destroy()
 	qdel(geological_data)
@@ -96,8 +89,3 @@
 		var/mob/living/silicon/robot/R = AM
 		if(istype(R.module_active,/obj/item/weapon/pickaxe))
 			attackby(R.module_active,R)
-
-	else if(istype(AM,/obj/mecha))
-		var/obj/mecha/M = AM
-		if(istype(M.selected,/obj/item/mecha_parts/mecha_equipment/tool/drill))
-			M.selected.action(src)

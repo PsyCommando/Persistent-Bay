@@ -6,11 +6,14 @@
 	desc = "Cools gas when connected to a pipe network."
 	icon = 'icons/obj/Cryogenic2.dmi'
 	icon_state = "freezer_0"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	use_power = POWER_USE_OFF
 	idle_power_usage = 5			// 5 Watts for thermostat related circuitry
-	circuit_type = /obj/item/weapon/circuitboard/unary_atmos/cooler
+	base_type = /obj/machinery/atmospherics/unary/freezer
+	construct_state = /decl/machine_construction/default/panel_closed
+	uncreated_component_parts = null
+	stat_immune = 0
 
 	var/heatsink_temperature = T20C	// The constant temperature reservoir into which the freezer pumps heat. Probably the hull of the station or something.
 	var/internal_volume = 600		// L
@@ -19,17 +22,7 @@
 	var/power_setting = 100
 
 	var/set_temperature = T20C		// Thermostat
-	var/cooling = FALSE
-
-/obj/machinery/atmospherics/unary/freezer/New()
-	..()
-	ADD_SAVED_VAR(power_setting)
-	ADD_SAVED_VAR(set_temperature)
-
-/obj/machinery/atmospherics/unary/freezer/Initialize(mapload, d)
-	. = ..()
-	if(!map_storage_loaded)
-		initialize_directions = dir
+	var/cooling = 0
 
 /obj/machinery/atmospherics/unary/freezer/atmos_init()
 	..()
@@ -50,7 +43,7 @@
 			node = null
 			break
 
-	queue_icon_update()
+	update_icon()
 
 /obj/machinery/atmospherics/unary/freezer/on_update_icon()
 	if(node)
@@ -62,16 +55,14 @@
 		icon_state = "freezer_0"
 	return
 
-/obj/machinery/atmospherics/unary/freezer/attack_ai(mob/user as mob)
+/obj/machinery/atmospherics/unary/freezer/interface_interact(mob/user)
 	ui_interact(user)
-
-/obj/machinery/atmospherics/unary/freezer/attack_hand(mob/user as mob)
-	ui_interact(user)
+	return TRUE
 
 /obj/machinery/atmospherics/unary/freezer/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	// this is the data which will be sent to the ui
 	var/data[0]
-	data["on"] = ison()
+	data["on"] = use_power ? 1 : 0
 	data["gasPressure"] = round(air_contents.return_pressure())
 	data["gasTemperature"] = round(air_contents.temperature)
 	data["minGasTemperature"] = 0
@@ -97,14 +88,14 @@
 		// open the new ui window
 		ui.open()
 		// auto update every Master Controller tick
-		ui.set_auto_update(TRUE)
+		ui.set_auto_update(1)
 
 /obj/machinery/atmospherics/unary/freezer/Topic(href, href_list)
 	if(..())
 		return 1
 	if(href_list["toggleStatus"])
 		update_use_power(!use_power)
-		queue_icon_update()
+		update_icon()
 	if(href_list["temp"])
 		var/amount = text2num(href_list["temp"])
 		if(amount > 0)
@@ -120,13 +111,13 @@
 /obj/machinery/atmospherics/unary/freezer/Process()
 	..()
 
-	if(inoperable() || isoff())
+	if(stat & (NOPOWER|BROKEN) || !use_power)
 		cooling = 0
-		queue_icon_update()
+		update_icon()
 		return
 
 	if(network && air_contents.temperature > set_temperature)
-		cooling = TRUE
+		cooling = 1
 
 		var/heat_transfer = max( -air_contents.get_thermal_energy_change(set_temperature - 5), 0 )
 
@@ -143,28 +134,19 @@
 
 		network.update = 1
 	else
-		cooling = FALSE
+		cooling = 0
 
-	queue_icon_update()
+	update_icon()
 
 //upgrading parts
 /obj/machinery/atmospherics/unary/freezer/RefreshParts()
 	..()
-	var/cap_rating = 0
-	var/manip_rating = 0
-	var/bin_rating = 0
-
-	for(var/obj/item/weapon/stock_parts/P in component_parts)
-		if(istype(P, /obj/item/weapon/stock_parts/capacitor))
-			cap_rating += P.rating
-		if(istype(P, /obj/item/weapon/stock_parts/manipulator))
-			manip_rating += P.rating
-		if(istype(P, /obj/item/weapon/stock_parts/matter_bin))
-			bin_rating += P.rating
+	var/cap_rating = Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/capacitor), 0, 20)
+	var/manip_rating = Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/manipulator), 1, 10)
+	var/bin_rating = Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/matter_bin), 0, 10)
 
 	power_rating = initial(power_rating) * cap_rating / 2			//more powerful
-	var/eff = manip_rating + bin_rating
-	heatsink_temperature = initial(heatsink_temperature) / ((eff? eff : 1) / 2)	//more efficient
+	heatsink_temperature = initial(heatsink_temperature) / ((manip_rating + bin_rating) / 2)	//more efficient
 	air_contents.volume = max(initial(internal_volume) - 200, 0) + 200 * bin_rating
 	set_power_level(power_setting)
 
@@ -172,17 +154,7 @@
 	power_setting = new_power_setting
 	power_rating = max_power_rating * (power_setting/100)
 
-/obj/machinery/atmospherics/unary/freezer/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		return
-	if(default_deconstruction_crowbar(user, O))
-		return
-	if(default_part_replacement(user, O))
-		return
-
-	..()
-
 /obj/machinery/atmospherics/unary/freezer/examine(mob/user)
-	. = ..(user)
+	. = ..()
 	if(panel_open)
 		to_chat(user, "The maintenance hatch is open.")

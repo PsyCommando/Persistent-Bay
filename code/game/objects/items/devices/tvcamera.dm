@@ -6,7 +6,7 @@
 	w_class = ITEM_SIZE_LARGE
 	slot_flags = SLOT_BELT
 	var/channel = "General News Feed"
-	var/obj/machinery/camera/network/public/camera
+	var/obj/machinery/camera/network/thunder/camera
 	var/obj/item/device/radio/radio
 
 /obj/item/device/camera/tvcamera/New()
@@ -29,11 +29,11 @@
 	radio.power_usage = 0
 	. = ..()
 
-/obj/item/device/camera/tvcamera/examine()
+/obj/item/device/camera/tvcamera/examine(mob/user)
 	. = ..()
-	to_chat(usr, "Video feed is currently: [camera.status ? "Online" : "Offline"]")
-	to_chat(usr, "Audio feed is currently: [radio.broadcasting ? "Online" : "Offline"]")
-	to_chat(usr, "Photography setting is currently: [on ? "On" : "Off"]")
+	to_chat(user, "Video feed is currently: [camera.status ? "Online" : "Offline"]")
+	to_chat(user, "Audio feed is currently: [radio.broadcasting ? "Online" : "Offline"]")
+	to_chat(user, "Photography setting is currently: [on ? "On" : "Off"]")
 
 /obj/item/device/camera/tvcamera/attack_self(mob/user)
 	add_fingerprint(user)

@@ -1,78 +1,15 @@
 /mob/living/carbon/New()
-	..()
-	//Restore any saved species before any sub-classes run its New() proc.
-	if(saved_species)
-		species = all_species[saved_species]
-		saved_species = null //no need to keep this around after load
-
-	ADD_SAVED_VAR(immunity) //defined in viruses.dm
-	ADD_SAVED_VAR(saved_species)
-	ADD_SAVED_VAR(virus2)
-	ADD_SAVED_VAR(antibodies)
-	ADD_SAVED_VAR(handcuffed)
-	ADD_SAVED_VAR(surgeries_in_progress)
-	ADD_SAVED_VAR(touching)
-	ADD_SAVED_VAR(metabolism_effects)
-	ADD_SAVED_VAR(nutrition)
-	ADD_SAVED_VAR(internal_organs_by_name) //Save only organs by name, since we don't want useless duplicate lists of organs
-	ADD_SAVED_VAR(organs_by_name)
-	ADD_SAVED_VAR(losebreath)
-
-	ADD_SKIP_EMPTY(saved_species)
-	ADD_SKIP_EMPTY(virus2)
-	ADD_SKIP_EMPTY(antibodies)
-	ADD_SKIP_EMPTY(handcuffed)
-	ADD_SKIP_EMPTY(surgeries_in_progress)
-	ADD_SKIP_EMPTY(internal_organs_by_name)
-	ADD_SKIP_EMPTY(organs_by_name)
-
-/mob/living/carbon/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		//setup reagent holders
-		bloodstr = new/datum/reagents/metabolism(120, src, CHEM_BLOOD)
-		touching = new/datum/reagents/metabolism(1000, src, CHEM_TOUCH)
-		reagents = bloodstr
-		metabolism_effects = new/datum/metabolism_effects(src)
+	//setup reagent holders
+	bloodstr = new/datum/reagents/metabolism(120, src, CHEM_BLOOD)
+	touching = new/datum/reagents/metabolism(1000, src, CHEM_TOUCH)
+	reagents = bloodstr
 
 	if (!default_language && species_language)
 		default_language = all_languages[species_language]
+	..()
 
-/mob/living/carbon/after_load()
-	. = ..()
-	bloodstr = reagents //Since reagents is saved, but not bloodstream
-
-	//Rebuild organ list, from saved organs
-	organs = list()
-	internal_organs = list()
-	for(var/name in organs_by_name)
-		organs |= organs_by_name[name]
-	for(var/name in internal_organs_by_name)
-		internal_organs |= internal_organs_by_name[name]
-
-/mob/living/carbon/human/before_save()
-	. = ..()
-	//Put the specie name as species type during saving
-	saved_species = species?.name
-
-/mob/living/carbon/human/after_save()
-	. = ..()
-	//Clear the saved species var to save some memory
-	saved_species = null
-
-/mob/living/carbon/Destroy(var/clearlace = FALSE)
-	//Drop the lace
-#ifndef UNIT_TEST
-	if(LAZYLEN(internal_organs_by_name))
-		var/obj/item/organ/internal/stack/lace = internal_organs_by_name[BP_STACK]
-		if(clearlace || !istype(lace))
-			qdel(lace, clearlace, clearlace) //Die stack :D
-		else
-			lace.removed(dolace = !clearlace)
-			lace.dropInto(get_turf(src))
-#endif
+/mob/living/carbon/Destroy()
 	QDEL_NULL(touching)
-	QDEL_NULL(metabolism_effects)
 	bloodstr = null // We don't qdel(bloodstr) because it's the same as qdel(reagents)
 	QDEL_NULL_LIST(internal_organs)
 	QDEL_NULL_LIST(hallucinations)
@@ -87,12 +24,11 @@
 /mob/living/carbon/rejuvenate()
 	bloodstr.clear_reagents()
 	touching.clear_reagents()
-	metabolism_effects.clear_effects()
 	var/datum/reagents/R = get_ingested_reagents()
 	if(istype(R))
 		R.clear_reagents()
-	if(!(src.species.species_flags & SPECIES_FLAG_NO_HUNGER))
-		nutrition = 400
+	set_nutrition(400)
+	set_hydration(400)
 	..()
 
 /mob/living/carbon/Move(NewLoc, direct)
@@ -100,12 +36,18 @@
 	if(!.)
 		return
 
-	if (src.nutrition && src.stat != DEAD && src.species && !(src.species.species_flags & SPECIES_FLAG_NO_HUNGER))
-		src.nutrition -= DEFAULT_HUNGER_FACTOR/10
+	if (stat != DEAD && src.species && !(src.species.species_flags & SPECIES_FLAG_NO_HUNGER))
+
+		if((MUTATION_FAT in src.mutations) && (move_intent.flags & MOVE_INTENT_EXERTIVE) && src.bodytemperature <= 360)
+			bodytemperature += 2
+
+		var/nut_removed = DEFAULT_HUNGER_FACTOR/10
+		var/hyd_removed = DEFAULT_THIRST_FACTOR/10
 		if (move_intent.flags & MOVE_INTENT_EXERTIVE)
-			src.nutrition -= DEFAULT_HUNGER_FACTOR/10
-	if((MUTATION_FAT in src.mutations) && (move_intent.flags & MOVE_INTENT_EXERTIVE) && src.bodytemperature <= 360)
-		src.bodytemperature += 2
+			nut_removed *= 2
+			hyd_removed *= 2
+		adjust_nutrition(-nut_removed)
+		adjust_hydration(-hyd_removed)
 
 	// Moving around increases germ_level faster
 	if(germ_level < GERM_LEVEL_MOVE_CAP && prob(8))
@@ -123,10 +65,10 @@
 					var/mob/living/carbon/human/H = src
 					var/obj/item/organ/external/organ = H.get_organ(BP_CHEST)
 					if (istype(organ))
-						organ.take_damage(d, I.damtype)
+						organ.take_external_damage(d, 0)
 					H.updatehealth()
 				else
-					src.apply_damage(d)
+					src.take_organ_damage(d)
 				user.visible_message("<span class='danger'>[user] attacks [src]'s stomach wall with the [I.name]!</span>")
 				playsound(user.loc, 'sound/effects/attackblob.ogg', 50, 1)
 
@@ -177,11 +119,13 @@
 		)
 
 	switch(shock_damage)
+		if(11 to 15)
+			Stun(1)
 		if(16 to 20)
 			Stun(2)
 		if(21 to 25)
 			Weaken(2)
-		if(26 to 25)
+		if(26 to 30)
 			Weaken(5)
 		if(31 to INFINITY)
 			Weaken(10) //This should work for now, more is really silly and makes you lay there forever
@@ -200,7 +144,7 @@
 		return 0
 	if(shock_damage < 1)
 		shock_damage = 1
-	apply_damage(shock_damage, DAM_ELECTRIC, def_zone, used_weapon="Electrocution")
+	apply_damage(shock_damage, BURN, def_zone, used_weapon="Electrocution")
 	return(shock_damage)
 
 /mob/proc/swap_hand()
@@ -315,21 +259,6 @@
 
 // ++++ROCKDTBEN++++ MOB PROCS //END
 
-/mob/living/carbon/clean_blood()
-	. = ..()
-	if(ishuman(src))
-		var/mob/living/carbon/human/H = src
-		if(H.gloves)
-			if(H.gloves.clean_blood())
-				H.update_inv_gloves(0)
-			H.gloves.germ_level = 0
-		else
-			if(!isnull(H.bloody_hands))
-				H.bloody_hands = null
-				H.update_inv_gloves(0)
-			H.germ_level = 0
-	update_icons()	//apply the now updated overlays to the mob
-
 //Throwing stuff
 /mob/proc/throw_item(atom/target)
 	return
@@ -436,17 +365,18 @@
 	if(now_pushing || !yes)
 		return
 	..()
-	if(istype(AM, /mob/living/carbon) && prob(10))
-		src.spread_disease_to(AM, "Contact")
 
-/mob/living/carbon/slip(var/slipped_on,stun_duration=8)
+/mob/living/carbon/slip(slipped_on, stun_duration = 8)
+	var/area/A = get_area(src)
+	if(!A.has_gravity())
+		return FALSE
 	if(buckled)
-		return 0
+		return FALSE
 	stop_pulling()
-	to_chat(src, "<span class='warning'>You slipped on [slipped_on]!</span>")
-	playsound(src.loc, 'sound/misc/slip.ogg', 50, 1, -3)
+	to_chat(src, SPAN_WARNING("You slipped on [slipped_on]!"))
+	playsound(loc, 'sound/misc/slip.ogg', 50, 1, -3)
 	Weaken(Floor(stun_duration/2))
-	return 1
+	return TRUE
 
 /mob/living/carbon/proc/add_chemical_effect(var/effect, var/magnitude = 1)
 	if(effect in chem_effects)
@@ -464,6 +394,17 @@
 	if(default_language && can_speak(default_language))
 		return default_language
 
+/mob/living/carbon/proc/get_any_good_language(set_default=FALSE)
+	var/datum/language/result = get_default_language()
+	if (!result)
+		for (var/datum/language/L in languages)
+			if (can_speak(L))
+				result = L
+				if (set_default)
+					set_default_language(result)
+				break
+	return result
+
 /mob/living/carbon/show_inv(mob/user as mob)
 	user.set_machine(src)
 	var/dat = {"
@@ -478,7 +419,7 @@
 	<BR><A href='?src=\ref[user];refresh=1'>Refresh</A>
 	<BR><A href='?src=\ref[user];mach_close=mob[name]'>Close</A>
 	<BR>"}
-	user << browse(dat, text("window=mob[];size=325x500", name))
+	show_browser(user, dat, text("window=mob[];size=325x500", name))
 	onclose(user, "mob[name]")
 	return
 
@@ -539,3 +480,30 @@
 
 /mob/living/carbon/proc/get_ingested_reagents()
 	return reagents
+
+/mob/living/carbon/proc/set_nutrition(var/amt)
+	nutrition = Clamp(amt, 0, initial(nutrition))
+
+/mob/living/carbon/proc/adjust_nutrition(var/amt)
+	set_nutrition(nutrition + amt)
+
+/mob/living/carbon/proc/set_hydration(var/amt)
+	hydration = Clamp(amt, 0, initial(hydration))
+
+/mob/living/carbon/proc/adjust_hydration(var/amt)
+	set_hydration(hydration + amt)
+
+/mob/living/carbon/proc/set_internals(obj/item/weapon/tank/source, source_string)
+	var/old_internal = internal
+
+	internal = source
+
+	if(!old_internal && internal)
+		if(!source_string)
+			source_string = source.name
+		to_chat(src, "<span class='notice'>You are now running on internals from \the [source_string].</span>")
+		playsound(src, 'sound/effects/internals.ogg', 50, 0)
+	if(old_internal && !internal)
+		to_chat(src, "<span class='warning'>You are no longer running on internals.</span>")
+	if(internals)
+		internals.icon_state = "internal[!!internal]"

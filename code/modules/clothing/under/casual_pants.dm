@@ -17,7 +17,7 @@
 	icon_state = "jeansclassic"
 
 /obj/item/clothing/under/casual_pants/mustangjeans
-	name = "mustang jeans"
+	name = "must hang jeans"
 	desc = "Made in the finest space jeans factory this side of Alpha Centauri."
 	icon_state = "jeansmustang"
 
@@ -75,7 +75,7 @@
 	icon_state = "baggy_jeansclassic"
 
 /obj/item/clothing/under/casual_pants/baggy/mustangjeans
-	name = "baggy mustang jeans"
+	name = "maggy must hang jeans"
 	desc = "Made in the finest space jeans factory this side of Alpha Centauri."
 	icon_state = "baggy_jeansmustang"
 

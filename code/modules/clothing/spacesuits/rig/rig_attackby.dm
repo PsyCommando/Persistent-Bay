@@ -5,9 +5,6 @@
 	if(electrified != 0)
 		if(shock(user)) //Handles removing charge from the cell, as well. No need to do that here.
 			return
-	if(is_type_in_list(W,banned_modules))
-		to_chat(user, "<span class='danger'>\The [src] cannot mount this type of module.</span>")
-		return
 
 	// Pass repair items on to the chestpiece.
 	if(chest && (istype(W,/obj/item/stack/material) || isWelder(W)))
@@ -20,7 +17,7 @@
 			to_chat(user, "<span class='danger'>It looks like the locking system has been shorted out.</span>")
 			return
 
-		if(!length(req_access) && !length(req_one_access))
+		if(!length(req_access))
 			locked = 0
 			to_chat(user, "<span class='danger'>\The [src] doesn't seem to have a locking mechanism.</span>")
 			return
@@ -80,14 +77,26 @@
 					to_chat(user, "<span class='danger'>You can't install a hardsuit module while the suit is being worn.</span>")
 					return 1
 
+			if(is_type_in_list(W,banned_modules))
+				to_chat(user, SPAN_DANGER("\The [src] cannot mount this type of module."))
+				return 1
+
+			var/obj/item/rig_module/mod = W
+
 			if(!installed_modules) installed_modules = list()
 			if(installed_modules.len)
 				for(var/obj/item/rig_module/installed_mod in installed_modules)
-					if(!installed_mod.redundant && istype(installed_mod,W))
+					if(is_type_in_list(installed_mod,mod.banned_modules))
+						to_chat(user, SPAN_DANGER("\The [installed_mod] is incompatible with this module."))
+						return 1
+					if(installed_mod.banned_modules.len)
+						if(is_type_in_list(W,installed_mod.banned_modules))
+							to_chat(user, SPAN_DANGER("\The [installed_mod] is incompatible with this module."))
+							return 1
+					if(!installed_mod.redundant && installed_mod.type == W.type)
 						to_chat(user, "The hardsuit already has a module of that class installed.")
 						return 1
 
-			var/obj/item/rig_module/mod = W
 			to_chat(user, "You begin installing \the [mod] into \the [src].")
 			if(!do_after(user,40,src))
 				return
@@ -203,7 +212,6 @@
 /obj/item/weapon/rig/emag_act(var/remaining_charges, var/mob/user)
 	if(!subverted)
 		req_access.Cut()
-		req_one_access.Cut()
 		locked = 0
 		subverted = 1
 		to_chat(user, "<span class='danger'>You short out the access protocol for the suit.</span>")

@@ -1,43 +1,13 @@
-//Backward compatibility code
-// So people don't lose their items
-/obj/machinery/iv_drip	
-	name = "ERROR"
-	var/obj/item/weapon/reagent_containers/beaker
-/obj/machinery/iv_drip/New()
-	. = ..()
-	ADD_SAVED_VAR(beaker)
-/obj/machinery/iv_drip/Destroy()
-	beaker = null
-	return ..()
-/obj/machinery/iv_drip/after_load()
-	var/obj/structure/iv_drip/newdrip = new(src.loc)
-	newdrip.beaker = src.beaker
-	src.beaker.forceMove(newdrip)
-	src.beaker = null
-	for(var/obj/item/I in src.contents)
-		I.forceMove(src.loc)
-/obj/machinery/iv_drip/Initialize()
-	return INITIALIZE_HINT_QDEL
-// End compatibility (Was made on august 17 2019, should be safe to remove a while after that once things got converted)
-
 /obj/structure/iv_drip
 	name = "\improper IV drip"
 	icon = 'icons/obj/iv_drip.dmi'
 	anchored = 0
 	density = 0
-	health = 50
-	damthreshold_brute = 10
 	var/mob/living/carbon/human/attached
 	var/mode = 1 // 1 is injecting, 0 is taking blood.
 	var/obj/item/weapon/reagent_containers/beaker
 	var/list/transfer_amounts = list(REM, 1, 2)
 	var/transfer_amount = 1
-
-/obj/structure/iv_drip/New()
-	. = ..()
-	ADD_SAVED_VAR(mode)
-	ADD_SAVED_VAR(beaker)
-	ADD_SAVED_VAR(transfer_amount)
 
 /obj/structure/iv_drip/verb/set_amount_per_transfer_from_this()
 	set name = "Set IV transfer amount"
@@ -110,7 +80,8 @@
 /obj/structure/iv_drip/Destroy()
 	STOP_PROCESSING(SSobj,src)
 	attached = null
-	QDEL_NULL(beaker)
+	qdel(beaker)
+	beaker = null
 	. = ..()
 
 /obj/structure/iv_drip/Process()
@@ -137,8 +108,7 @@
 		amount = min(amount, 4)
 		
 		if(amount == 0) // If the beaker is full, ping
-			if(prob(5)) 
-				audible_message("\The [src] pings.")
+			if(prob(5)) audible_message("\The [src] pings.")
 			return
 
 		if(!attached.should_have_organ(BP_HEART))
@@ -173,10 +143,10 @@
 	if(!attached)
 		return
 		
-	if(!usr.Adjacent(attached))
-		to_chat(usr, "<span class='warning'>You are too far away from the [attached]!</span>")
+	if(!CanPhysicallyInteractWith(usr, src))
+		to_chat(usr, SPAN_NOTICE("You're in no condition to do that!"))
 		return
-		
+
 	if(!usr.skill_check(SKILL_MEDICAL, SKILL_BASIC))
 		rip_out()
 	else
@@ -196,10 +166,10 @@
 	mode = !mode
 	to_chat(usr, "The IV drip is now [mode ? "injecting" : "taking blood"].")
 
-/obj/structure/iv_drip/examine(mob/user)
-	. = ..(user)
+/obj/structure/iv_drip/examine(mob/user, distance)
+	. = ..()
 
-	if (get_dist(src, user) > 2) 
+	if (distance >= 2) 
 		return
 
 	to_chat(user, "The IV drip is [mode ? "injecting" : "taking blood"].")
@@ -217,7 +187,7 @@
 
 /obj/structure/iv_drip/proc/rip_out()
 	visible_message("The needle is ripped out of [src.attached], doesn't that hurt?")
-	attached.apply_damage(1, DAM_PIERCE, pick(BP_R_ARM, BP_L_ARM), used_weapon = " IV needle")
+	attached.apply_damage(1, BRUTE, pick(BP_R_ARM, BP_L_ARM), damage_flags=DAM_SHARP)
 	attached = null
 
 /obj/structure/iv_drip/proc/hook_up(mob/living/carbon/human/target, mob/user)
@@ -232,7 +202,7 @@
 
 	if(prob(user.skill_fail_chance(SKILL_MEDICAL, 80, SKILL_BASIC)))
 		user.visible_message("\The [user] fails to find the vein while trying to hook \the [target] up to \the [IV], stabbing them instead!")
-		target.apply_damage(2, DAM_PIERCE, pick(BP_R_ARM, BP_L_ARM), used_weapon = " IV needle")
+		target.apply_damage(2, BRUTE, pick(BP_R_ARM, BP_L_ARM), damage_flags=DAM_SHARP)
 		return FALSE
 
 	user.visible_message("\The [user] hooks \the [target] up to \the [IV].")

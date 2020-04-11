@@ -80,7 +80,7 @@
 			if(isScrewdriver(W))
 				playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
 
-				var/input = sanitize(input(usr, "Which networks would you like to connect this camera to? Separate networks with a comma. No Spaces!\nFor example: Exodus,Security,Secret", "Set Network", camera_network ? camera_network : "nt_net"))
+				var/input = sanitize(input(usr, "Which networks would you like to connect this camera to? Separate networks with a comma. No Spaces!\nFor example: Exodus,Security,Secret", "Set Network", camera_network ? camera_network : NETWORK_EXODUS))
 				if(!input)
 					to_chat(usr, "No input found please hang up and try your call again.")
 					return
@@ -152,21 +152,19 @@
 	if(!anchored)
 		..()
 
-/obj/item/weapon/camera_assembly/proc/weld(var/obj/item/weapon/tool/weldingtool/WT, var/mob/user)
+/obj/item/weapon/camera_assembly/proc/weld(var/obj/item/weapon/weldingtool/WT, var/mob/user)
 
 	if(busy)
 		return 0
-	if(!WT.isOn())
-		return 0
 
-	to_chat(user, "<span class='notice'>You start to weld \the [src]..</span>")
-	playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
-	WT.eyecheck(user)
-	busy = 1
-	if(do_after(user, 20, src))
-		busy = 0
-		if(!WT.isOn())
-			return 0
-		return 1
+	if(WT.remove_fuel(0, user))
+		to_chat(user, "<span class='notice'>You start to weld \the [src]..</span>")
+		playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
+		busy = 1
+		if(do_after(user, 20, src) && WT.isOn())
+			playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
+			busy = 0
+			return 1
+
 	busy = 0
 	return 0

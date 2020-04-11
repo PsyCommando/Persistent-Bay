@@ -5,7 +5,6 @@
 	anchored = 0
 	density = 1
 	w_class = ITEM_SIZE_NO_CONTAINER
-	max_health = 100
 	var/state = 0
 	var/base_icon_state = ""
 	var/base_name = "Airlock"
@@ -22,34 +21,8 @@
 	var/stripe_color = "none"
 	var/symbol_color = "none"
 
-	var/allow_keypad = 	 FALSE // accepts keypad electronics
-	var/allow_personal = FALSE // accepts personal electronics
-
-/obj/structure/door_assembly/New()
-	..()
-	update_state()
-	ADD_SAVED_VAR(base_name)
-	ADD_SAVED_VAR(glass)
-	ADD_SAVED_VAR(created_name)
-	ADD_SAVED_VAR(state)
-	ADD_SAVED_VAR(electronics)
-	ADD_SAVED_VAR(glass)
-	ADD_SAVED_VAR(created_name)
-	ADD_SAVED_VAR(door_color)
-	ADD_SAVED_VAR(stripe_color)
-	ADD_SAVED_VAR(symbol_color)
-
-/obj/structure/door_assembly/door_assembly_keyp
- 	base_name = "Keypad Airlock"
- 	glass = -1
- 	allow_keypad = TRUE
- 	airlock_type = "/keypad"
-
-/obj/structure/door_assembly/door_assembly_personal
-	base_name = "Personal Airlock"
-	glass = -1
-	allow_personal = TRUE
-	airlock_type = "/personal"
+	New()
+		update_state()
 
 /obj/structure/door_assembly/door_assembly_hatch
 	icon = 'icons/obj/doors/hatch/door.dmi'
@@ -73,6 +46,7 @@
 	glass_icon = 'icons/obj/doors/external/fill_glass.dmi'
 	base_name = "External Airlock"
 	airlock_type = /obj/machinery/door/airlock/external
+	glass_type = /obj/machinery/door/airlock/external/glass
 	paintable = 0
 
 /obj/structure/door_assembly/multi_tile
@@ -85,30 +59,25 @@
 	airlock_type = /obj/machinery/door/airlock/multi_tile
 	glass_type = /obj/machinery/door/airlock/multi_tile/glass
 
-/obj/structure/door_assembly/multi_tile/New()
-	..()
-	ADD_SAVED_VAR(width)
+	New()
+		if(dir in list(EAST, WEST))
+			bound_width = width * world.icon_size
+			bound_height = world.icon_size
+		else
+			bound_width = world.icon_size
+			bound_height = width * world.icon_size
+		update_state()
 
-/obj/structure/door_assembly/multi_tile/Move()
-	. = ..()
-	update_icon()
+	Move()
+		. = ..()
+		if(dir in list(EAST, WEST))
+			bound_width = width * world.icon_size
+			bound_height = world.icon_size
+		else
+			bound_width = world.icon_size
+			bound_height = width * world.icon_size
 
-//Make sure we don't save twice!
-/obj/structure/door_assembly/multi_tile/should_save(var/datum/caller)
-	if(caller == loc)
-		return ..()
-	else
-		return 0
-	return ..()
 
-/obj/structure/door_assembly/multi_tile/on_update_icon()
-	if(dir in list(EAST, WEST))
-		bound_width = world.icon_size
-		bound_height = width * world.icon_size
-	else
-		bound_width = width * world.icon_size
-		bound_height = world.icon_size
-	..()
 
 /obj/structure/door_assembly/attackby(obj/item/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/weapon/pen))
@@ -119,7 +88,7 @@
 		return
 
 	if(isWelder(W) && ( (istext(glass)) || (glass == 1) || (!anchored) ))
-		var/obj/item/weapon/tool/weldingtool/WT = W
+		var/obj/item/weapon/weldingtool/WT = W
 		if (WT.remove_fuel(0, user))
 			playsound(src.loc, 'sound/items/Welder2.ogg', 50, 1)
 			if(istext(glass))
@@ -182,10 +151,6 @@
 			src.state = 0
 
 	else if(istype(W, /obj/item/weapon/airlock_electronics) && state == 1)
-
-		if((istype(W, /obj/item/weapon/airlock_electronics/keypad_electronics) && !allow_keypad) || (istype(W, /obj/item/weapon/airlock_electronics/personal_electronics) && !allow_personal))
-			to_chat(user, "<span class='warning'>\The [src] doesn't accept that type of airlock electronics!</span>")
-
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 100, 1)
 		user.visible_message("[user] installs the electronics into the airlock assembly.", "You start to install electronics into the airlock assembly.")
 
@@ -218,7 +183,7 @@
 
 	else if(istype(W, /obj/item/stack/material) && !glass)
 		var/obj/item/stack/material/S = W
-		var/material_name = S.get_material_name()
+		var/material_name = S.get_material_name()		
 		if (S)
 			if (S.get_amount() >= 1)
 				if(material_name == MATERIAL_GLASS && S.reinf_material)
@@ -228,7 +193,7 @@
 						if (S.use(1))
 							to_chat(user, "<span class='notice'>You installed reinforced glass windows into the airlock assembly.</span>")
 							glass = 1
-				else if(!(material_name in list(MATERIAL_GOLD, MATERIAL_SILVER, MATERIAL_DIAMOND, MATERIAL_URANIUM, MATERIAL_PHORON, MATERIAL_SANDSTONE, MATERIAL_STEEL)))
+				else if(!(material_name in list(MATERIAL_GOLD, MATERIAL_SILVER, MATERIAL_DIAMOND, MATERIAL_URANIUM, MATERIAL_PHORON, MATERIAL_SANDSTONE)))
 					to_chat(user, "You cannot make an airlock out of that material.")
 					return
 				else
@@ -255,7 +220,7 @@
 			else
 				path = airlock_type
 
-			new path(get_turf(src), src)
+			new path(src.loc, src)
 			qdel(src)
 	else
 		..()
@@ -284,7 +249,3 @@
 	SetName(final_name)
 	overlays += filling_overlay
 	overlays += panel_overlay
-
-/obj/structure/door_assembly/AltClick(mob/user)
-	. = ..()
-	rotate()

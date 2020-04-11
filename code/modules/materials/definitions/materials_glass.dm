@@ -9,7 +9,7 @@
 	integrity = 50
 	shard_type = SHARD_SHARD
 	tableslam_noise = 'sound/effects/Glasshit.ogg'
-	hardness = 50
+	hardness = MATERIAL_RIGID + 10	
 	melting_point = T0C + 100
 	weight = 14
 	brute_armor = 1
@@ -21,6 +21,7 @@
 	hitsound = 'sound/effects/Glasshit.ogg'
 	conductive = 0
 	sale_price = 1
+	value = 4
 
 /material/glass/proc/is_reinforced()
 	return (integrity > 75) //todo
@@ -34,6 +35,7 @@
 	display_name = "borosilicate glass"
 	stack_type = /obj/item/stack/material/glass/phoronglass
 	flags = MATERIAL_BRITTLE
+	hardness = MATERIAL_HARD
 	integrity = 70
 	brute_armor = 2
 	burn_armor = 5
@@ -41,30 +43,8 @@
 	icon_colour = GLASS_COLOR_PHORON
 	stack_origin_tech = list(TECH_MATERIAL = 4)
 	wire_product = null
-	construction_difficulty = 2
+	construction_difficulty = MATERIAL_HARD_DIY
 	alloy_product = TRUE
 	alloy_materials = list(MATERIAL_SAND = 2500, MATERIAL_PLATINUM = 1250)
 	sale_price = 2
-
-/material/glass/fiberglass
-	name = MATERIAL_FIBERGLASS
-	display_name = "fiberglass"
-	stack_type = /obj/item/stack/material/glass/fiberglass
-	flags = null //Fiberglass isn't very brittle
-	icon_colour = "#bbbbcc"
-	opacity = 0.4
-	integrity = 125
-	melting_point = T0C + 90 // It's slightly more susceptible to fire than normal glass
-	tableslam_noise = 'sound/weapons/tablehit1.ogg'
-	hitsound = 'sound/weapons/tablehit1.ogg'
-	weight = 10
-	brute_armor = 4 // It's very tough against brute damage though
-	burn_armor = 1
-	shard_type = SHARD_SPLINTER
-	stack_origin_tech = list(TECH_MATERIAL = 2)
-	destruction_desc = "splinters"
-	window_options = list("One Direction" = 1, "Full Window" = 4)
-	chem_products = list(
-				/datum/reagent/silicon = 20,
-				/datum/reagent/toxin/plasticide = 2
-				)
+	value = 40

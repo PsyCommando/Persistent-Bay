@@ -13,14 +13,12 @@
 	matter = list(MATERIAL_STEEL = 2000)
 	projectile_type = /obj/item/projectile/beam/midlaser
 	wielded_item_state = "laser-wielded"
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/laser/mounted
 	self_recharge = 1
 	use_external_power = 1
 	one_hand_penalty = 0 //just in case
 	has_safety = FALSE
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/laser/practice
 	name = "practice laser carbine"
@@ -28,8 +26,7 @@
 	icon_state = "laserp"
 	projectile_type = /obj/item/projectile/beam/practice
 	charge_cost = 10 //How much energy is needed to fire.
-	load_method = ENERGY_LOAD_FIXED_CELL
-/*
+
 /obj/item/weapon/gun/energy/laser/practice/proc/hacked()
 	return projectile_type != /obj/item/projectile/beam/practice
 
@@ -51,7 +48,7 @@
 			to_chat(user, "<span class='danger'>\The [src] sizzles in your hands, acrid smoke rising from the firing end!</span>")
 			desc += " The optical pathway is melted and useless."
 			projectile_type = null
-*/
+
 obj/item/weapon/gun/energy/retro
 	name = "retro laser"
 	icon = 'icons/obj/guns/retro_laser.dmi'
@@ -62,7 +59,7 @@ obj/item/weapon/gun/energy/retro
 	w_class = ITEM_SIZE_NORMAL
 	projectile_type = /obj/item/projectile/beam
 	fire_delay = 15 //old technology, and a pistol
-/*
+
 /obj/item/weapon/gun/energy/captain
 	name = "antique laser gun"
 	icon = 'icons/obj/guns/caplaser.dmi'
@@ -77,8 +74,7 @@ obj/item/weapon/gun/energy/retro
 	max_shots = 5 //to compensate a bit for self-recharging
 	one_hand_penalty = 1 //a little bulky
 	self_recharge = 1
-	load_method = ENERGY_LOAD_FIXED_CELL
-*/
+
 /obj/item/weapon/gun/energy/lasercannon
 	name = "laser cannon"
 	desc = "With the laser cannon, the lasing medium is enclosed in a tube lined with uranium-235 and subjected to high neutron flux in a nuclear reactor core. This incredible technology may help YOU achieve high excitation rates with small laser volumes!"
@@ -90,12 +86,11 @@ obj/item/weapon/gun/energy/retro
 	one_hand_penalty = 6 //large and heavy
 	w_class = ITEM_SIZE_HUGE
 	projectile_type = /obj/item/projectile/beam/heavylaser
-	charge_cost = 33 //odd number, but allows it a progression of 3, 6, 9 shots with the new cell balance
+	charge_cost = 40
 	max_shots = 6
 	accuracy = 2
 	fire_delay = 20
 	wielded_item_state = "gun_wielded"
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/lasercannon/mounted
 	name = "mounted laser cannon"
@@ -104,7 +99,6 @@ obj/item/weapon/gun/energy/retro
 	recharge_time = 10
 	accuracy = 0 //mounted laser cannons don't need any help, thanks
 	one_hand_penalty = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
 	has_safety = FALSE
 
 /obj/item/weapon/gun/energy/xray
@@ -114,14 +108,14 @@ obj/item/weapon/gun/energy/retro
 	icon_state = "xray"
 	item_state = "xray"
 	slot_flags = SLOT_BELT|SLOT_BACK
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 3, TECH_MAGNET = 2, TECH_ILLEGAL = 2)
+	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 3, TECH_MAGNET = 2, TECH_ESOTERIC = 2)
 	projectile_type = /obj/item/projectile/beam/xray/midlaser
 	one_hand_penalty = 2
 	w_class = ITEM_SIZE_LARGE
+	charge_cost = 15
 	max_shots = 10
 	wielded_item_state = "gun_wielded"
 	combustion = 0
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/xray/pistol
 	name = "x-ray laser gun"
@@ -129,15 +123,14 @@ obj/item/weapon/gun/energy/retro
 	icon_state = "oldxray"
 	item_state = "oldxray"
 	slot_flags = SLOT_BELT|SLOT_HOLSTER
-	origin_tech = list(TECH_COMBAT = 4, TECH_MATERIAL = 3, TECH_MAGNET = 2, TECH_ILLEGAL = 2)
+	origin_tech = list(TECH_COMBAT = 4, TECH_MATERIAL = 3, TECH_MAGNET = 2, TECH_ESOTERIC = 2)
 	projectile_type = /obj/item/projectile/beam/xray
 	one_hand_penalty = 1
 	w_class = ITEM_SIZE_NORMAL
 	fire_delay = 10
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/sniperrifle
-	name = "HI DMR 9E energy rifle"
+	name = "marksman energy rifle"
 	desc = "The HI DMR 9E is an older design of Hephaestus Industries. A designated marksman rifle capable of shooting powerful ionized beams, this is a weapon to kill from a distance."
 	icon = 'icons/obj/guns/laser_sniper.dmi'
 	icon_state = "sniper"
@@ -146,7 +139,7 @@ obj/item/weapon/gun/energy/retro
 	projectile_type = /obj/item/projectile/beam/sniper
 	one_hand_penalty = 5 // The weapon itself is heavy, and the long barrel makes it hard to hold steady with just one hand.
 	slot_flags = SLOT_BACK
-	charge_cost = 50
+	charge_cost = 40
 	max_shots = 4
 	fire_delay = 35
 	force = 10
@@ -155,7 +148,6 @@ obj/item/weapon/gun/energy/retro
 	scoped_accuracy = 9
 	scope_zoom = 2
 	wielded_item_state = "gun_wielded"
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/sniperrifle/on_update_icon()
 	..()

@@ -3,6 +3,13 @@
 	if(!add_antagonist_mind(player, ignore_role))
 		return
 
+	if(base_to_load)
+		var/datum/map_template/base = new base_to_load()
+		report_progress("Loading map template '[base]' for [role_text]...")
+		base_to_load = null
+		base.load_new_z()
+		get_starting_locations()
+
 	//do this again, just in case
 	if(flags & ANTAG_OVERRIDE_JOB)
 		player.assigned_job = null
@@ -14,7 +21,8 @@
 		create_default(player.current)
 	else
 		create_antagonist(player, move_to_spawn, do_not_announce, preserve_appearance)
-		skill_setter.initialize_skills(player.current.skillset)
+		if(istype(skill_setter))
+			skill_setter.initialize_skills(player.current.skillset)
 		if(!do_not_equip)
 			equip(player.current)
 
@@ -39,8 +47,8 @@
 	if(config.objectives_disabled == CONFIG_OBJECTIVE_VERB)
 		player.current.verbs += /mob/proc/add_objectives
 
-	// if(player.current.client)
-	// 	player.current.client.verbs += /client/proc/aooc
+	if(player.current.client)
+		player.current.client.verbs += /client/proc/aooc
 
 	spawn(1 SECOND) //Added a delay so that this should pop up at the bottom and not the top of the text flood the new antag gets.
 		to_chat(player.current, "<span class='notice'>Once you decide on a goal to pursue, you can optionally display it to \
@@ -79,8 +87,8 @@
 		if(!is_special_character(player))
 			if(player.current)
 				player.current.verbs -= /mob/living/proc/set_ambition
-				// if(player.current.client)
-				// 	player.current.client.verbs -= /client/proc/aooc
+				if(player.current.client)
+					player.current.client.verbs -= /client/proc/aooc
 			qdel(SSgoals.ambitions[player])
 		return 1
 	return 0

@@ -1,10 +1,9 @@
 /obj/machinery/embedded_controller
 	name = "Embedded Controller"
-	anchored = TRUE
-	use_power = POWER_USE_IDLE
+	anchored = 1
 	idle_power_usage = 10
-	var/on = TRUE
 	var/datum/computer/file/embedded_program/program	//the currently executing program
+	var/on = 1
 
 /obj/machinery/embedded_controller/Initialize()
 	if(program)
@@ -16,7 +15,7 @@
 		qdel(program) // the program will clear the ref in its Destroy
 	return ..()
 
-/obj/machinery/embedded_controller/post_signal(datum/signal/signal, comm_line)
+/obj/machinery/embedded_controller/proc/post_signal(datum/signal/signal, comm_line)
 	return 0
 
 /obj/machinery/embedded_controller/receive_signal(datum/signal/signal, receive_method, receive_param)
@@ -40,41 +39,59 @@
 
 	update_icon()
 
-/obj/machinery/embedded_controller/attack_ai(mob/user as mob)
+/obj/machinery/embedded_controller/interface_interact(mob/user)
 	ui_interact(user)
+	return TRUE
 
-/obj/machinery/embedded_controller/attack_hand(mob/user as mob)
-	if(!user.IsAdvancedToolUser())
-		return 0
-	ui_interact(user)
-
-//
-// Radio Controller
-//
 /obj/machinery/embedded_controller/radio
-	icon 			= 'icons/obj/airlock_machines.dmi'
-	icon_state 		= "airlock_control_standby"
-	power_channel 	= ENVIRON
-	density 		= FALSE
-	unacidable 		= TRUE
-
-	id_tag 			= null
-	frequency 		= DOOR_FREQ
-	radio_filter_in = RADIO_AIRLOCK
-	radio_filter_out= RADIO_AIRLOCK
-	
+	icon = 'icons/obj/airlock_machines.dmi'
+	icon_state = "airlock_control_off"
+	power_channel = ENVIRON
+	density = 0
+	unacidable = 1
+	var/frequency = 1379
+	var/radio_filter = null
+	var/datum/radio_frequency/radio_connection
 
 /obj/machinery/embedded_controller/radio/Initialize()
+	set_frequency(frequency)
 	. = ..()
 
-/obj/machinery/embedded_controller/radio/on_update_icon()
-	if(!on || !program)
-		icon_state = "airlock_control_off"
-	else if(program.memory["processing"])
-		icon_state = "airlock_control_process"
-	else
-		icon_state = "airlock_control_standby"
+obj/machinery/embedded_controller/radio/Destroy()
+	if(radio_controller)
+		radio_controller.remove_object(src,frequency)
+	..()
 
-/obj/machinery/embedded_controller/radio/post_signal(var/list/data, var/filter = null)
-	if(has_transmitter())
-		return post_signal(data, filter)
+/obj/machinery/embedded_controller/radio/on_update_icon()
+	overlays.Cut()
+	if(!on || !istype(program))
+		return
+	if(!program.memory["processing"])
+		overlays += image(icon, "screen_standby")
+		overlays += image(icon, "indicator_done")
+	else
+		overlays += image(icon, "indicator_active")
+	var/datum/computer/file/embedded_program/docking/airlock/docking_program = program
+	var/datum/computer/file/embedded_program/airlock/docking/airlock_program = program
+	if(istype(docking_program))
+		if(docking_program.override_enabled)
+			overlays += image(icon, "indicator_forced")
+		airlock_program = docking_program.airlock_program
+	
+	if(istype(airlock_program) && airlock_program.memory["processing"])
+		if(airlock_program.memory["pump_status"] == "siphon")
+			overlays += image(icon, "screen_drain")
+		else
+			overlays += image(icon, "screen_fill")
+
+/obj/machinery/embedded_controller/radio/post_signal(datum/signal/signal, var/radio_filter = null)
+	signal.transmission_method = TRANSMISSION_RADIO
+	if(radio_connection)
+		return radio_connection.post_signal(src, signal, radio_filter, AIRLOCK_CONTROL_RANGE)
+	else
+		qdel(signal)
+
+/obj/machinery/embedded_controller/radio/proc/set_frequency(new_frequency)
+	radio_controller.remove_object(src, frequency)
+	frequency = new_frequency
+	radio_connection = radio_controller.add_object(src, frequency, radio_filter)

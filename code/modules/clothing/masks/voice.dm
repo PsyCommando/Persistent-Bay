@@ -3,16 +3,12 @@
 	desc = "A voice scrambling module. If you can see this, report it as a bug on the tracker."
 	var/voice //If set and item is present in mask/suit, this name will be used for the wearer's speech.
 	var/active
-/obj/item/voice_changer/New()
-	. = ..()
-	ADD_SAVED_VAR(voice)
-	ADD_SAVED_VAR(active)
 
 /obj/item/clothing/mask/chameleon/voice
 	name = "gas mask"
 	desc = "A face-covering mask that can be connected to an air supply. It seems to house some odd electronics."
 	var/obj/item/voice_changer/changer
-	origin_tech = list(TECH_ILLEGAL = 4)
+	origin_tech = list(TECH_ESOTERIC = 4)
 
 /obj/item/clothing/mask/chameleon/voice/verb/Toggle_Voice_Changer()
 	set category = "Object"
@@ -32,9 +28,4 @@
 
 /obj/item/clothing/mask/chameleon/voice/New()
 	..()
-	ADD_SAVED_VAR(changer)
-
-/obj/item/clothing/mask/chameleon/voice/Initialize()
-	. = ..()
-	if(!changer)
-		changer = new(src)
+	changer = new(src)

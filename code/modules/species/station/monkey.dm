@@ -1,5 +1,5 @@
 /datum/species/monkey
-	name = SPECIES_MONKEY
+	name = "Monkey"
 	name_plural = "Monkeys"
 	description = "Ook."
 	codex_description = "Monkeys and other similar creatures tend to be found on science stations and vessels as \
@@ -50,9 +50,11 @@
 	force_cultural_info = list(
 		TAG_CULTURE =   CULTURE_MONKEY,
 		TAG_HOMEWORLD = HOME_SYSTEM_STATELESS,
-		TAG_FACTION =   FACTION_TEST_SUBJECTS,
-		TAG_AMBITION = AMBITION_OPPORTUNITY, //Get some bannanas
+		TAG_FACTION =   FACTION_TEST_SUBJECTS
 	)
+
+	var/list/no_touchie = list(/obj/item/weapon/mirror,
+							   /obj/item/weapon/storage/mirror)
 
 /datum/species/monkey/New()
 	equip_adjust = list(
@@ -84,7 +86,7 @@
 	if(!held && !H.restrained() && prob(5))
 		var/list/touchables = list()
 		for(var/obj/O in range(1,get_turf(H)))
-			if(O.simulated && O.Adjacent(H))
+			if(O.simulated && O.Adjacent(H) && !is_type_in_list(O, no_touchie))
 				touchables += O
 		if(touchables.len)
 			var/obj/touchy = pick(touchables)
@@ -110,7 +112,7 @@
 	H.item_state = lowertext(name)
 
 /datum/species/monkey/alien
-	name = SPECIES_FARWA
+	name = "Farwa"
 	name_plural = "Farwa"
 	health_hud_intensity = 2
 
@@ -127,7 +129,7 @@
 	)
 
 /datum/species/monkey/skrell
-	name = SPECIES_NEAERA
+	name = "Neaera"
 	name_plural = "Neaera"
 	health_hud_intensity = 1.75
 
@@ -147,7 +149,7 @@
 
 
 /datum/species/monkey/unathi
-	name = SPECIES_STOK
+	name = "Stok"
 	name_plural = "Stok"
 	health_hud_intensity = 1.5
 

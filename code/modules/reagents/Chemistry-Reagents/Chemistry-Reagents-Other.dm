@@ -49,10 +49,6 @@
 	overdose = REAGENTS_OVERDOSE * 0.5
 	color_weight = 20
 
-/datum/reagent/paint/New(datum/reagents/holder)
-	. = ..()
-	ADD_SAVED_VAR(color)
-
 /datum/reagent/paint/touch_turf(var/turf/T)
 	if(istype(T) && !istype(T, /turf/space))
 		T.color = color
@@ -123,6 +119,7 @@
 	taste_description = "expensive metal"
 	reagent_state = SOLID
 	color = "#f7c430"
+	value = 7
 
 /datum/reagent/silver
 	name = "Silver"
@@ -130,6 +127,7 @@
 	taste_description = "expensive yet reasonable metal"
 	reagent_state = SOLID
 	color = "#d0d0d0"
+	value = 4
 
 /datum/reagent/uranium
 	name = "Uranium"
@@ -137,6 +135,7 @@
 	taste_description = "the inside of a reactor"
 	reagent_state = SOLID
 	color = "#b8b8c0"
+	value = 9
 
 /datum/reagent/uranium/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
 	affect_ingest(M, alien, removed)
@@ -194,6 +193,7 @@
 	taste_description = "iron"
 	reagent_state = LIQUID
 	color = "#604030"
+	value = 0.9
 
 /datum/reagent/surfactant // Foam precursor
 	name = "Azosurfactant"
@@ -201,6 +201,7 @@
 	taste_description = "metal"
 	reagent_state = LIQUID
 	color = "#9e6b38"
+	value = 0.05
 
 /datum/reagent/foaming_agent // Metal foaming agent. This is lithium hydride. Add other recipes (e.g. LiH + H2O -> LiOH + H2) eventually.
 	name = "Foaming agent"
@@ -216,9 +217,7 @@
 	reagent_state = SOLID
 	color = "#673910"
 	touch_met = 50
-	gas_specific_heat = 10
-	gas_flags = XGM_GAS_FUEL | XGM_GAS_OXIDIZER | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
+	value = 6
 
 /datum/reagent/thermite/touch_turf(var/turf/T)
 	if(volume >= 5)
@@ -243,9 +242,6 @@
 	reagent_state = LIQUID
 	color = "#673910"
 	touch_met = 50
-	gas_specific_heat = 10
-	gas_flags = XGM_GAS_FUEL  | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
 
 /datum/reagent/napalm/touch_turf(var/turf/T)
 	new /obj/effect/decal/cleanable/liquid_fuel(T, volume)
@@ -266,9 +262,7 @@
 	reagent_state = LIQUID
 	color = "#a5f0ee"
 	touch_met = 50
-	gas_specific_heat =50
-	gas_flags = XGM_GAS_CONTAMINANT  | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
+	value = 0.7
 
 /datum/reagent/space_cleaner/touch_obj(var/obj/O)
 	O.clean_blood()
@@ -313,15 +307,13 @@
 			return
 	M.clean_blood()
 
-/datum/reagent/lube // TODO: spraying on borgs speeds them up
+/datum/reagent/lube
 	name = "Space Lube"
 	description = "Lubricant is a substance introduced between two moving surfaces to reduce the friction and wear between them. giggity."
 	taste_description = "slime"
 	reagent_state = LIQUID
 	color = "#009ca8"
-	gas_specific_heat = 100
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
+	value = 0.6
 
 /datum/reagent/lube/touch_turf(var/turf/simulated/T)
 	if(!istype(T))
@@ -334,9 +326,6 @@
 	description = "A thick greasy industrial lubricant. Commonly found in robotics."
 	taste_description = "greasy diesel"
 	color = "#000000"
-	gas_specific_heat = 80
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_FUEL | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
 
 /datum/reagent/lube/oil/touch_turf(var/turf/simulated/T)
 	if(!istype(T, /turf/space))
@@ -348,8 +337,7 @@
 	taste_description = "sweetness"
 	reagent_state = LIQUID
 	color = "#808080"
-	gas_specific_heat = 120
-	gas_burn_product = GAS_CARBON_MONOXIDE
+	value = 8
 
 /datum/reagent/nitroglycerin
 	name = "Nitroglycerin"
@@ -357,9 +345,7 @@
 	taste_description = "oil"
 	reagent_state = LIQUID
 	color = "#808080"
-	gas_specific_heat = 10
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_FUEL | XGM_GAS_OXIDIZER | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
+	value = 9
 
 /datum/reagent/nitroglycerin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	..()
@@ -373,7 +359,7 @@
 	taste_mult = 1.1
 	reagent_state = LIQUID
 	color = "#c8a5dc"
-	gas_specific_heat = COOLANT_LATENT_HEAT
+	value = 0.8
 
 /datum/reagent/coolant/touch_turf(var/turf/simulated/T)
 	if(!istype(T))
@@ -402,19 +388,13 @@
 	description = "An extremely powerful bonding agent."
 	taste_description = "a special education class"
 	color = "#ffffcc"
-	gas_specific_heat = 20
-	gas_flags = XGM_GAS_FUEL | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
 
 /datum/reagent/woodpulp
 	name = "Wood Pulp"
 	description = "A mass of wood fibers."
 	taste_description = "wood"
-	reagent_state = LIQUID
+	reagent_state = SOLID
 	color = WOOD_COLOR_GENERIC
-	gas_specific_heat = 50
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_FUEL | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
 
 /datum/reagent/bamboo
 	name = "Bamboo Pulp"
@@ -429,6 +409,7 @@
 	taste_description = "metal"
 	reagent_state = LIQUID
 	color = "#f2f3f4"
+	value = 1.4
 
 /datum/reagent/luminol/touch_obj(var/obj/O)
 	O.reveal_blood()
@@ -438,7 +419,6 @@
 
 /datum/reagent/helium
 	name = "Helium"
-	gas_id = GAS_HELIUM
 	description = "A noble gas. It makes your voice squeaky."
 	taste_description = "nothing"
 	reagent_state = LIQUID
@@ -454,14 +434,13 @@
 // This is only really used to poison vox.
 /datum/reagent/oxygen
 	name = "Oxygen"
-	gas_id = GAS_OXYGEN
 	description = "An ubiquitous oxidizing agent."
 	taste_description = "nothing"
 	reagent_state = LIQUID
 	color = COLOR_GRAY80
 
 /datum/reagent/oxygen/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_VOX || alien == IS_PHOROSIAN)
+	if(alien == IS_VOX)
 		M.adjustToxLoss(removed * 6)
 
 /datum/reagent/carbon_monoxide
@@ -471,7 +450,6 @@
 	reagent_state = LIQUID
 	color = COLOR_GRAY80
 	metabolism = 0.05 // As with helium.
-	gas_id = GAS_CARBON_MONOXIDE
 
 /datum/reagent/carbon_monoxide/affect_blood(var/mob/living/carbon/human/M, var/alien, var/removed)
 	if(!istype(M) || alien == IS_DIONA)
@@ -479,7 +457,7 @@
 	var/warning_message
 	var/warning_prob = 10
 	var/dosage = M.chem_doses[type]
-	if(dosage >= (3 * REAGENT_GAS_EXCHANGE_FACTOR)) //Apparently this keeps people from dying easily to CO2
+	if(dosage >= 3)
 		warning_message = pick("extremely dizzy","short of breath","faint","confused")
 		warning_prob = 15
 		M.adjustOxyLoss(10,20)
@@ -496,21 +474,6 @@
 		M.co2_alert = 0
 	if(warning_message && prob(warning_prob))
 		to_chat(M, "<span class='warning'>You feel [warning_message].</span>")
-
-/datum/reagent/cellulose
-	name = "Cellulose"
-	description = "Organic polymer, and major component of plant cells. Found in wood and cotton."
-	taste_description = "like wet paper bags"
-	reagent_state = LIQUID
-	color = "#dbd3a6"
-
-/datum/reagent/toxin/salpeter
-	name = "Salpeter"
-	description = "Potassium nitrate. A useful chemical used in anything from fertilizers to food preservatives."
-	taste_description = "like wet paper bags"
-	reagent_state = SOLID
-	color = "#ffffff"
-	strength = 0.5
 
 /datum/reagent/anfo
 	name = "ANFO"
@@ -534,6 +497,10 @@
 	var/turf/T = get_turf(holder)
 	if(T)
 		var/adj_power = round(boompower * activated_volume/60)
+		var/datum/gas_mixture/products = new(_temperature = 5 * PHORON_FLASHPOINT)
+		var/gas_moles = 3 * volume
+		products.adjust_multi(GAS_CO2, 0.5 * gas_moles, GAS_NITROGEN, 0.3 * gas_moles, GAS_STEAM, 0.2 * gas_moles)
+		T.assume_air(products)
 		explosion(T, adj_power, adj_power + 1, adj_power*2 + 2)
 		remove_self(activated_volume)
 
@@ -543,92 +510,16 @@
 	color = "#ffe8e8"
 	boompower = 2
 
-/datum/reagent/nitrogen
-	name = "Nitrogen"
-	gas_id = GAS_NITROGEN
-	taste_description = "nothing"
-	reagent_state = LIQUID
-	color = COLOR_GREEN_GRAY
+/datum/reagent/dye
+	name = "Dye"
+	description = "Non-toxic artificial coloration used for food and drinks. When mixed with reagents, the compound will take on the dye's coloration."
+	color = "#ffffff"
+	color_weight = 40
+	color_transfer = TRUE
+	color_foods = TRUE
+	taste_mult = 0
 
-/datum/reagent/hydrogen
-	name = "Hydrogen"
-	gas_id = GAS_HYDROGEN
-	taste_description = "nothing"
-	reagent_state = LIQUID
-	color = COLOR_BLUE_GRAY
-
-/datum/reagent/carbon_dioxide
-	name = "Carbon Dioxide"
-	gas_id = GAS_CO2
-	taste_description = "nothing"
-	reagent_state = LIQUID
-	color = COLOR_GRAY15
-
-//	C20H24N2O2
-/datum/reagent/quinine
-	name = "Quinine"
-	description = "A very bitter, uv fluorescent powder. Used in making tonic water."
-	taste_description = "bitterness"
-	taste_mult = 4
-	reagent_state = SOLID
-	color = COLOR_BROWN_ORANGE
-	heating_point = T0C + 177
-	metabolism = 0.02 //Takes a while to get flushed// 8-14h - kidneys
-
-/datum/reagent/hydrogen_peroxide
-	name = "hydrogen peroxide"
-	description = "A very common chemical with some disinfectant properties."
-	taste_description = "stingy"
-	taste_mult = 2
-	reagent_state = LIQUID
-	heating_point = T0C + 150
-	color = COLOR_BLUE_LIGHT
-	touch_met = 5
-/datum/reagent/hydrogen_peroxide/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
-	if(M.germ_level < INFECTION_LEVEL_TWO) // rest and antibiotics is required to cure serious infections
-		M.germ_level -= min(removed, M.germ_level)
-	for(var/obj/item/I in M.contents)
-		I.was_bloodied = null
-	M.was_bloodied = null
-/datum/reagent/hydrogen_peroxide/touch_obj(var/obj/O)
-	O.germ_level -= min(volume, O.germ_level)
-	O.was_bloodied = null
-/datum/reagent/hydrogen_peroxide/touch_turf(var/turf/T)
-	T.germ_level -= min(volume, T.germ_level)
-	for(var/obj/item/I in T.contents)
-		I.was_bloodied = null
-	for(var/obj/effect/decal/cleanable/blood/B in T)
-		qdel(B)
-
-
-/datum/reagent/methanol
-	name = "methanol"
-	description = "Methyl alcohol, cause blindness if injested.."
-	taste_description = "cold"
-	taste_mult = 4
-	reagent_state = LIQUID
-	heating_point = T0C + 64
-	color = COLOR_BLUE_LIGHT
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_FUEL | XGM_GAS_REAGENT_GAS
-	gas_burn_product = GAS_CARBON_MONOXIDE
-	gas_specific_heat = 15
-
-/datum/reagent/methanol/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(!M || !length(M.organs_by_name))
-		return
-	M.adjustToxLoss(removed * 2)
-	var/obj/item/organ/internal/eyes/E = M.organs_by_name[BP_EYES]
-	if(E && !BP_IS_ROBOTIC(E))
-		E.take_internal_damage(removed * 2)  //Methanol causes blindness
-
-//Gonna be used in a few upcoming things like cheap salves and stuff
-//C15 H31 C O O C30 H61
-/datum/reagent/beeswax
-	name = "beeswax"
-	description = "Beeswax, from bees."
-	taste_description = "chewy"
-	taste_mult = 2
-	reagent_state = LIQUID
-	heating_point = T0C + 64 //Melting point
-	color = "#fff343"
-	gas_burn_product = GAS_CARBON_MONOXIDE //Beeswax is loaded with carbon and hydrogen sooo
+/datum/reagent/dye/strong
+	name = "Strong Dye"
+	description = "An extra-strength dye. Used for tinting food, but is especially effective with drinks and other fluids."
+	color_weight = 100

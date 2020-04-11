@@ -35,7 +35,6 @@ field_generator power level display
 	//If keeping field generators powered is hard then increase the emitter active power usage.
 	var/gen_power_draw = 5500	//power needed per generator
 	var/field_power_draw = 2000	//power needed per field object
-	var/time_end_warmup = 0 //Time at which warm-up ends
 
 
 /obj/machinery/field_generator/on_update_icon()
@@ -62,17 +61,6 @@ field_generator power level display
 	connected_gens = list()
 
 /obj/machinery/field_generator/Process()
-	if(warming_up)
-		var/timeleft = time_end_warmup - world.time
-		//Every 5 seconds add to wamup state
-		if(timeleft <= 10 SECONDS || timeleft <= 5 SECONDS)
-			warming_up++
-			update_icon()
-		if(world.time >= time_end_warmup)
-			warming_up = 0
-			time_end_warmup = 0
-			start_fields()
-
 	if(Varedit_start == 1)
 		if(active == 0)
 			active = 1
@@ -89,12 +77,12 @@ field_generator power level display
 		update_icon()
 
 
-/obj/machinery/field_generator/attack_hand(mob/user as mob)
+/obj/machinery/field_generator/physical_attack_hand(mob/user)
 	if(state == 2)
 		if(get_dist(src, user) <= 1)//Need to actually touch the thing to turn it on
 			if(src.active >= 1)
 				to_chat(user, "You are unable to turn off the [src.name] once it is online.")
-				return 1
+				return TRUE
 			else
 				user.visible_message("[user.name] turns on the [src.name]", \
 					"You turn on the [src.name].", \
@@ -103,10 +91,10 @@ field_generator power level display
 				investigate_log("<font color='green'>activated</font> by [user.key].","singulo")
 
 				src.add_fingerprint(user)
+				return TRUE
 	else
 		to_chat(user, "The [src] needs to be firmly secured to the floor first.")
-		return
-
+		return TRUE
 
 /obj/machinery/field_generator/attackby(obj/item/W, mob/user)
 	if(active)
@@ -132,7 +120,7 @@ field_generator power level display
 				to_chat(user, "<span class='warning'> The [src.name] needs to be unwelded from the floor.</span>")
 				return
 	else if(isWelder(W))
-		var/obj/item/weapon/tool/weldingtool/WT = W
+		var/obj/item/weapon/weldingtool/WT = W
 		switch(state)
 			if(0)
 				to_chat(user, "<span class='warning'>The [src.name] needs to be wrenched to the floor.</span>")
@@ -171,7 +159,7 @@ field_generator power level display
 
 /obj/machinery/field_generator/bullet_act(var/obj/item/projectile/Proj)
 	if(istype(Proj, /obj/item/projectile/beam))
-		power += Proj.force * EMITTER_DAMAGE_POWER_TRANSFER
+		power += Proj.damage * EMITTER_DAMAGE_POWER_TRANSFER
 		update_icon()
 	return 0
 
@@ -184,14 +172,21 @@ field_generator power level display
 
 /obj/machinery/field_generator/turn_off()
 	active = 0
-	src.cleanup()
-	..()
+	spawn(1)
+		src.cleanup()
+	update_icon()
 
 /obj/machinery/field_generator/turn_on()
 	active = 1
 	warming_up = 1
-	time_end_warmup = world.time + 15 SECONDS
-	..()
+	spawn(1)
+		while (warming_up<3 && active)
+			sleep(50)
+			warming_up++
+			update_icon()
+			if(warming_up >= 3)
+				start_fields()
+	update_icon()
 
 
 /obj/machinery/field_generator/proc/calc_power()
@@ -264,7 +259,7 @@ field_generator power level display
 		return
 	for(var/dist = 0, dist <= 9, dist += 1) // checks out to 8 tiles away for another generator
 		T = get_step(T, NSEW)
-		if(T.density)//We cant shoot a field though this
+		if(T.density)//We can't shoot a field though this
 			return 0
 		for(var/atom/A in T.contents)
 			if(ismob(A))

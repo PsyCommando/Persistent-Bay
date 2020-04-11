@@ -23,9 +23,16 @@
 		/obj/item/weapon/autopsy_scanner,
 		/obj/item/weapon/reagent_containers/spray/luminol,
 		/obj/item/device/uv_light,
-		/obj/item/weapon/tool/crowbar
+		/obj/item/weapon/crowbar
 	)
 	emag = /obj/item/weapon/gun/energy/laser/mounted
+	skills = list(
+		SKILL_BUREAUCRACY         = SKILL_PROF,
+		SKILL_COMPUTER            = SKILL_EXPERT,
+		SKILL_FORENSICS           = SKILL_PROF,
+		SKILL_WEAPONS             = SKILL_EXPERT,
+		SKILL_CONSTRUCTION        = SKILL_ADEPT
+	)
 
 /obj/item/weapon/robot_module/flying/forensics/respawn_consumable(var/mob/living/silicon/robot/R, var/amount)
 	var/obj/item/weapon/reagent_containers/spray/luminol/luminol = locate() in equipment

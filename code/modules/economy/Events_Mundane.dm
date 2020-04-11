@@ -69,7 +69,7 @@
 				" due to [pick("heart failure","kidney failure","liver failure","brain hemorrhage")]")]"
 
 			if(EC_BARGAINS)
-				body += "EC_BARGAINS! EC_BARGAINS! EC_BARGAINS! Commerce Control on [affected_dest.name] wants you to know that everything must go! Across all retail centres, \
+				body += "BARGAINS! BARGAINS! BARGAINS! Commerce Control on [affected_dest.name] wants you to know that everything must go! Across all retail centres, \
 				all goods are being slashed, and all retailors are onboard - so come on over for the \[shopping\] time of your life."
 
 			if(EC_SONG_DEBUT)
@@ -133,7 +133,6 @@
 
 	var/datum/trade_destination/affected_dest = pick(weighted_mundaneevent_locations)
 	var/body = pick(
-	"Tree stuck in cat; firefighters baffled.",\
 	"Armadillos want aardvarks removed from dictionary claims 'here first'.",\
 	"Angel found dancing on pinhead ordered to stop; cited for public nuisance.",\
 	"Letters claim they are better than number; 'Always have been'.",\

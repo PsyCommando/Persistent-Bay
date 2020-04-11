@@ -11,6 +11,7 @@
 	heating_products = list(/datum/reagent/toxin/denatured)
 	heating_point = 100 CELSIUS
 	heating_message = "goes clear."
+	value = 2
 
 	var/target_organ
 	var/strength = 4 // How much damage it deals per unit
@@ -23,7 +24,7 @@
 			var/mob/living/carbon/human/H = M
 			var/obj/item/organ/internal/I = H.internal_organs_by_name[target_organ]
 			if(I)
-				var/can_damage = I.get_max_health() - I.get_damages()
+				var/can_damage = I.max_damage - I.damage
 				if(can_damage > 0)
 					if(dam > can_damage)
 						I.take_internal_damage(can_damage, silent=TRUE)
@@ -50,7 +51,7 @@
 /datum/reagent/toxin/plasticide
 	name = "Plasticide"
 	description = "Liquid plastic, do not eat."
-	taste_description = MATERIAL_PLASTIC
+	taste_description = "plastic"
 	reagent_state = LIQUID
 	color = "#cf3600"
 	strength = 5
@@ -64,7 +65,6 @@
 	reagent_state = LIQUID
 	color = "#792300"
 	strength = 10
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/carpotoxin
 	name = "Carpotoxin"
@@ -74,7 +74,6 @@
 	color = "#003333"
 	target_organ = BP_BRAIN
 	strength = 10
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/venom
 	name = "Spider Venom"
@@ -82,8 +81,12 @@
 	taste_description = "absolutely vile"
 	color = "#91d895"
 	target_organ = BP_LIVER
-	strength = 7
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	strength = 5
+
+/datum/reagent/toxin/venom/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+	if(prob(volume*2))
+		M.confused = max(M.confused, 3)
+	..()
 
 /datum/reagent/toxin/chlorine
 	name = "Chlorine"
@@ -95,7 +98,6 @@
 	metabolism = REM
 	heating_point = null
 	heating_products = null
-	gas_id = GAS_CHLORINE
 
 /datum/reagent/toxin/phoron
 	name = "Phoron"
@@ -108,7 +110,6 @@
 	var/fire_mult = 5
 	heating_point = null
 	heating_products = null
-	gas_id = GAS_PHORON
 
 /datum/reagent/toxin/phoron/touch_mob(var/mob/living/L, var/amount)
 	if(istype(L))
@@ -117,19 +118,12 @@
 /datum/reagent/toxin/phoron/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_NABBER)
 		return
-	if(alien == IS_PHOROSIAN ) //pure phoron helps them regain blood, since it's a staple in their blood. Also promotes healing.
-		M.add_chemical_effect(CE_BLOODRESTORE, 8 * removed)
-		M.heal_organ_damage(3 * removed, 3 * removed)
-	if(alien != IS_PHOROSIAN)
-		M.phoronation += removed //you should definitely not inject phoron what are you doing
 	..()
 
 /datum/reagent/toxin/phoron/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien != IS_PHOROSIAN)
-		M.apply_damage(removed * 0.1, DAM_BURN) //being splashed directly with phoron causes minor chemical burns
-		M.phoronation += removed * 0.1
-		if(prob(10 * fire_mult))
-			M.pl_effects()
+	M.take_organ_damage(0, removed * 0.1) //being splashed directly with phoron causes minor chemical burns
+	if(prob(10 * fire_mult))
+		M.pl_effects()
 
 /datum/reagent/toxin/phoron/touch_turf(var/turf/simulated/T)
 	if(!istype(T))
@@ -162,11 +156,34 @@
 	target_organ = BP_HEART
 	heating_point = null
 	heating_products = null
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/cyanide/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	..()
 	M.sleeping += 1
+
+/datum/reagent/toxin/taxine
+	name = "Taxine"
+	description = "A potent cardiotoxin found in nearly every part of the common yew."
+	taste_description = "intense bitterness"
+	color = "#6b833b"
+	strength = 16
+	overdose = REAGENTS_OVERDOSE / 3
+	metabolism = REM * 2
+	target_organ = BP_HEART
+	heating_point = null
+	heating_products = null
+
+/datum/reagent/toxin/taxine/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+	..()
+	M.confused += 1.5
+
+/datum/reagent/toxin/taxine/overdose(var/mob/living/carbon/M, var/alien)
+	..()
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		if(H.stat != UNCONSCIOUS)
+			H.Weaken(8)
+		M.add_chemical_effect(CE_NOPULSE, 1)
 
 /datum/reagent/toxin/potassium_chloride
 	name = "Potassium Chloride"
@@ -178,7 +195,6 @@
 	overdose = REAGENTS_OVERDOSE
 	heating_point = null
 	heating_products = null
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/potassium_chloride/overdose(var/mob/living/carbon/M, var/alien)
 	..()
@@ -202,13 +218,12 @@
 	overdose = 20
 	heating_point = null
 	heating_products = null
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/potassium_chlorophoride/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	..()
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
-		if(H.stat != 1)
+		if(H.stat != UNCONSCIOUS)
 			if(H.losebreath >= 10)
 				H.losebreath = max(10, M.losebreath-10)
 			H.adjustOxyLoss(2)
@@ -226,7 +241,6 @@
 	target_organ = BP_BRAIN
 	heating_message = "melts into a liquid slurry."
 	heating_products = list(/datum/reagent/toxin/carpotoxin, /datum/reagent/soporific, /datum/reagent/copper)
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/zombiepowder/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	..()
@@ -256,7 +270,6 @@
 	color = "#664330"
 	heating_point = null
 	heating_products = null
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/fertilizer/eznutrient
 	name = "EZ Nutrient"
@@ -275,7 +288,6 @@
 	color = "#49002e"
 	strength = 4
 	heating_products = list(/datum/reagent/toxin, /datum/reagent/water)
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/plantbgone/touch_turf(var/turf/T)
 	if(istype(T, /turf/simulated/wall))
@@ -299,6 +311,22 @@
 	if(alien == IS_DIONA)
 		M.adjustToxLoss(50 * removed)
 
+/datum/reagent/acid/polyacid
+	name = "Polytrinic acid"
+	description = "Polytrinic acid is a an extremely corrosive chemical substance."
+	taste_description = "acid"
+	reagent_state = LIQUID
+	color = "#8e18a9"
+	power = 10
+	meltdose = 4
+	max_damage = 60
+
+/datum/reagent/acid/stomach
+	name = "stomach acid"
+	taste_description = "coppery foulness"
+	power = 2
+	color = "#d8ff00"
+
 /datum/reagent/lexorin
 	name = "Lexorin"
 	description = "Lexorin temporarily stops respiration. Causes tissue damage."
@@ -306,17 +334,17 @@
 	reagent_state = LIQUID
 	color = "#c8a5dc"
 	overdose = REAGENTS_OVERDOSE
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	value = 2.4
 
 /datum/reagent/lexorin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
 		return
 	if(alien == IS_SKRELL)
-		M.apply_damage(2.4 * removed, DAM_BLUNT, silent = FALSE)
+		M.take_organ_damage(2.4 * removed, 0)
 		if(M.losebreath < 22.5)
 			M.losebreath++
 	else
-		M.apply_damage(3 * removed, DAM_BLUNT, silent = FALSE)
+		M.take_organ_damage(3 * removed, 0)
 		if(M.losebreath < 15)
 			M.losebreath++
 
@@ -327,6 +355,7 @@
 	taste_mult = 0.9
 	reagent_state = LIQUID
 	color = "#13bc5e"
+	value = 3.1
 
 /datum/reagent/mutagen/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
 	if(prob(33))
@@ -363,7 +392,7 @@
 	taste_mult = 1.3
 	reagent_state = LIQUID
 	color = "#801e28"
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	value = 1.2
 
 /datum/reagent/slimejelly/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -382,7 +411,7 @@
 	color = "#009ca8"
 	metabolism = REM * 0.5
 	overdose = REAGENTS_OVERDOSE
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	value = 2.5
 
 /datum/reagent/soporific/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -416,7 +445,7 @@
 	color = "#000067"
 	metabolism = REM * 0.5
 	overdose = REAGENTS_OVERDOSE * 0.5
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	value = 2.6
 
 /datum/reagent/chloralhydrate/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -425,17 +454,17 @@
 	var/threshold = 1
 	if(alien == IS_SKRELL)
 		threshold = 1.2
+	M.add_chemical_effect(CE_SEDATE, 1)
 
-	if(M.chem_doses[type] == metabolism * threshold)
+	if(M.chem_doses[type] <= metabolism * threshold)
 		M.confused += 2
 		M.drowsyness += 2
-	else if(M.chem_doses[type] < 2 * threshold)
+
+	if(M.chem_doses[type] < 2 * threshold)
 		M.Weaken(30)
 		M.eye_blurry = max(M.eye_blurry, 10)
-		M.add_chemical_effect(CE_SEDATE, 1)
 	else
 		M.sleeping = max(M.sleeping, 30)
-		M.add_chemical_effect(CE_SEDATE, 1)
 
 	if(M.chem_doses[type] > 1 * threshold)
 		M.adjustToxLoss(removed)
@@ -449,6 +478,40 @@
 
 	glass_name = "beer"
 	glass_desc = "A freezing pint of beer"
+
+/datum/reagent/vecuronium_bromide
+	name = "Vecuronium Bromide"
+	description = "A powerful paralytic."
+	taste_description = "metallic"
+	reagent_state = SOLID
+	color = "#ff337d"
+	metabolism = REM * 0.5
+	overdose = REAGENTS_OVERDOSE * 0.5
+	value = 2.6
+
+/datum/reagent/vecuronium_bromide/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+	if(alien == IS_DIONA)
+		return
+
+	var/threshold = 2
+	if(alien == IS_SKRELL)
+		threshold = 2.4
+
+	if(M.chem_doses[type] >= metabolism * threshold * 0.5)
+		M.confused = max(M.confused, 2)
+		M.add_chemical_effect(CE_VOICELOSS, 1)
+	if(M.chem_doses[type] > threshold * 0.5)
+		M.make_dizzy(3)
+		M.Weaken(2)
+	if(M.chem_doses[type] == round(threshold * 0.5, metabolism))
+		to_chat(M, SPAN_WARNING("Your muscles slacken and cease to obey you."))
+	if(M.chem_doses[type] >= threshold)
+		M.add_chemical_effect(CE_SEDATE, 1)
+		M.eye_blurry = max(M.eye_blurry, 10)
+
+	if(M.chem_doses[type] > 1 * threshold)
+		M.adjustToxLoss(removed)
+
 /* Drugs */
 
 /datum/reagent/space_drugs
@@ -460,11 +523,7 @@
 	color = "#60a584"
 	metabolism = REM * 0.5
 	overdose = REAGENTS_OVERDOSE
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
-
-
-	addictiveness = 10
-	addiction_median_dose = 10
+	value = 2.8
 
 /datum/reagent/space_drugs/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -489,6 +548,7 @@
 	color = "#202040"
 	metabolism = REM * 0.25
 	overdose = REAGENTS_OVERDOSE
+	value = 2.5
 
 /datum/reagent/serotrotium/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -507,8 +567,7 @@
 	overdose = REAGENTS_OVERDOSE
 	heating_point = 61 CELSIUS
 	heating_products = list(/datum/reagent/potassium, /datum/reagent/acetone, /datum/reagent/sugar)
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
-
+	value = 2
 
 /datum/reagent/cryptobiolin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -526,7 +585,7 @@
 	reagent_state = LIQUID
 	color = "#c8a5dc"
 	overdose = REAGENTS_OVERDOSE
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	value = 1.8
 
 /datum/reagent/impedrezene/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -547,7 +606,7 @@
 	color = "#b31008"
 	metabolism = REM * 0.25
 	overdose = REAGENTS_OVERDOSE
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+	value = 0.6
 
 /datum/reagent/mindbreaker/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
@@ -565,32 +624,8 @@
 	color = "#e700e7"
 	overdose = REAGENTS_OVERDOSE
 	metabolism = REM * 0.5
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
-	
-	addictiveness = 2
-	addiction_median_dose = 5
+	value = 0.7
 
-	var/global/list/shroom_dose_messages = list(
-		"The world spins pleasantly around you.",
-		"You look down, and your hands aren't yours.",
-		"The walls flow slowly, over and over again.",
-		"You're not sure you've ever seen that color before.",
-		"The floor is fascinating.",
-		"Your arm feels very soft.",
-		"There's a brief fluttering in your chest.",
-		"You smile contentedly, for no reason.",
-		"Breathing feels nice.",
-		"You feel like you're in a dream.",
-		"You forgot you could be as happy as this.",
-		"Everything around you is crisp and clear.",
-		"All things love you, and you love them.",
-		"You feel a strong connection to the place around you.",
-		"The door into yourself opens.",
-		"Every emotion feels magnified.",
-		"You dream of being yourself.",
-		"You dream of being no one."
-	)	
-	
 /datum/reagent/psilocybin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	if(alien == IS_DIONA)
 		return
@@ -606,8 +641,6 @@
 		M.make_dizzy(5)
 		if(prob(5))
 			M.emote(pick("twitch", "giggle"))
-		if(prob(5))
-			to_chat(M, "[pick(shroom_dose_messages)]")
 	else if(M.chem_doses[type] < 2 * threshold)
 		M.apply_effect(3, STUTTER)
 		M.make_jittery(5)
@@ -615,8 +648,6 @@
 		M.druggy = max(M.druggy, 35)
 		if(prob(10))
 			M.emote(pick("twitch", "giggle"))
-		if(prob(10))
-			to_chat(M, "[pick(shroom_dose_messages)]")
 	else
 		M.add_chemical_effect(CE_MIND, -1)
 		M.apply_effect(3, STUTTER)
@@ -625,76 +656,7 @@
 		M.druggy = max(M.druggy, 40)
 		if(prob(15))
 			M.emote(pick("twitch", "giggle"))
-		if(prob(15))
-			to_chat(M, "[pick(shroom_dose_messages)]")
 
-/datum/reagent/phorostimulant
-	name = "Phorostim"
-	description = "A recreational stimulant derived from phoron."
-	taste_description = "sharpness"
-	reagent_state = LIQUID
-	color = "#ff3300"
-	metabolism = REM * 0.15
-	overdose = REAGENTS_OVERDOSE * 0.5
-
-	addictiveness = 3
-	addiction_median_dose = 30
-
-	var/global/list/stim_dose_messages = list(
-		"The world races, but not as fast as you.",
-		"You feel on top of the world.",
-		"You're in control.",
-		"You can do anything.",
-		"You've accomplished so much.",
-		"Euphoria floods your mind.",
-		"You need to talk to someone else.",
-		"It's hard to stay calm!",
-		"You need to do something with your hands.",
-		"You have to stay busy.",
-		"You feel like cleaning something.",
-		"Your heart races like the wind.",
-		"You find yourself blinking a lot.",
-		"You can barely feel your face.",
-		"The world flashes a pleasant orange.",
-		"You think about space.",
-		"You think about stone.",
-		"Something alive flashes in the corner of your eye.",
-		"The floor rumbles beneath you.",
-		"You feel the urge to go on an adventure.",
-		"You feel the urge to mine."
-	)	
-	
-	var/global/list/stim_overdose_messages = list(
-		"The world is spinning, far too fast.",
-		"You stumble, your hands shaking.",
-		"You're not in control.",
-		"You need to move, but your body doesn't respond.",
-		"Your heart beats out of your chest.",
-		"You look down, and see endless slugs.",
-		"Teeth gnash at you, from every direction.",
-		"The ground shakes violently",
-		"Everything is orange.",
-		"You feel like you're going to die.",
-		"This is too much engagement."
-	)	
-
-/datum/reagent/phorostimulant/overdose(var/mob/living/carbon/M, var/alien)
-	..()
-	M.adjustBrainLoss(1)
-	if(ishuman(M) && prob(10))
-		var/mob/living/carbon/human/H = M
-		H.seizure()
-	if(prob(10))
-		to_chat(M, SPAN_DANGER("[pick(stim_overdose_messages)]"))
-		
-/datum/reagent/phorostimulant/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_DIONA)
-		return
-	if(prob(5))
-		M.emote(pick("twitch", "blink_r", "shiver"))
-		to_chat(M, "[pick(stim_dose_messages)]")
-	M.add_chemical_effect(CE_SPEEDBOOST, 0.2)
-	M.add_chemical_effect(CE_PULSE, 3)
 
 /datum/reagent/three_eye
 	name = "Three Eye"
@@ -712,7 +674,7 @@
 	overdose = 25
 
 	// M A X I M U M C H E E S E
-	var/global/list/three_eye_dose_messages = list(
+	var/global/list/dose_messages = list(
 		"Your name is called. It is your time.",
 		"You are dissolving. Your hands are wax...",
 		"It all runs together. It all mixes.",
@@ -733,7 +695,7 @@
 		"Come back from there. Please."
 	)
 
-	var/global/list/three_eye_overdose_messages = list(
+	var/global/list/overdose_messages = list(
 		"THE SIGNAL THE SIGNAL THE SIGNAL THE SIGNAL",
 		"IT CRIES IT CRIES IT WAITS IT CRIES",
 		"NOT YOURS NOT YOURS NOT YOURS NOT YOURS",
@@ -742,7 +704,6 @@
 		"THE BLOOD THE BLOOD THE BLOOD THE BLOOD",
 		"THE LIGHT THE DARK A STAR IN CHAINS"
 	)
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/three_eye/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
 	M.add_client_color(/datum/client_color/thirdeye)
@@ -756,7 +717,7 @@
 		H.seizure()
 		H.adjustBrainLoss(rand(8, 12))
 	if(prob(5))
-		to_chat(M, SPAN_WARNING("<font size = [rand(1,3)]>[pick(three_eye_dose_messages)]</font>"))
+		to_chat(M, SPAN_WARNING("<font size = [rand(1,3)]>[pick(dose_messages)]</font>"))
 
 /datum/reagent/three_eye/on_leaving_metabolism(var/mob/parent, var/metabolism_class)
 	parent.remove_client_color(/datum/client_color/thirdeye)
@@ -768,92 +729,91 @@
 		var/mob/living/carbon/human/H = M
 		H.seizure()
 	if(prob(10))
-		to_chat(M, SPAN_DANGER("<font size = [rand(2,4)]>[pick(three_eye_overdose_messages)]</font>"))
+		to_chat(M, SPAN_DANGER("<font size = [rand(2,4)]>[pick(overdose_messages)]</font>"))
 	if(M.psi)
 		M.psi.check_latency_trigger(30, "a Three Eye overdose")
 
 /* Transformations */
-//datum/reagent/slimetoxin
-	//name = "Mutation Toxin"
-	//description = "A corruptive toxin produced by slimes."
-	//taste_description = "sludge"
-	//reagent_state = LIQUID
-	//color = "#13bc5e"
-	//metabolism = REM * 0.2
-	//gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+/datum/reagent/slimetoxin
+	name = "Mutation Toxin"
+	description = "A corruptive toxin produced by slimes."
+	taste_description = "sludge"
+	reagent_state = LIQUID
+	color = "#13bc5e"
+	metabolism = REM * 0.2
+	value = 2
 
-//datum/reagent/slimetoxin/affect_blood(var/mob/living/carbon/human/H, var/alien, var/removed)
-	//if(!istype(H))
-		//return
-	//if(H.species.name == SPECIES_PROMETHEAN)
-		//return
-	//H.adjustToxLoss(40 * removed)
-	//if(H.chem_doses[type] < 1 || prob(30))
-		//return
-	//H.chem_doses[type] = 0
-	//var/list/meatchunks = list()
-	//for(var/limb_tag in list(BP_R_ARM, BP_L_ARM, BP_R_LEG,BP_L_LEG))
-		//var/obj/item/organ/external/E = H.get_organ(limb_tag)
-		//if(E && !E.is_stump() && !BP_IS_ROBOTIC(E) && E.species.name != SPECIES_PROMETHEAN)
-			//meatchunks += E
-	//if(!meatchunks.len)
-		//if(prob(10))
-			//to_chat(H, "<span class='danger'>Your flesh rapidly mutates!</span>")
-			//H.set_species(SPECIES_PROMETHEAN)
-			//H.shapeshifter_set_colour("#05ff9b")
-			//H.verbs -= /mob/living/carbon/human/proc/shapeshifter_select_colour
-		//return
-	//var/obj/item/organ/external/O = pick(meatchunks)
-	//to_chat(H, "<span class='danger'>Your [O.name]'s flesh mutates rapidly!</span>")
-	//if(!wrapped_species_by_ref["\ref[H]"])
-		//wrapped_species_by_ref["\ref[H]"] = H.species.name
-	//meatchunks = list(O) | O.children
-	//for(var/obj/item/organ/external/E in meatchunks)
-		//E.species = all_species[SPECIES_PROMETHEAN]
-		//E.s_tone = null
-		//E.s_col = ReadRGB("#05ff9b")
-		//E.s_col_blend = ICON_ADD
-		//E.status &= ~ORGAN_BROKEN
-		//E.status |= ORGAN_MUTATED
-		//E.limb_flags &= ~ORGAN_FLAG_CAN_BREAK
-		//E.dislocated = -1
-		//E.max_health = 5
-		//E.update_icon(1)
-	//O.max_health = 15
-	//if(prob(10))
-		//to_chat(H, "<span class='danger'>Your slimy [O.name] plops off!</span>")
-		//O.droplimb()
-	//H.update_body()
+/datum/reagent/slimetoxin/affect_blood(var/mob/living/carbon/human/H, var/alien, var/removed)
+	if(!istype(H))
+		return
+	if(H.species.name == SPECIES_PROMETHEAN)
+		return
+	H.adjustToxLoss(40 * removed)
+	if(H.chem_doses[type] < 1 || prob(30))
+		return
+	H.chem_doses[type] = 0
+	var/list/meatchunks = list()
+	for(var/limb_tag in list(BP_R_ARM, BP_L_ARM, BP_R_LEG,BP_L_LEG))
+		var/obj/item/organ/external/E = H.get_organ(limb_tag)
+		if(E && !E.is_stump() && !BP_IS_ROBOTIC(E) && E.species.name != SPECIES_PROMETHEAN)
+			meatchunks += E
+	if(!meatchunks.len)
+		if(prob(10))
+			to_chat(H, "<span class='danger'>Your flesh rapidly mutates!</span>")
+			H.set_species(SPECIES_PROMETHEAN)
+			H.shapeshifter_set_colour("#05ff9b")
+			H.verbs -= /mob/living/carbon/human/proc/shapeshifter_select_colour
+		return
+	var/obj/item/organ/external/O = pick(meatchunks)
+	to_chat(H, "<span class='danger'>Your [O.name]'s flesh mutates rapidly!</span>")
+	if(!wrapped_species_by_ref["\ref[H]"])
+		wrapped_species_by_ref["\ref[H]"] = H.species.name
+	meatchunks = list(O) | O.children
+	for(var/obj/item/organ/external/E in meatchunks)
+		E.species = all_species[SPECIES_PROMETHEAN]
+		E.s_tone = null
+		E.s_col = ReadRGB("#05ff9b")
+		E.s_col_blend = ICON_ADD
+		E.status &= ~ORGAN_BROKEN
+		E.status |= ORGAN_MUTATED
+		E.limb_flags &= ~ORGAN_FLAG_CAN_BREAK
+		E.dislocated = -1
+		E.max_damage = 5
+		E.update_icon(1)
+	O.max_damage = 15
+	if(prob(10))
+		to_chat(H, "<span class='danger'>Your slimy [O.name] plops off!</span>")
+		O.droplimb()
+	H.update_body()
 
-//datum/reagent/aslimetoxin
-	//name = "Advanced Mutation Toxin"
-	//description = "An advanced corruptive toxin produced by slimes."
-	//taste_description = "sludge"
-	//reagent_state = LIQUID
-	//color = "#13bc5e"
-	//gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+/datum/reagent/aslimetoxin
+	name = "Advanced Mutation Toxin"
+	description = "An advanced corruptive toxin produced by slimes."
+	taste_description = "sludge"
+	reagent_state = LIQUID
+	color = "#13bc5e"
 
-///datum/reagent/aslimetoxin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed) // TODO: check if there's similar code anywhere else
-	//if(HAS_TRANSFORMATION_MOVEMENT_HANDLER(M))
-		//return
-	//to_chat(M, "<span class='danger'>Your flesh rapidly mutates!</span>")
-	//ADD_TRANSFORMATION_MOVEMENT_HANDLER(M)
-	//M.icon = null
-	//M.overlays.Cut()
-	//M.set_invisibility(101)
-	//for(var/obj/item/W in M)
-		//if(istype(W, /obj/item/weapon/implant)) //TODO: Carn. give implants a dropped() or something
-			//qdel(W)
-			//continue
-		//M.drop_from_inventory(W)
-	//var/mob/living/carbon/slime/new_mob = new /mob/living/carbon/slime(M.loc)
-	//new_mob.a_intent = "hurt"
-	//new_mob.universal_speak = 1
-	//if(M.mind)
-		//M.mind.transfer_to(new_mob)
-	//else
-		//new_mob.key = M.key
-	//qdel(M)
+/datum/reagent/aslimetoxin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed) // TODO: check if there's similar code anywhere else
+	if(HAS_TRANSFORMATION_MOVEMENT_HANDLER(M))
+		return
+	to_chat(M, "<span class='danger'>Your flesh rapidly mutates!</span>")
+	ADD_TRANSFORMATION_MOVEMENT_HANDLER(M)
+	M.icon = null
+	M.overlays.Cut()
+	M.set_invisibility(101)
+	for(var/obj/item/W in M)
+		if(istype(W, /obj/item/weapon/implant)) //TODO: Carn. give implants a dropped() or something
+			qdel(W)
+			continue
+		M.drop_from_inventory(W)
+	var/mob/living/carbon/slime/new_mob = new /mob/living/carbon/slime(M.loc)
+	new_mob.a_intent = "hurt"
+	new_mob.universal_speak = TRUE
+	if(M.mind)
+		M.mind.transfer_to(new_mob)
+	else
+		new_mob.key = M.key
+	qdel(M)
 
 /datum/reagent/nanites
 	name = "Nanomachines"
@@ -862,6 +822,7 @@
 	reagent_state = LIQUID
 	color = "#535e66"
 	hidden_from_codex = TRUE
+	value = 9
 
 /datum/reagent/xenomicrobes
 	name = "Xenomicrobes"
@@ -871,6 +832,7 @@
 	color = "#535e66"
 	hidden_from_codex = TRUE
 	heating_point = 100 CELSIUS
+	value = 5
 
 /datum/reagent/toxin/hair_remover
 	name = "Hair Remover"
@@ -882,13 +844,12 @@
 	overdose = REAGENTS_OVERDOSE
 	heating_products = null
 	heating_point = null
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/hair_remover/affect_touch(var/mob/living/carbon/human/M, var/alien, var/removed)
 	if(alien == IS_SKRELL)	//skrell can't have hair unless you hack it in, also to prevent tentacles from falling off
 		return
 	M.species.set_default_hair(M)
-	to_chat(M, "<span class='warning'>Your feel a chill, your skin feels lighter..</span>")
+	to_chat(M, "<span class='warning'>You feel a chill and your skin feels lighter..</span>")
 	remove_self(volume)
 
 /datum/reagent/toxin/zombie
@@ -904,7 +865,6 @@
 	heating_products = null
 	heating_point = null
 	var/amount_to_zombify = 5
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
 
 /datum/reagent/toxin/zombie/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
 	affect_blood(M, alien, removed * 0.5)
@@ -930,7 +890,20 @@
 	strength = 3
 	heating_products = null
 	heating_point = null
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS
+
+/datum/reagent/toxin/bromide/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+	if(alien != IS_MANTID)
+		. = ..()
+
+/datum/reagent/toxin/bromide/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+	if(alien == IS_MANTID)
+		M.add_chemical_effect(CE_OXYGENATED, 1)
+	else
+		..()
+
+/datum/reagent/toxin/bromide/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+	if(alien != IS_MANTID)
+		. = ..()
 
 /datum/reagent/toxin/methyl_bromide
 	name = "Methyl Bromide"
@@ -941,15 +914,20 @@
 	strength = 5
 	heating_products = null
 	heating_point = null
-	gas_id = GAS_METHYL_BROMIDE
+
+/datum/reagent/toxin/methyl_bromide/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+	. = (alien != IS_MANTID && alien != IS_NABBER && ..())
+
+/datum/reagent/toxin/methyl_bromide/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+	. = (alien != IS_MANTID && alien != IS_NABBER && ..())
 
 /datum/reagent/toxin/methyl_bromide/touch_turf(var/turf/simulated/T)
 	if(istype(T))
-		T.assume_gas("methyl_bromide", volume, T20C)
+		T.assume_gas(GAS_METHYL_BROMIDE, volume, T20C)
 		remove_self(volume)
 
 /datum/reagent/toxin/methyl_bromide/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	. = ..()
+	. = (alien != IS_MANTID && alien != IS_NABBER && ..())
 	if(istype(M))
 		for(var/obj/item/organ/external/E in M.organs)
 			if(LAZYLEN(E.implants))
@@ -969,4 +947,3 @@
 	heating_products = list(/datum/reagent/acetone, /datum/reagent/carbon, /datum/reagent/ethanol)
 	heating_point = 145 CELSIUS
 	heating_message = "separates."
-	gas_flags = XGM_GAS_CONTAMINANT | XGM_GAS_REAGENT_GAS

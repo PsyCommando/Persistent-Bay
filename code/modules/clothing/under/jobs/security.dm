@@ -14,19 +14,9 @@
 	icon_state = "warden"
 	item_state = "r_suit"
 	worn_state = "warden"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 8,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.9
 
 /obj/item/clothing/head/warden
@@ -41,94 +31,50 @@
 	icon_state = "security"
 	item_state = "r_suit"
 	worn_state = "secred"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 8,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.9
 
 /obj/item/clothing/under/rank/dispatch
 	name = "dispatcher's uniform"
 	desc = "A dress shirt and khakis with a security patch sewn on."
 	icon_state = "dispatch"
-	//item_state = "dispatch"
 	worn_state = "dispatch"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 8,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS
 	siemens_coefficient = 0.9
 
-/obj/item/clothing/under/rank/securitytwo
+/obj/item/clothing/under/rank/security2
 	name = "security officer's uniform"
 	desc = "It's made of a slightly sturdier material, to allow for robust protection."
 	icon_state = "redshirt2"
 	item_state = "r_suit"
 	worn_state = "redshirt2"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 8,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.9
 
 /obj/item/clothing/under/rank/security/corp
 	icon_state = "sec_corporate"
-	//item_state = "sec_corporate"
 	worn_state = "sec_corporate"
 
 /obj/item/clothing/under/rank/warden/corp
 	icon_state = "warden_corporate"
-	//item_state = "warden_corporate"
 	worn_state = "warden_corporate"
 
 /obj/item/clothing/under/tactical
 	name = "tactical jumpsuit"
 	desc = "It's made of a slightly sturdier material than standard jumpsuits, to allow for robust protection."
 	icon_state = "swatunder"
-	//item_state = "swatunder"
 	worn_state = "swatunder"
 	gender_icons = 1
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 8,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 5,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 5,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.9
 
 /*
@@ -141,19 +87,9 @@
 	item_state = "det"
 	worn_state = "detective"
 	gender_icons = 1
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 8,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 1,
-		DAM_BURN 	= 1,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.9
 	starting_accessories = list(/obj/item/clothing/accessory/blue_clip)
 
@@ -180,19 +116,11 @@
 		slot_l_hand_str = "det_hat",
 		slot_r_hand_str = "det_hat",
 		)
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 25,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		laser = ARMOR_LASER_SMALL,
+		energy = ARMOR_ENERGY_MINOR
+		)
 	siemens_coefficient = 0.9
 	flags_inv = BLOCKHEADHAIR
 
@@ -205,37 +133,6 @@
 	icon_state = "detective2"
 	desc = "A grey fedora - either the cornerstone of a detective's style or a poor attempt at looking cool, depending on the person wearing it."
 
-/obj/item/clothing/head/det/noarmor
-	armor  = list(
-		DAM_BLUNT 	= 2,
-		DAM_PIERCE 	= 1,
-		DAM_CUT 	= 5,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 5,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
-	siemens_coefficient = 1.0
-
-/obj/item/clothing/head/det/grey/noarmor
-	armor  = list(
-		DAM_BLUNT 	= 2,
-		DAM_PIERCE 	= 1,
-		DAM_CUT 	= 5,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 5,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
-	siemens_coefficient = 1.0
 
 /*
  * Head of Security
@@ -246,24 +143,13 @@
 	icon_state = "hos"
 	item_state = "r_suit"
 	worn_state = "hosred"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 5,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 2,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.8
 
 /obj/item/clothing/under/rank/head_of_security/corp
 	icon_state = "hos_corporate"
-	//item_state = "hos_corporate"
 	worn_state = "hos_corporate"
 
 /obj/item/clothing/head/HoS
@@ -277,40 +163,27 @@
 	name = "Dermal Armour Patch"
 	desc = "You're not quite sure how you manage to take it on and off, but it implants nicely in your head."
 	icon_state = "dermal"
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 45,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 30,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR, 
+		bullet = ARMOR_BALLISTIC_PISTOL, 
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_SMALL, 
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.6
 
 /obj/item/clothing/suit/armor/hos
 	name = "armored coat"
 	desc = "A greatcoat enhanced with a special alloy for some protection and style."
 	icon_state = "hos"
-	item_state = "hos"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS|LEGS
-	armor  = list(
-		DAM_BLUNT 	= 65,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 65,
-		DAM_BULLET 	= 30,
-		DAM_LASER 	= 50,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 1)
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR, 
+		bullet = ARMOR_BALLISTIC_PISTOL, 
+		laser = ARMOR_LASER_HANDGUNS, 
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED
+		)
 	flags_inv = HIDEJUMPSUIT
 	siemens_coefficient = 0.6
 
@@ -327,7 +200,6 @@
 	name = "armored trenchcoat"
 	desc = "A trenchcoat augmented with a special alloy for some protection and style."
 	icon_state = "hostrench"
-	item_state = "hostrench"
 	flags_inv = 0
 	siemens_coefficient = 0.6
 

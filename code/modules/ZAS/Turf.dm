@@ -279,8 +279,6 @@
 		return air
 
 /turf/proc/make_air()
-	if(map_storage_loaded)
-		initial_gas = list()
 	air = new/datum/gas_mixture
 	air.temperature = temperature
 	if(initial_gas)

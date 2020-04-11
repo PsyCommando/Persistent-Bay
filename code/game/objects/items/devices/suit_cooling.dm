@@ -31,9 +31,8 @@
 /obj/item/device/suit_cooling_unit/Initialize()
 	. = ..()
 	START_PROCESSING(SSobj, src)
-	if(!map_storage_loaded)
-		cell = new/obj/item/weapon/cell/high()		// 10K rated cell.
-		cell.forceMove(src)
+	cell = new/obj/item/weapon/cell/high()		// 10K rated cell.
+	cell.forceMove(src)
 
 /obj/item/device/suit_cooling_unit/Destroy()
 	. = ..()
@@ -164,8 +163,9 @@
 			overlays.Add("battery-5")
 
 
-/obj/item/device/suit_cooling_unit/examine(mob/user)
-	if(!..(user, 1))
+/obj/item/device/suit_cooling_unit/examine(mob/user, distance)
+	. = ..()
+	if(distance >= 1)
 		return
 
 	if (on)

@@ -1,21 +1,23 @@
 #define DISEASE_SPLICER_SCANNING 0x1
 #define DISEASE_SPLICER_SPLICING 0x2
 #define DISEASE_SPLICER_WRITING  0x4
-#ifndef T_BOARD
-#error T_BOARD macro is not defined but we need it!
-#endif
 
-/obj/item/weapon/circuitboard/diseasesplicer
+/obj/item/weapon/stock_parts/circuitboard/diseasesplicer
 	name = T_BOARD("disease splicer")
 	build_path = /obj/machinery/computer/diseasesplicer
 	origin_tech = list(TECH_DATA = 3, TECH_BIO = 2)
+/datum/design/circuit/splicer
+	name = "disease splicer"
+	id = "isplicer"
+	req_tech = list(TECH_DATA = 5, TECH_BIO = 5)
+	build_path = /obj/item/weapon/stock_parts/circuitboard/diseasesplicer
+	sort_string = "FACAH"
 
 /obj/machinery/computer/diseasesplicer
 	name = "disease splicer"
 	icon = 'icons/obj/computer.dmi'
 	icon_keyboard = "med_key"
 	icon_screen = "crew"
-	circuit = /obj/item/weapon/circuitboard/diseasesplicer
 
 	var/datum/disease2/effect/memorybank = null
 	var/list/species_buffer = null
@@ -51,11 +53,7 @@
 		time_job_done = world.time + time_job_done
 
 /obj/machinery/computer/diseasesplicer/attackby(var/obj/I as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, I))
-		return 1
-	else if(default_deconstruction_crowbar(user, I))
-		return 1
-	else if(istype(I,/obj/item/weapon/virusdish))
+	if(istype(I,/obj/item/weapon/virusdish))
 		if (dish)
 			to_chat(user, "\The [src] is already loaded.")
 			return
@@ -75,12 +73,9 @@
 	else
 		return ..()
 
-/obj/machinery/computer/diseasesplicer/attack_ai(var/mob/user as mob)
-	return src.attack_hand(user)
-
-/obj/machinery/computer/diseasesplicer/attack_hand(var/mob/user as mob)
-	if(..()) return
+/obj/machinery/computer/diseasesplicer/interface_interact(var/mob/user)
 	ui_interact(user)
+	return TRUE
 
 /obj/machinery/computer/diseasesplicer/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	user.set_machine(src)

@@ -1,26 +1,10 @@
-/obj/structure/flora
-	var/can_cut = TRUE
-	var/cut_time = 2 SECONDS
-
-/obj/structure/flora/attackby(obj/item/O as obj, mob/user as mob)
-	if(can_cut && isHatchet(O))
-		to_chat(user, "You start chopping down \the [src]..")
-		if(do_after(user, cut_time, src))
-			to_chat(user, "You cut \the [src] to pieces.")
-			dismantle()
-		return 1
-	return ..()
-
 //trees
 /obj/structure/flora/tree
 	name = "tree"
 	anchored = 1
 	density = 1
 	pixel_x = -16
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
-	max_health = 50
-	mass = 20
 
 /obj/structure/flora/tree/pine
 	name = "pine tree"
@@ -32,7 +16,8 @@
 	icon_state = "pine_[rand(1, 3)]"
 
 /obj/structure/flora/tree/pine/xmas
-	name = "xmas tree"
+	name = "\improper Christmas tree"
+	desc = "O Christmas tree, O Christmas tree..."
 	icon = 'icons/obj/flora/pinetrees.dmi'
 	icon_state = "pine_c"
 
@@ -54,8 +39,6 @@
 	name = "grass"
 	icon = 'icons/obj/flora/snowflora.dmi'
 	anchored = 1
-	max_health = 10
-	mass = 2
 
 /obj/structure/flora/grass/brown
 	icon_state = "snowgrass1bb"
@@ -86,9 +69,6 @@
 	icon = 'icons/obj/flora/snowflora.dmi'
 	icon_state = "snowbush1"
 	anchored = 1
-	max_health = 25
-	mass = 5
-	parts = /obj/item/weapon/material/stick //drop a stick
 
 /obj/structure/flora/bush/New()
 	..()
@@ -98,7 +78,6 @@
 	name = "potted plant"
 	icon = 'icons/obj/plants.dmi'
 	icon_state = "plant-26"
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
 
 //newbushes
@@ -108,9 +87,6 @@
 	icon = 'icons/obj/flora/ausflora.dmi'
 	icon_state = "firstbush_1"
 	anchored = 1
-	max_health = 25
-	mass = 2
-	parts = /obj/item/weapon/material/stick //drop a stick
 
 /obj/structure/flora/ausbushes/New()
 	..()
@@ -229,11 +205,7 @@
 	desc = "Really brings the room together."
 	icon = 'icons/obj/plants.dmi'
 	icon_state = "plant-01"
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
-	max_health = 50
-	mass = 8
-	can_cut = FALSE
 
 /obj/structure/flora/pottedplant/fern
 	name = "potted fern"

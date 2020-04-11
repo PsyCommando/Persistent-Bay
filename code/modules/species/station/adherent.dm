@@ -9,6 +9,10 @@
 	hidden_from_codex = FALSE
 	silent_steps = TRUE
 
+	meat_type = null
+	bone_material = null
+	skin_material = null
+
 	genders =                 list(PLURAL)
 	cyborg_noun =             null
 
@@ -42,15 +46,13 @@
 	heat_level_3 = SYNTH_HEAT_LEVEL_3
 
 	species_flags = SPECIES_FLAG_NO_SCAN | SPECIES_FLAG_NO_PAIN | SPECIES_FLAG_NO_POISON | SPECIES_FLAG_NO_MINOR_CUT
-	spawn_flags =   /*SPECIES_CAN_JOIN |*/ SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN
+	spawn_flags =   SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN
 
 	appearance_flags = HAS_EYE_COLOR | HAS_BASE_SKIN_COLOURS
 	blood_color = "#2de00d"
 	flesh_color = "#90edeb"
-	virus_immune = 1
 	slowdown = -1
 	hud_type = /datum/hud_data/adherent
-	pixel_offset_y = -4
 
 	available_cultural_info = list(
 		TAG_CULTURE = list(
@@ -67,11 +69,6 @@
 		),
 		TAG_RELIGION =  list(
 			RELIGION_OTHER
-		),
-		TAG_AMBITION = list(
-			AMBITION_FREEDOM,
-			AMBITION_OPPORTUNITY,
-			AMBITION_KNOWLEDGE
 		)
 	)
 
@@ -110,7 +107,6 @@
 		"Quartz"      = "_white",
 		"Jet"         = "_black"
 	)
-	spawns_with_stack = TRUE
 
 /datum/species/adherent/New()
 	equip_adjust = list(
@@ -135,13 +131,23 @@
 /datum/species/adherent/can_fall(var/mob/living/carbon/human/H)
 	. = !can_overcome_gravity(H)
 
-/datum/species/adherent/handle_fall_special(var/mob/living/carbon/human/H, var/turf/landing)
+/datum/species/adherent/get_slowdown(var/mob/living/carbon/human/H)
+	return slowdown
 
-	if(can_overcome_gravity(H))
+/datum/species/adherent/handle_fall_special(var/mob/living/carbon/human/H, var/turf/landing)
+	var/float_is_usable = FALSE
+	if(H && H.stat == CONSCIOUS)
+		for(var/obj/item/organ/internal/powered/float/float in H.internal_organs)
+			if(float.is_usable())
+				float_is_usable = TRUE
+				break
+	if(float_is_usable)
 		if(istype(landing, /turf/simulated/open))
 			H.visible_message("\The [H] descends from \the [landing].", "You descend regally.")
 		else
 			H.visible_message("\The [H] floats gracefully down from \the [landing].", "You land gently on \the [landing].")
+		return TRUE
+	return FALSE
 
 /datum/species/adherent/get_blood_name()
 	return "coolant"

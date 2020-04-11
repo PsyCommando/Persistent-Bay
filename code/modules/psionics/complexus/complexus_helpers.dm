@@ -66,8 +66,8 @@
 
 /datum/psi_complexus/proc/show_auras()
 	if(owner.client)
-		for(var/thing in SSpsi.all_aura_images)
-			owner.client.images |= thing
+		for(var/image/I in SSpsi.all_aura_images)
+			owner.client.images |= I
 
 /datum/psi_complexus/proc/backblast(var/value)
 
@@ -88,7 +88,7 @@
 		var/mob/living/carbon/human/pop = owner
 		if(pop.should_have_organ(BP_BRAIN))
 			var/obj/item/organ/internal/brain/sponge = pop.internal_organs_by_name[BP_BRAIN]
-			if(sponge && sponge.health <= sponge.get_min_health())
+			if(sponge && sponge.damage >= sponge.max_damage)
 				var/obj/item/organ/external/affecting = pop.get_organ(sponge.parent_organ)
 				if(affecting && !affecting.is_stump())
 					affecting.droplimb(0, DROPLIMB_BLUNT)
@@ -96,7 +96,7 @@
 
 /datum/psi_complexus/proc/reset()
 	aura_color = initial(aura_color)
-	ranks = base_ranks.Copy()
+	ranks = base_ranks ? base_ranks.Copy() : null
 	max_stamina = initial(max_stamina)
 	stamina = min(stamina, max_stamina)
 	cancel()

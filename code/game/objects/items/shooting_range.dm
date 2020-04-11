@@ -17,7 +17,7 @@
 
 /obj/item/target/attackby(var/obj/item/W, var/mob/user)
 	if(isWelder(W))
-		var/obj/item/weapon/tool/weldingtool/WT = W
+		var/obj/item/weapon/weldingtool/WT = W
 		if(WT.remove_fuel(0, user))
 			overlays.Cut()
 			bulletholes.Cut()
@@ -54,7 +54,7 @@
 
 	if( virtualIcon.GetPixel(p_x, p_y) ) // if the located pixel isn't blank (null)
 
-		hp -= Proj.force
+		hp -= Proj.damage
 		if(hp <= 0)
 			for(var/mob/O in oviewers())
 				if ((O.client && !( O.blinded )))
@@ -66,7 +66,6 @@
 		bmark.pixel_x = p_x
 		bmark.pixel_y = p_y
 		bmark.icon = 'icons/effects/effects.dmi'
-		bmark.plane = OBJ_PLANE
 		bmark.layer = ABOVE_OBJ_LAYER
 		bmark.icon_state = "scorch"
 
@@ -77,7 +76,7 @@
 			bmark.pixel_x--
 			bmark.pixel_y--
 
-			if(Proj.force >= 20 || istype(Proj, /obj/item/projectile/beam/practice))
+			if(Proj.damage >= 20 || istype(Proj, /obj/item/projectile/beam/practice))
 				bmark.icon_state = "scorch"
 				bmark.set_dir(pick(NORTH,SOUTH,EAST,WEST)) // random scorch design
 
@@ -89,12 +88,12 @@
 			// Bullets are hard. They make dents!
 			bmark.icon_state = "dent"
 
-		if(Proj.force >= 10 && bulletholes.len <= 35) // maximum of 35 bullet holes
+		if(Proj.damage >= 10 && bulletholes.len <= 35) // maximum of 35 bullet holes
 			if(decaltype == 2) // bullet
-				if(prob(Proj.force+30)) // bullets make holes more commonly!
+				if(prob(Proj.damage+30)) // bullets make holes more commonly!
 					new/datum/bullethole(src, bmark.pixel_x, bmark.pixel_y) // create new bullet hole
 			else // Lasers!
-				if(prob(Proj.force-10)) // lasers make holes less commonly
+				if(prob(Proj.damage-10)) // lasers make holes less commonly
 					new/datum/bullethole(src, bmark.pixel_x, bmark.pixel_y) // create new bullet hole
 
 		// draw bullet holes

@@ -44,9 +44,9 @@ Single Use Emergency Pouches
 	overlays += cross_overlay
 	icon_state = "pack[opened]"
 
-/obj/item/weapon/storage/med_pouch/examine()
+/obj/item/weapon/storage/med_pouch/examine(mob/user)
 	. = ..()
-	to_chat(usr, "<A href='?src=\ref[src];show_info=1'>Please read instructions before use.</A>")
+	to_chat(user, "<A href='?src=\ref[src];show_info=1'>Please read instructions before use.</A>")
 
 /obj/item/weapon/storage/med_pouch/CanUseTopic()
 	return STATUS_INTERACTIVE
@@ -186,8 +186,8 @@ Single Use Emergency Pouches
 /obj/item/weapon/reagent_containers/pill/pouch_pill/paracetamol
 	chem_type = /datum/reagent/paracetamol
 
-/obj/item/weapon/reagent_containers/pill/pouch_pill/SetupReagents()
-	. = ..()
+/obj/item/weapon/reagent_containers/pill/pouch_pill/New()
+	..()
 	reagents.add_reagent(chem_type, chem_amount)
 	name = "emergency [reagents.get_master_reagent_name()] pill ([reagents.total_volume]u)"
 	color = reagents.get_color()

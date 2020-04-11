@@ -1,30 +1,25 @@
+//Todo: add leather and cloth for arbitrary coloured stools.
+var/global/list/stool_cache = list() //haha stool
+
 /obj/item/weapon/stool
 	name = "stool"
-	desc = "A stool for ergonomic use."
+	desc = "Apply butt."
 	icon = 'icons/obj/furniture.dmi'
 	icon_state = "stool_preview" //set for the map
 	item_state = "stool"
 	randpixel = 0
 	force = 10
 	throwforce = 10
-	mass = 4
-	max_health = 60
-	damthreshold_brute 	= 4
 	w_class = ITEM_SIZE_HUGE
-
 	var/base_icon = "stool"
 	var/material/material
 	var/material/padding_material
-
-	var/static/list/icon_cache = list()
 
 /obj/item/weapon/stool/padded
 	icon_state = "stool_padded_preview" //set for the map
 
 /obj/item/weapon/stool/New(newloc, new_material = DEFAULT_FURNITURE_MATERIAL, new_padding_material)
 	..(newloc)
-	if(!new_material)
-		new_material = MATERIAL_STEEL
 	material = SSmaterials.get_material_by_name(new_material)
 	if(new_padding_material)
 		padding_material = SSmaterials.get_material_by_name(new_padding_material)
@@ -50,38 +45,32 @@
 	..(newloc, new_material, MATERIAL_CARPET)
 
 /obj/item/weapon/stool/on_update_icon()
-	. = ..()
-	if(!material)
-		return
-	// Clear prior icon
-	icon_state = "blank"
-	overlays.Cut()
-
-	var/cache_key
-
-	// Base Icon
-	cache_key = "[base_icon]-[material.name]"
-	if(!icon_cache[cache_key])
-		var/image/I = image(src.icon, "[base_icon]")
+	// Prep icon.
+	icon_state = ""
+	// Base icon.
+	var/list/noverlays = list()
+	var/cache_key = "[base_icon]-[material.name]"
+	if(isnull(stool_cache[cache_key]))
+		var/image/I = image(icon, "[base_icon]_base")
 		I.color = material.icon_colour
-		icon_cache[cache_key] = I
-	
-	overlays |= icon_cache[cache_key]
-
-	// Padding Icon
+		stool_cache[cache_key] = I
+	noverlays |= stool_cache[cache_key]
+	// Padding overlay.
 	if(padding_material)
-		cache_key = "[base_icon]-padding-[padding_material.name]"
-		if(!icon_cache[cache_key])
-			var/image/I = image(src.icon, "[base_icon]_padding")
+		var/padding_cache_key = "[base_icon]-padding-[padding_material.name]"
+		if(isnull(stool_cache[padding_cache_key]))
+			var/image/I =  image(icon, "[base_icon]_padding")
 			I.color = padding_material.icon_colour
-			icon_cache[cache_key] = I
-
-		overlays |= icon_cache[cache_key]
-
-	// Fluff
-	// This is not perfect but it will do for now.
-	SetName(padding_material ? "[padding_material.adjective_name] [initial(name)]" : "[material.adjective_name] [initial(name)]") 
-	desc = padding_material ? "[initial(desc)] It's made of [material.use_name] and covered with [padding_material.use_name]." : "[initial(desc)] It's made of [material.use_name]."
+			stool_cache[padding_cache_key] = I
+		noverlays |= stool_cache[padding_cache_key]
+	overlays = noverlays
+	// Strings.
+	if(padding_material)
+		SetName("[padding_material.display_name] [initial(name)]") //this is not perfect but it will do for now.
+		desc = "A padded stool. Apply butt. It's made of [material.use_name] and covered with [padding_material.use_name]."
+	else
+		SetName("[material.display_name] [initial(name)]")
+		desc = "A stool. Apply butt with care. It's made of [material.use_name]."
 
 /obj/item/weapon/stool/proc/add_padding(var/padding_type)
 	padding_material = SSmaterials.get_material_by_name(padding_type)
@@ -98,13 +87,11 @@
 		user.visible_message("<span class='danger'>[user] breaks [src] over [target]'s back!</span>")
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		user.do_attack_animation(target)
-		user.remove_from_mob(src)
-		dismantle()
-		qdel(src)
+		dismantle() //This deletes self.
 
-		var/blocked = target.get_blocked_ratio(hit_zone, DAM_BLUNT)
+		var/blocked = target.get_blocked_ratio(hit_zone, BRUTE, damage = 20)
 		target.Weaken(10 * (1 - blocked))
-		target.apply_damage(20, DAM_BLUNT, hit_zone, used_weapon = src)
+		target.apply_damage(20, BRUTE, hit_zone, src)
 		return 1
 
 	return ..()
@@ -141,7 +128,6 @@
 			return
 		var/obj/item/stack/C = W
 		if(C.get_amount() < 1) // How??
-			user.drop_from_inventory(C)
 			qdel(C)
 			return
 		var/padding_type //This is awful but it needs to be like this until tiles are given a material var.
@@ -170,3 +156,8 @@
 		remove_padding()
 	else
 		..()
+
+//Generated subtypes for mapping porpoises
+
+/obj/item/weapon/stool/wood/New(var/newloc)
+	..(newloc,MATERIAL_WOOD)

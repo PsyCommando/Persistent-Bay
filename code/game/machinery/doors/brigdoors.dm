@@ -1,5 +1,7 @@
 #define CHARS_PER_LINE 5
-#define BD_TEXT_STYLE "style='font-size:5pt;color:#09f;font:\"Arial Black\";text-align:center;' valign='top'"
+#define FONT_SIZE "5pt"
+#define FONT_COLOR "#09f"
+#define FONT_STYLE "Arial Black"
 
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 
@@ -16,9 +18,9 @@
 	icon = 'icons/obj/status_display.dmi'
 	icon_state = "frame"
 	desc = "A remote control for a door."
-	req_access = list(core_access_security_programs)
-	anchored = TRUE    		// can't pick it up
-	density = FALSE    		// can walk through it.
+	req_access = list(access_brig)
+	anchored = 1.0    		// can't pick it up
+	density = 0       		// can walk through it.
 	var/id = null     		// id of door it controls.
 	var/releasetime = 0		// when world.timeofday reaches it - release the prisoner
 	var/timing = 1    		// boolean, true/1 timer is on, false/0 means it's not timing
@@ -35,15 +37,15 @@
 
 /obj/machinery/door_timer/LateInitialize()
 	for(var/obj/machinery/door/window/brigdoor/M in SSmachines.machinery)
-		if (M.id_tag == src.id_tag)
+		if (M.id == src.id)
 			targets += M
 
 	for(var/obj/machinery/flasher/F in SSmachines.machinery)
-		if(F.id_tag == src.id_tag)
+		if(F.id_tag == src.id)
 			targets += F
 
 	for(var/obj/structure/closet/secure_closet/brig/C in world)
-		if(C.id == src.id_tag)
+		if(C.id == src.id)
 			targets += C
 
 	if(targets.len==0)
@@ -54,31 +56,44 @@
 // if it's less than 0, open door, reset timer
 // update the door_timer window and the icon
 /obj/machinery/door_timer/Process()
-	if(inoperable())
-		return
+	if(stat & (NOPOWER|BROKEN))	return
 	if(src.timing)
-		if(REALTIMEOFDAY > src.releasetime)
-			src.timer_end() // open doors, reset timer, clear status screen
+
+		// poorly done midnight rollover
+		// (no seriously there's gotta be a better way to do this)
+		var/timeleft = timeleft()
+		if(timeleft > 1e5)
+			src.releasetime = 0
+
+
+		if(world.timeofday > src.releasetime)
+			src.timer_end(TRUE) // open doors, reset timer, clear status screen, broadcast to sec HUDs
 			src.timing = 0
+
 		src.update_icon()
+
 	else
 		timer_end()
+
+	return
+
 
 // open/closedoor checks if door_timer has power, if so it checks if the
 // linked door is open/closed (by density) then opens it/closes it.
 
 // Closes and locks doors, power check
 /obj/machinery/door_timer/proc/timer_start()
-	if(inoperable())	
-		return FALSE
+	if(stat & (NOPOWER|BROKEN))	return 0
+
 	// Set releasetime
-	releasetime = REALTIMEOFDAY + timetoset
+	releasetime = world.timeofday + timetoset
+
+
 	//set timing
 	timing = 1
 
 	for(var/obj/machinery/door/window/brigdoor/door in targets)
-		if(door.density)
-			continue
+		if(door.density)	continue
 		spawn(0)
 			door.close()
 
@@ -87,15 +102,16 @@
 		if(C.opened && !C.close())	continue
 		C.locked = TRUE
 		C.queue_icon_update()
-	return TRUE
+	return 1
 
 
 // Opens and unlocks doors, power check
 /obj/machinery/door_timer/proc/timer_end(var/broadcast_to_huds = 0)
-	if(inoperable())	
-		return FALSE
+	if(stat & (NOPOWER|BROKEN))	return 0
+
 	// Reset releasetime
 	releasetime = 0
+
 	//reset timing
 	timing = 0
 
@@ -103,46 +119,48 @@
 		broadcast_security_hud_message("The timer for [id] has expired.", src)
 
 	for(var/obj/machinery/door/window/brigdoor/door in targets)
-		if(!door.density)
-			continue
+		if(!door.density)	continue
 		spawn(0)
 			door.open()
+
 	for(var/obj/structure/closet/secure_closet/brig/C in targets)
-		if(C.broken || C.opened)
-			continue
-		C.locked = FALSE
+		if(C.broken)	continue
+		if(C.opened)	continue
+		C.locked = 0
 		C.queue_icon_update()
-	return TRUE
+
+	return 1
 
 
 // Check for releasetime timeleft
 /obj/machinery/door_timer/proc/timeleft()
-	. = (releasetime - REALTIMEOFDAY)/10
+	. = round((releasetime - world.timeofday)/10)
 	if(. < 0)
 		. = 0
 
 // Set timetoset
 /obj/machinery/door_timer/proc/timeset(var/seconds)
 	timetoset = seconds * 10
+
 	if(timetoset <= 0)
 		timetoset = 0
+
 	return
 
-//Allows AIs to use door_timer, see human attack_hand function below
-/obj/machinery/door_timer/attack_ai(var/mob/user as mob)
-	return src.attack_hand(user)
+/obj/machinery/door_timer/interface_interact(var/mob/user)
+	ui_interact(user)
+	return TRUE
 
-/obj/machinery/door_timer/attack_hand(var/mob/user as mob)
-	tg_ui_interact(user)
-
-/obj/machinery/door_timer/ui_data(mob/user)
+/obj/machinery/door_timer/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	var/list/data = list()
+
+	var/timeval = timing ? timeleft() : timetoset/10
 	data["timing"] = timing
-	data["releasetime"] = releasetime
-	data["timetoset"] = timetoset
-	data["timeleft"] = timeleft()
+	data["minutes"] = round(timeval/60)
+	data["seconds"] = timeval % 60
 
 	var/list/flashes = list()
+
 	for(var/obj/machinery/flasher/flash  in targets)
 		var/list/flashdata = list()
 		if(flash.last_flash && (flash.last_flash + 150) > world.time)
@@ -152,63 +170,51 @@
 		flashes[++flashes.len] = flashdata
 
 	data["flashes"] = flashes
-	return data
 
+	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
+	if (!ui)
+		ui = new(user, src, ui_key, "brig_timer.tmpl", name, 270, 150)
+		ui.set_initial_data(data)
+		ui.open()
+		ui.set_auto_update(1)
 
-/obj/machinery/door_timer/ui_act(action, params)
-	if(..())
-		return TRUE
+/obj/machinery/door_timer/CanUseTopic(user, state)
+	if(!allowed(user))
+		return STATUS_UPDATE
+	return ..()
 
-	if(!src.allowed(usr))
-		return TRUE
-
-	switch (action)
-		if("start")
+/obj/machinery/door_timer/OnTopic(var/mob/user, var/list/href_list, state)
+	if (href_list["toggle"])
+		if(timing)
+			timer_end()
+		else
+			timer_start()
 			if(timetoset > 18000)
 				log_and_message_admins("has started a brig timer over 30 minutes in length!")
-			timer_start()
-		if("stop")
-			timer_end()
-		if("flash")
-			for(var/obj/machinery/flasher/F in targets)
-				F.flash()
-		if("time")
-			timetoset += text2num(params["adjust"])
-			timetoset = Clamp(timetoset, 0, 36000)
+		. =  TOPIC_REFRESH
 
-	src.update_icon()
-	return TRUE
+	if (href_list["flash"])
+		for(var/obj/machinery/flasher/F in targets)
+			F.flash()
+		. =  TOPIC_REFRESH
+		
+	if (href_list["adjust"])
+		timetoset += text2num(href_list["adjust"])
+		timetoset = Clamp(timetoset, 0, 36000)
+		. = TOPIC_REFRESH
 
+	update_icon()
 
-/obj/machinery/door_timer/tg_ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = 0, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
-	if(!ui)
-		ui = new(user, src, ui_key, "brig_timer", name , 300, 150, master_ui, state)
-		ui.open()
 
 //icon update function
 // if NOPOWER, display blank
 // if BROKEN, display blue screen of death icon AI uses
 // if timing=true, run update display function
-/obj/machinery/door_timer/update_icon()
-	switch(dir)
-		if(NORTH)
-			src.pixel_x = 0
-			src.pixel_y = -32
-		if(SOUTH)
-			src.pixel_x = 0
-			src.pixel_y = 32
-		if(EAST)
-			src.pixel_x = -32
-			src.pixel_y = 0
-		if(WEST)
-			src.pixel_x = 32
-			src.pixel_y = 0
-
-	if(!ispowered())
+/obj/machinery/door_timer/on_update_icon()
+	if(stat & (NOPOWER))
 		icon_state = "frame"
 		return
-	if(isbroken())
+	if(stat & (BROKEN))
 		set_picture("ai_bsod")
 		return
 	if(src.timing)
@@ -222,7 +228,7 @@
 		if(maptext)
 			maptext = ""
 		update_display("Set","Time") // would be nice to have some default printed text
-
+	return
 
 
 // Adds an icon in case the screen is broken/off, stolen from status_display.dm
@@ -235,7 +241,7 @@
 //Checks to see if there's 1 line or 2, adds text-icons-numbers/letters over display
 // Stolen from status_display
 /obj/machinery/door_timer/proc/update_display(var/line1, var/line2)
-	var/new_text = "<div [BD_TEXT_STYLE]>[line1]<br>[line2]</div>"
+	var/new_text = {"<div style="font-size:[FONT_SIZE];color:[FONT_COLOR];font:'[FONT_STYLE]';text-align:center;" valign="top">[line1]<br>[line2]</div>"}
 	if(maptext != new_text)
 		maptext = new_text
 
@@ -281,5 +287,7 @@
 	name = "Cell 6"
 	id = "Cell 6"
 
-#undef BD_TEXT_STYLE
+#undef FONT_SIZE
+#undef FONT_COLOR
+#undef FONT_STYLE
 #undef CHARS_PER_LINE

@@ -4,7 +4,7 @@ datum/preferences
 	var/spawnpoint = "Default" 			//where this character will spawn (0-2).
 	var/metadata = ""
 	var/real_name						//our character's name
-	//var/be_random_name = 0				//whether we are a random name every round
+	var/be_random_name = 0				//whether we are a random name every round
 
 /datum/category_item/player_setup_item/physical/basic
 	name = "Basic"
@@ -16,7 +16,7 @@ datum/preferences
 	from_file(S["spawnpoint"],            pref.spawnpoint)
 	from_file(S["OOC_Notes"],             pref.metadata)
 	from_file(S["real_name"],             pref.real_name)
-	//from_file(S["name_is_always_random"], pref.be_random_name)
+	from_file(S["name_is_always_random"], pref.be_random_name)
 
 /datum/category_item/player_setup_item/physical/basic/save_character(var/savefile/S)
 	to_file(S["gender"],                  pref.gender)
@@ -24,7 +24,7 @@ datum/preferences
 	to_file(S["spawnpoint"],              pref.spawnpoint)
 	to_file(S["OOC_Notes"],               pref.metadata)
 	to_file(S["real_name"],               pref.real_name)
-	//to_file(S["name_is_always_random"],   pref.be_random_name)
+	to_file(S["name_is_always_random"],   pref.be_random_name)
 
 /datum/category_item/player_setup_item/physical/basic/sanitize_character()
 	var/datum/species/S = all_species[pref.species ? pref.species : SPECIES_HUMAN]
@@ -32,27 +32,26 @@ datum/preferences
 	pref.age                = sanitize_integer(pref.age, S.min_age, S.max_age, initial(pref.age))
 	pref.gender             = sanitize_inlist(pref.gender, S.genders, pick(S.genders))
 	pref.spawnpoint         = sanitize_inlist(pref.spawnpoint, spawntypes(), initial(pref.spawnpoint))
-	//pref.be_random_name     = sanitize_integer(pref.be_random_name, 0, 1, initial(pref.be_random_name))
+	pref.be_random_name     = sanitize_integer(pref.be_random_name, 0, 1, initial(pref.be_random_name))
 	// This is a bit noodly. If pref.cultural_info[TAG_CULTURE] is null, then we haven't finished loading/sanitizing, which means we might purge
 	// numbers or w/e from someone's name by comparing them to the map default. So we just don't bother sanitizing at this point otherwise.
 	if(pref.cultural_info[TAG_CULTURE])
 		var/decl/cultural_info/check = SSculture.get_culture(pref.cultural_info[TAG_CULTURE])
 		if(check)
 			pref.real_name = check.sanitize_name(pref.real_name, pref.species)
-	//		if(!pref.real_name)
-	//			pref.real_name = random_name(pref.gender, pref.species)
+			if(!pref.real_name)
+				pref.real_name = random_name(pref.gender, pref.species)
 
 /datum/category_item/player_setup_item/physical/basic/content()
 	. = list()
-	. += "* = Required Field<br><br>"
-	. += "<b>*Full Name:</b> "
-	. += "<a href='?src=\ref[src];rename=1'><b>[pref.real_name ? pref.real_name : "*UNSET*"]</b></a><br>"
+	. += "<b>Name:</b> "
+	. += "<a href='?src=\ref[src];rename=1'><b>[pref.real_name]</b></a><br>"
 	. += "<a href='?src=\ref[src];random_name=1'>Randomize Name</A><br>"
-	//. += "<a href='?src=\ref[src];always_random_name=1'>Always Random Name: [pref.be_random_name ? "Yes" : "No"]</a>"
+	. += "<a href='?src=\ref[src];always_random_name=1'>Always Random Name: [pref.be_random_name ? "Yes" : "No"]</a>"
 	. += "<hr>"
 	. += "<b>Gender:</b> <a href='?src=\ref[src];gender=1'><b>[gender2text(pref.gender)]</b></a><br>"
 	. += "<b>Age:</b> <a href='?src=\ref[src];age=1'>[pref.age]</a><br>"
-//	. += "<b>Spawn Point</b>: <a href='?src=\ref[src];spawnpoint=1'>[pref.spawnpoint]</a><br>"
+	. += "<b>Spawn Point</b>: <a href='?src=\ref[src];spawnpoint=1'>[pref.spawnpoint]</a>"
 	if(config.allow_Metadata)
 		. += "<br><b>OOC Notes:</b> <a href='?src=\ref[src];metadata=1'> Edit </a>"
 	. = jointext(.,null)
@@ -65,12 +64,8 @@ datum/preferences
 		if (!isnull(raw_name) && CanUseTopic(user))
 
 			var/decl/cultural_info/check = SSculture.get_culture(pref.cultural_info[TAG_CULTURE])
-			if(!check) check = new()
 			var/new_name = check.sanitize_name(raw_name, pref.species)
 			if(new_name)
-				if(Retrieve_Record(new_name))
-					to_chat(user, "<span class='warning'>Invalid name. This character already exists.</span>")
-					return TOPIC_NOACTION
 				pref.real_name = new_name
 				return TOPIC_REFRESH
 			else
@@ -81,9 +76,9 @@ datum/preferences
 		pref.real_name = random_name(pref.gender, pref.species)
 		return TOPIC_REFRESH
 
-	// else if(href_list["always_random_name"])
-	// 	pref.be_random_name = !pref.be_random_name
-	// 	return TOPIC_REFRESH
+	else if(href_list["always_random_name"])
+		pref.be_random_name = !pref.be_random_name
+		return TOPIC_REFRESH
 
 	else if(href_list["gender"])
 		var/new_gender = input(user, "Choose your character's gender:", CHARACTER_PREFERENCE_INPUT_TITLE, pref.gender) as null|anything in S.genders
@@ -98,7 +93,7 @@ datum/preferences
 		var/new_age = input(user, "Choose your character's age:\n([S.min_age]-[S.max_age])", CHARACTER_PREFERENCE_INPUT_TITLE, pref.age) as num|null
 		if(new_age && CanUseTopic(user))
 			pref.age = max(min(round(text2num(new_age)), S.max_age), S.min_age)
-//			pref.skills_allocated = pref.sanitize_skills(pref.skills_allocated)		// The age may invalidate skill loadouts
+			pref.skills_allocated = pref.sanitize_skills(pref.skills_allocated)		// The age may invalidate skill loadouts
 			return TOPIC_REFRESH
 
 	else if(href_list["spawnpoint"])

@@ -16,7 +16,7 @@
 	var/obj/item/organ/external/chest/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user]'s hand slips, scraping around inside [target]'s [affected.name] with \the [tool]!</span>", \
 	"<span class='warning'>Your hand slips, scraping around inside [target]'s [affected.name] with \the [tool]!</span>")
-	affected.take_damage(20, DAM_CUT, used_weapon = tool)
+	affected.take_external_damage(20, 0, (DAM_SHARP|DAM_EDGE), used_weapon = tool)
 
 //////////////////////////////////////////////////////////////////
 //	 create implant space surgery step
@@ -58,7 +58,7 @@
 		/obj/item/weapon/cautery = 100,
 		/obj/item/clothing/mask/smokable/cigarette = 75,
 		/obj/item/weapon/flame/lighter = 50,
-		/obj/item/weapon/tool/weldingtool = 25
+		/obj/item/weapon/weldingtool = 25
 	)
 	min_duration = 60
 	max_duration = 80
@@ -103,7 +103,7 @@
 /decl/surgery_step/cavity/place_item/pre_surgery_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	if(affected && affected.cavity)
-		var/max_volume = base_storage_capacity(affected.cavity_max_w_class)
+		var/max_volume = BASE_STORAGE_CAPACITY(affected.cavity_max_w_class)
 		if(tool.w_class > affected.cavity_max_w_class)
 			to_chat(user, SPAN_WARNING("\The [tool] is too big for [affected.cavity_name] cavity."))
 			return FALSE
@@ -144,7 +144,7 @@
 	name = "Remove foreign body"
 	allowed_tools = list(
 		/obj/item/weapon/hemostat = 100,
-		/obj/item/weapon/tool/wirecutters = 75,
+		/obj/item/weapon/wirecutters = 75,
 		/obj/item/weapon/material/kitchen/utensil/fork = 20
 	)
 	min_duration = 80

@@ -39,5 +39,4 @@
 		BP_BRAIN =    /obj/item/organ/internal/brain,
 		BP_EYES =     /obj/item/organ/internal/eyes
 		)
-	spawns_with_stack = TRUE
-	spawn_flags =   SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED
+

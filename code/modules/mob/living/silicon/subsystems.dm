@@ -3,7 +3,8 @@
 	var/list/silicon_subsystems = list(
 		/datum/nano_module/alarm_monitor/all,
 		/datum/nano_module/law_manager,
-		/datum/nano_module/email_client
+		/datum/nano_module/email_client,
+		/datum/nano_module/crew_manifest
 	)
 
 /mob/living/silicon/ai/New()
@@ -100,7 +101,7 @@
 
 /stat_silicon_subsystem/New(var/mob/living/silicon/loc, var/subsystem_type, var/ui_state)
 	if(!istype(loc))
-		CRASH("Unexpected location. Expected /mob/living/silicon, was [loc ? loc.type : "null"].")
+		CRASH("Unexpected location. Expected /mob/living/silicon, was [loc.type].")
 	src.ui_state = ui_state
 	subsystem = new subsystem_type(loc)
 	name = subsystem.name

@@ -13,15 +13,9 @@
 obj/item/clothing/mask/chewable/New()
 	..()
 	atom_flags |= ATOM_FLAG_NO_REACT // so it doesn't react until you light it
-	ADD_SAVED_VAR(brand)
-
-obj/item/clothing/mask/chewable/Initialize()
-	. = ..()
-	if(!reagents)
-		create_reagents(chem_volume) // making the cigarrete a chemical holder with a maximum volume of 15
-	if(!map_storage_loaded)
-		for(var/R in filling)
-			reagents.add_reagent(R, filling[R])
+	create_reagents(chem_volume) // making the cigarrete a chemical holder with a maximum volume of 15
+	for(var/R in filling)
+		reagents.add_reagent(R, filling[R])
 
 /obj/item/clothing/mask/chewable/equipped(var/mob/living/user, var/slot)
 	..()
@@ -51,13 +45,9 @@ obj/item/clothing/mask/chewable/Destroy()
 			STOP_PROCESSING(SSobj, src)
 
 /obj/item/clothing/mask/chewable/Process()
-	if(!equipped())
-		STOP_PROCESSING(SSobj, src)
-		return
 	chew(1)
 	if(chewtime < 1)
 		extinguish()
-		return
 
 /obj/item/clothing/mask/chewable/tobacco
 	name = "wad"
@@ -76,7 +66,7 @@ obj/item/clothing/mask/chewable/Destroy()
 	desc = "A disgusting spitwad."
 	icon_state = "spit-chew"
 
-/obj/item/clothing/mask/chewable/extinguish(var/mob/user, var/no_message)
+/obj/item/clothing/mask/chewable/proc/extinguish(var/mob/user, var/no_message)
 	STOP_PROCESSING(SSobj, src)
 	if (type_butt)
 		var/obj/item/butt = new type_butt(get_turf(src))
@@ -105,10 +95,9 @@ obj/item/clothing/mask/chewable/Destroy()
 	desc = "A chewy wad of synthetic rubber, laced with nicotine. Possibly the least disgusting method of nicotine delivery."
 	icon_state = "nic_gum"
 	type_butt = /obj/item/trash/cigbutt/spitgum
-/obj/item/clothing/mask/chewable/tobacco/nico/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		reagents.add_reagent(/datum/reagent/nicotine, 2)
+/obj/item/clothing/mask/chewable/tobacco/nico/New()
+	..()
+	reagents.add_reagent(/datum/reagent/nicotine, 2)
 	color = reagents.get_color()
 
 /obj/item/clothing/mask/chewable/candy
@@ -139,19 +128,18 @@ obj/item/clothing/mask/chewable/Destroy()
 	icon_state = "gum"
 	item_state = "gum"
 
-/obj/item/clothing/mask/chewable/candy/gum/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		reagents.add_reagent(pick(list(
-					/datum/reagent/drink/juice/grape,
-					/datum/reagent/drink/juice/orange,
-					/datum/reagent/drink/juice/lemon,
-					/datum/reagent/drink/juice/lime,
-					/datum/reagent/drink/juice/apple,
-					/datum/reagent/drink/juice/pear,
-					/datum/reagent/drink/juice/banana,
-					/datum/reagent/drink/juice/berry,
-					/datum/reagent/drink/juice/watermelon)), 3)
+/obj/item/clothing/mask/chewable/candy/gum/New()
+	..()
+	reagents.add_reagent(pick(list(
+				/datum/reagent/drink/juice/grape,
+				/datum/reagent/drink/juice/orange,
+				/datum/reagent/drink/juice/lemon,
+				/datum/reagent/drink/juice/lime,
+				/datum/reagent/drink/juice/apple,
+				/datum/reagent/drink/juice/pear,
+				/datum/reagent/drink/juice/banana,
+				/datum/reagent/drink/juice/berry,
+				/datum/reagent/drink/juice/watermelon)), 3)
 	color = reagents.get_color()
 
 /obj/item/clothing/mask/chewable/candy/lolli
@@ -161,20 +149,19 @@ obj/item/clothing/mask/chewable/Destroy()
 	icon_state = "lollipop"
 	item_state = "lollipop"
 
-/obj/item/clothing/mask/chewable/candy/lolli/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		reagents.add_reagent(pick(list(
-					/datum/reagent/fuel,
-					/datum/reagent/drink/juice/grape,
-					/datum/reagent/drink/juice/orange,
-					/datum/reagent/drink/juice/lemon,
-					/datum/reagent/drink/juice/lime,
-					/datum/reagent/drink/juice/apple,
-					/datum/reagent/drink/juice/pear,
-					/datum/reagent/drink/juice/banana,
-					/datum/reagent/drink/juice/berry,
-					/datum/reagent/drink/juice/watermelon)), 3)
+/obj/item/clothing/mask/chewable/candy/lolli/New()
+	..()
+	reagents.add_reagent(pick(list(
+				/datum/reagent/fuel,
+				/datum/reagent/drink/juice/grape,
+				/datum/reagent/drink/juice/orange,
+				/datum/reagent/drink/juice/lemon,
+				/datum/reagent/drink/juice/lime,
+				/datum/reagent/drink/juice/apple,
+				/datum/reagent/drink/juice/pear,
+				/datum/reagent/drink/juice/banana,
+				/datum/reagent/drink/juice/berry,
+				/datum/reagent/drink/juice/watermelon)), 3)
 	color = reagents.get_color()
 
 /obj/item/clothing/mask/chewable/candy/lolli/meds
@@ -183,20 +170,19 @@ obj/item/clothing/mask/chewable/Destroy()
 	type_butt = /obj/item/trash/cigbutt/lollibutt
 	icon_state = "lollipop"
 
-/obj/item/clothing/mask/chewable/candy/lolli/meds/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		reagents.add_reagent(pick(list(
-					/datum/reagent/dexalinp,
-					/datum/reagent/tricordrazine,
-					/datum/reagent/hyperzine,
-					/datum/reagent/hyronalin,
-					/datum/reagent/methylphenidate,
-					/datum/reagent/citalopram,
-					/datum/reagent/dylovene,
-					/datum/reagent/bicaridine,
-					/datum/reagent/kelotane,
-					/datum/reagent/inaprovaline)), 10)
+/obj/item/clothing/mask/chewable/candy/lolli/meds/New()
+	..()
+	reagents.add_reagent(pick(list(
+				/datum/reagent/dexalinp,
+				/datum/reagent/tricordrazine,
+				/datum/reagent/hyperzine,
+				/datum/reagent/hyronalin,
+				/datum/reagent/methylphenidate,
+				/datum/reagent/citalopram,
+				/datum/reagent/dylovene,
+				/datum/reagent/bicaridine,
+				/datum/reagent/kelotane,
+				/datum/reagent/inaprovaline)), 10)
 	color = reagents.get_color()
 
 /obj/item/clothing/mask/chewable/candy/lolli/weak_meds
@@ -204,15 +190,14 @@ obj/item/clothing/mask/chewable/Destroy()
 	desc = "A sucrose sphere on a small handle, it has been infused with medication."
 	filling = list(/datum/reagent/sugar = 6)
 
-/obj/item/clothing/mask/chewable/candy/lolli/weak_meds/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		var/datum/reagent/payload = pick(list(
-					/datum/reagent/antidexafen,
-					/datum/reagent/paracetamol,
-					/datum/reagent/tricordrazine,
-					/datum/reagent/dylovene,
-					/datum/reagent/inaprovaline))
-		reagents.add_reagent(payload, 15)
+/obj/item/clothing/mask/chewable/candy/lolli/weak_meds/New()
+	..()
+	var/datum/reagent/payload = pick(list(
+				/datum/reagent/antidexafen,
+				/datum/reagent/paracetamol,
+				/datum/reagent/tricordrazine,
+				/datum/reagent/dylovene,
+				/datum/reagent/inaprovaline))
+	reagents.add_reagent(payload, 15)
 	color = reagents.get_color()
-	desc = "[desc]. This one is labeled '[reagents.get_master_reagent_name()]'"
+	desc = "[desc]. This one is labeled '[initial(payload.name)]'"

@@ -1,32 +1,36 @@
 /mob/living/carbon/slime/proc/GetMutations()
 	switch(src.colour)
 		if("grey")
-			return list("orange", "blue", "purple", "grey")
+			return list("orange", "metal", "blue", "purple")
 		if("purple")
-			return list("dark blue", "silver", "purple")
+			return list("dark purple", "dark blue", "green", "green")
+		if("metal")
+			return list("silver", "yellow", "gold", "gold")
 		if("orange")
-			return list("yellow", "red", "sepia", "orange")
+			return list("dark purple", "yellow", "red", "red")
 		if("blue")
-			return list("dark blue", "silver", "pink", "blue")
+			return list("dark blue", "silver", "pink", "pink")
 		//Tier 3
 		if("dark blue")
-			return list("purple", "cerulean", "blue", "dark blue")
+			return list("purple", "cerulean", "blue", "blue")
+		if("dark purple")
+			return list("purple", "sepia", "orange", "orange")
 		if("yellow")
-			return list("orange", "yellow")
+			return list("bluespace", "metal", "orange", "orange")
 		if("silver")
-			return list("gold", "pyrite", "blue", "silver")
+			return list("metal", "pyrite", "blue", "blue")
 		//Tier 4
 		if("pink")
-			return list("pink", "light pink")
+			return list("pink", "pink", "light pink", "light pink")
 		if("red")
-			return list("red", "orange")
+			return list("red", "red", "oil", "oil")
 		if("gold")
-			return list("gold", "silver")
-		//if("green")
-			//return list("green", "grey")
+			return list("gold", "gold", "adamantine", "adamantine")
+		if("green")
+			return list("green", "green", "black", "black")
 		// Tier 5
 		else
-			return list("grey")
+			return list()
 
 /mob/living/carbon/slime/proc/GetCoreType()
 	switch(src.colour)
@@ -58,8 +62,8 @@
 			return /obj/item/slime_extract/red
 		if("gold")
 			return /obj/item/slime_extract/gold
-		//if("green")
-			//return /obj/item/slime_extract/green
+		if("green")
+			return /obj/item/slime_extract/green
 		if("sepia")
 			return /obj/item/slime_extract/sepia
 		if("bluespace")
@@ -71,10 +75,10 @@
 		//Tier 5
 		if("light pink")
 			return /obj/item/slime_extract/lightpink
-		//if("oil")
-			//return /obj/item/slime_extract/oil
+		if("oil")
+			return /obj/item/slime_extract/oil
 		if("adamantine")
 			return /obj/item/slime_extract/adamantine
-		//if("black")
-			//return /obj/item/slime_extract/black
+		if("black")
+			return /obj/item/slime_extract/black
 	return /obj/item/slime_extract/grey

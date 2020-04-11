@@ -5,7 +5,7 @@
 	item_state = "boxing"
 
 /obj/item/clothing/gloves/boxing/attackby(obj/item/weapon/W, mob/user)
-	if(isWirecutter(W) || istype(W, /obj/item/weapon/scalpel) || isScissors(W))
+	if(isWirecutter(W) || istype(W, /obj/item/weapon/scalpel))
 		to_chat(user, "<span class='notice'>That won't work.</span>")//Nope
 	else
 		..()

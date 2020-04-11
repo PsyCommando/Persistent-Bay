@@ -1,22 +1,14 @@
-
 #define TAG_CULTURE   "culture"
 #define TAG_HOMEWORLD "home_system"
 #define TAG_FACTION   "faction"
 #define TAG_RELIGION  "religion"
-#define TAG_AMBITION "ambition"
+
 #define ALL_CULTURAL_TAGS list( \
 	TAG_CULTURE =   "Culture", \
 	TAG_HOMEWORLD = "Residence", \
 	TAG_FACTION =   "Faction", \
-	TAG_RELIGION =  "Beliefs", \
-	TAG_AMBITION = "Ambition", \
+	TAG_RELIGION =  "Beliefs" \
 	)
-
-#define REAL_CULTURAL_TAGS list( \
-	TAG_CULTURE =   "Culture", \
-	TAG_AMBITION = "Ambition", \
-	)
-
 
 // Cultural IDs.
 #define FACTION_SOL_CENTRAL    "Sol Central Government"
@@ -32,6 +24,7 @@
 #define FACTION_DAIS           "Deimos Advanced Information Systems"
 #define FACTION_OTHER          "Other Faction"
 #define FACTION_TEST_SUBJECTS  "Test Subjects"
+#define FACTION_SPACECOPS  "Sol Federal Police"
 
 #define HOME_SYSTEM_EARTH      "Earth"
 #define HOME_SYSTEM_LUNA       "Luna"
@@ -54,20 +47,8 @@
 #define HOME_SYSTEM_OTHER      "Other System"
 #define HOME_SYSTEM_DEEP_SPACE "Deep Space"
 
-#define AMBITION_FREEDOM "Freedom"
-#define AMBITION_OPPORTUNITY "Opportunity"
-#define AMBITION_KNOWLEDGE "Knowledge"
-
 #define CULTURE_OTHER          "Other Culture"
 #define CULTURE_HUMAN          "Humankind"
-
-#define CULTURE_HUMAN_EARTH_POOR          "Sol-born Underclass"
-#define CULTURE_HUMAN_EARTH_MIDDLE         "Sol-born Bureaucrat"
-#define CULTURE_HUMAN_EARTH_HIGH         "Sol-born Academic"
-#define CULTURE_HUMAN_COLONY          "Outerworld Colonist"
-#define CULTURE_HUMAN_AGARTHA_POOR         "Agarthan Dissident"
-#define CULTURE_HUMAN_AGARTHA_MIDDLE      "Agarthan  Laborer"
-
 #define CULTURE_HUMAN_VATGROWN "Nonborn"
 #define CULTURE_HUMAN_MARTIAN  "Martian, Surfacer"
 #define CULTURE_HUMAN_MARSTUN  "Martian, Tunneller"
@@ -94,13 +75,18 @@
 #define RELIGION_JUDAISM       "Judaism"
 #define RELIGION_HINDUISM      "Hinduism"
 #define RELIGION_BUDDHISM      "Buddhism"
+#define RELIGION_SIKHISM       "Sikhism"
+#define RELIGION_JAINISM       "Jainism"
 #define RELIGION_ISLAM         "Islam"
 #define RELIGION_CHRISTIANITY  "Christianity"
+#define RELIGION_BAHAI_FAITH   "Baha'i Faith"
 #define RELIGION_AGNOSTICISM   "Agnosticism"
 #define RELIGION_DEISM         "Deism"
 #define RELIGION_ATHEISM       "Atheism"
 #define RELIGION_THELEMA       "Thelema"
 #define RELIGION_SPIRITUALISM  "Spiritualism"
+#define RELIGION_SHINTO        "Shinto"
+#define RELIGION_TAOISM        "Taoism"
 
 // Skrellian cultures.
 #define CULTURE_SKRELL_QERR     "Qerr-Katish"
@@ -118,7 +104,7 @@
 #define FACTION_SKRELL_QERRVOAL "Qerr'voal"
 #define FACTION_SKRELL_QALAOA "Qala'oa"
 #define FACTION_SKRELL_YIITALANA "Yii'talana"
-#define FACTION_SKRELL_KRIGLI "Kri'gli"
+#define FACTION_SKRELL_KRRIGLI "Krri'gli"
 #define FACTION_SKRELL_QONPRRI "Qon'prri"
 
 // Adherent cultures.
@@ -180,13 +166,6 @@
 #define RELIGION_UNATHI_VINE         "Hand of the Vine"
 #define RELIGION_UNATHI_LIGHTS       "The Fruitful Lights"
 
-// Xenophage cultures.
-#define CULTURE_XENOPHAGE_D    "Xenophage Drone"
-#define CULTURE_XENOPHAGE_H    "Xenophage Hunter"
-#define CULTURE_XENOPHAGE_S    "Xenophage Sentinel"
-#define CULTURE_XENOPHAGE_Q    "Xenophage Queen"
-#define FACTION_XENOPHAGE      "Xenophage Hive"
-
 // Nabber grades.
 #define CULTURE_NABBER_CMINUS "Grade C-"
 #define CULTURE_NABBER_C      "Grade C"
@@ -198,11 +177,10 @@
 #define CULTURE_NABBER_A      "Grade A"
 #define CULTURE_NABBER_APLUS  "Grade A+"
 
-// Bogani culture
-#define CULTURE_BOGANI "Bogani"
-
-//	Phorosian culture
-#define CULTURE_PHOROSIAN "Phorosian"
-
-// Resomi culture
-#define CULTURE_RESOMI "Resomi"
+// Ascent culture.
+#define CULTURE_ASCENT           "The Ascent"
+#define HOME_SYSTEM_KHARMAANI    "Core"
+#define FACTION_ASCENT_GYNE      "Ascent Gyne"
+#define FACTION_ASCENT_ALATE     "Ascent Alate"
+#define FACTION_ASCENT_SERPENTID "Ascent Serpentid"
+#define RELIGION_KHARMAANI       "Nest-Lineage Veneration"

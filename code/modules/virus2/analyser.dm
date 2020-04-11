@@ -1,10 +1,20 @@
+/obj/item/weapon/stock_parts/circuitboard/diseaseanalyser
+	name = T_BOARD("Disease Analyzer")
+	build_path = /obj/machinery/disease2/diseaseanalyser
+	board_type = "machine"
+	origin_tech = list(TECH_DATA = 3, TECH_BIO = 3)
+	req_components = list(
+		/obj/item/weapon/stock_parts/computer/hard_drive/portable = 1,
+		/obj/item/weapon/stock_parts/scanning_module = 1,
+		/obj/item/weapon/stock_parts/console_screen = 1,
+		)
+
 /obj/machinery/disease2/diseaseanalyser
 	name = "disease analyser"
 	icon = 'icons/obj/virology.dmi'
 	icon_state = "analyser"
 	anchored = 1
 	density = 1
-	circuit_type = /obj/item/weapon/circuitboard/diseaseanalyser
 	var/scanning = FALSE
 	var/obj/item/weapon/virusdish/dish = null
 	var/time_scan_end
@@ -53,11 +63,7 @@
 	dish = null
 
 /obj/machinery/disease2/diseaseanalyser/attackby(var/obj/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		return 1
-	else if(default_deconstruction_crowbar(user, O))
-		return 1
-	else if(istype(O,/obj/item/weapon/virusdish))
+	if(istype(O,/obj/item/weapon/virusdish))
 		if(!insert_dish(O, user))
 			return 1
 		user.visible_message("[user] adds \a [O] to \the [src]!", "You add \a [O] to \the [src]!")

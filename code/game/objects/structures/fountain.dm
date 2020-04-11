@@ -43,13 +43,13 @@
 
 	var/direction = rand(1,6)
 	if(direction == 1) //become older
-		to_chat(user, "<span class='fountain'>You touch the fountain. All the memories of your life seem to fade into the distant past as seconds drag like years. You feel the inexplicable sensation of your skin tightening and thinning across your entire body as your muscles degrade and your joints weaken. Time returns to its 'normal' pace. You can only just barely remember touching the fountain.</span>")
+		to_chat(user, "<span class='cultannounce'>You touch the fountain. All the memories of your life seem to fade into the distant past as seconds drag like years. You feel the inexplicable sensation of your skin tightening and thinning across your entire body as your muscles degrade and your joints weaken. Time returns to its 'normal' pace. You can only just barely remember touching the fountain.</span>")
 		user.became_older = TRUE
 		user.change_hair_color(80, 80, 80)
 		var/age_holder = round(rand(15,20))
 		user.age += age_holder
 	else               //become younger
-		to_chat(user, "<span class='fountain'>You touch the fountain. Everything stops - then reverses. You relive in an instant the events of your life. The fountain, yesterday's lunch, your first love, your first kiss. It all feels as though it just happened moments ago. Then it feels like it never happened at all. Time reverses back into normality and continues its advance. You feel great, but why are you here?</span>")
+		to_chat(user, "<span class='cultannounce'>You touch the fountain. Everything stops - then reverses. You relive in an instant the events of your life. The fountain, yesterday's lunch, your first love, your first kiss. It all feels as though it just happened moments ago. Then it feels like it never happened at all. Time reverses back into normality and continues its advance. You feel great, but why are you here?</span>")
 		user.became_younger = TRUE
 		user.age = round(rand(15,17))
 	used = TRUE
@@ -60,19 +60,6 @@
 	desc = "A beautifully constructed fountain."
 	icon_state = "fountain_g"
 	used = TRUE
-	matter = list(MATERIAL_MARBLE = 20 SHEETS)
 
 /obj/structure/fountain/mundane/attack_hand()
-	return examine(usr)
-
-/obj/structure/fountain/mundane/attackby(obj/item/O, mob/user)
-	if(default_deconstruction_wrench(O, user, 16 SECONDS))
-		to_chat(user, SPAN_NOTICE("You dismantle \the [src]!"))
-		dismantle()
-		return 1
-	return ..()
-
-/obj/structure/fountain/mundane/dismantle()
-	refund_matter()
-	qdel(src)
-	
+	return

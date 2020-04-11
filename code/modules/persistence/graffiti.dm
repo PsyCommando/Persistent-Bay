@@ -27,28 +27,25 @@
 		random_icon_states.Remove(W.icon_state)
 	if(random_icon_states.len)
 		icon_state = pick(random_icon_states)
-	//SSpersistence.track_value(src, /datum/persistent/graffiti)
+	SSpersistence.track_value(src, /datum/persistent/graffiti)
 	. = ..()
 
 /obj/effect/decal/writing/Destroy()
-	//SSpersistence.forget_value(src, /datum/persistent/graffiti)
+	SSpersistence.forget_value(src, /datum/persistent/graffiti)
 	. = ..()
 
 /obj/effect/decal/writing/examine(mob/user)
 	. = ..(user)
-	if(.)
-		to_chat(user,  "It reads \"[message]\".")
-	else
-		to_chat(user, "<span class='notice'>You have to go closer if you want to read it.</span>")
+	to_chat(user,  "It reads \"[message]\".")
 
 /obj/effect/decal/writing/attackby(var/obj/item/thing, var/mob/user)
 	if(isWelder(thing))
-		var/obj/item/weapon/tool/weldingtool/welder = thing
-		if(welder.use_tool(user, src, 1 SECOND) && !QDELETED(src))
+		var/obj/item/weapon/weldingtool/welder = thing
+		if(welder.isOn() && welder.remove_fuel(0,user) && do_after(user, 5, src) && !QDELETED(src))
 			playsound(src.loc, 'sound/items/Welder2.ogg', 50, 1)
 			user.visible_message("<span class='notice'>\The [user] clears away some graffiti.</span>")
 			qdel(src)
-	else if(thing.can_graffiti())
+	else if(thing.sharp)
 
 		if(jobban_isbanned(user, "Graffiti"))
 			to_chat(user, SPAN_WARNING("You are banned from leaving persistent information across rounds."))

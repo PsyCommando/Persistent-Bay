@@ -5,6 +5,9 @@
 	icon_state = "gib1"
 	basecolor = SYNTH_BLOOD_COLOUR
 	random_icon_states = list("gib1", "gib2", "gib3", "gib4", "gib5", "gib6", "gib7")
+	cleanable_scent = "industrial lubricant"
+	scent_intensity = /decl/scent_intensity/normal
+	scent_range = 2
 
 /obj/effect/decal/cleanable/blood/gibs/robot/on_update_icon()
 	color = "#ffffff"
@@ -27,14 +30,6 @@
 					s.start()
 			if (step_to(src, get_step(src, direction), 0))
 				break
-
-/obj/effect/decal/cleanable/blood/gibs/robot/pipe_eject(var/direction)
-	var/list/dirs
-	if(direction)
-		dirs = list( direction, turn(direction, -45), turn(direction, 45))
-	else
-		dirs = GLOB.alldirs.Copy()
-	src.streak(dirs)
 
 /obj/effect/decal/cleanable/blood/gibs/robot/limb
 	random_icon_states = list("gibarm", "gibleg")

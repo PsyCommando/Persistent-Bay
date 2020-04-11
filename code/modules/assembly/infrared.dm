@@ -5,15 +5,13 @@
 	desc = "Emits a visible or invisible beam and is triggered when the beam is interrupted."
 	icon_state = "infrared"
 	origin_tech = list(TECH_MAGNET = 2)
-	matter = list(MATERIAL_STEEL = 1000, MATERIAL_GLASS = 500)
-
+	matter = list(MATERIAL_STEEL = 1000, MATERIAL_GLASS = 500, MATERIAL_WASTE = 100)
 	wires = WIRE_PULSE
-
 	secured = 0
+	obj_flags = OBJ_FLAG_CONDUCTIBLE | OBJ_FLAG_ROTATABLE
 
 	var/on = 0
 	var/visible = 0
-
 	var/list/beams
 	var/list/seen_turfs
 	var/datum/proximity_trigger/line/proximity_trigger
@@ -23,17 +21,6 @@
 	beams = list()
 	seen_turfs = list()
 	proximity_trigger = new(src, /obj/item/device/assembly/infra/proc/on_beam_entered, /obj/item/device/assembly/infra/proc/on_visibility_change, world.view, PROXIMITY_EXCLUDE_HOLDER_TURF)
-	ADD_SAVED_VAR(on)
-	ADD_SAVED_VAR(visible)
-	ADD_SAVED_VAR(beams)
-	ADD_SAVED_VAR(seen_turfs)
-	ADD_SAVED_VAR(proximity_trigger)
-	ADD_SKIP_EMPTY(proximity_trigger)
-
-/obj/item/device/assembly/infra/Initialize()
-	. = ..()
-	if(!map_storage_loaded)
-		proximity_trigger = new(src, /obj/item/device/assembly/infra/proc/on_beam_entered, /obj/item/device/assembly/infra/proc/on_visibility_change, world.view, PROXIMITY_EXCLUDE_HOLDER_TURF)
 
 /obj/item/device/assembly/infra/Destroy()
 	qdel(proximity_trigger)
@@ -81,12 +68,12 @@
 	dat += text("<TT><B>Infrared Laser</B>\n<B>Status</B>: []<BR>\n<B>Visibility</B>: []<BR>\n</TT>", (on ? text("<A href='?src=\ref[];state=0'>On</A>", src) : text("<A href='?src=\ref[];state=1'>Off</A>", src)), (src.visible ? text("<A href='?src=\ref[];visible=0'>Visible</A>", src) : text("<A href='?src=\ref[];visible=1'>Invisible</A>", src)))
 	dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
 	dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
-	user << browse(jointext(dat,null), "window=infra")
+	show_browser(user, jointext(dat,null), "window=infra")
 	onclose(user, "infra")
 
 /obj/item/device/assembly/infra/Topic(href, href_list, state = GLOB.physical_state)
 	if(..())
-		usr << browse(null, "window=infra")
+		close_browser(usr, "window=infra")
 		onclose(usr, "infra")
 		return 1
 
@@ -103,9 +90,6 @@
 
 	if(usr)
 		attack_self(usr)
-
-/obj/item/device/assembly/infra/rotate()//This could likely be better
-	set_dir(turn(dir, 90))
 
 /obj/item/device/assembly/infra/proc/on_beam_entered(var/atom/enterer)
 	if(enterer == src)

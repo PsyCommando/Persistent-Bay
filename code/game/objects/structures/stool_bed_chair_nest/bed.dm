@@ -8,7 +8,6 @@
 /*
  * Beds
  */
-
 /obj/structure/bed
 	name = "bed"
 	desc = "This is used to lie in, sleep in or strap on."
@@ -18,77 +17,55 @@
 	can_buckle = 1
 	buckle_dir = SOUTH
 	buckle_lying = 1
-	mass = 50
-	max_health = 200
-	damthreshold_brute 	= 5
-	matter = list()
 	var/material/padding_material
 	var/base_icon = "bed"
+	var/material_alteration = MATERIAL_ALTERATION_ALL
 	var/buckling_sound = 'sound/effects/buckle.ogg'
 
-	// It's fine if statics are inited right away
-	var/static/list/icon_cache = list()
-
 /obj/structure/bed/New(newloc, new_material = DEFAULT_FURNITURE_MATERIAL, new_padding_material)
-	..()
-	ADD_SAVED_VAR(padding_material)
-
-/obj/structure/bed/Initialize(mapload, new_material = DEFAULT_FURNITURE_MATERIAL, new_padding_material)
-	. = ..()
-	if(!map_storage_loaded)
-		color = null
-		material = SSmaterials.get_material_by_name(new_material)
+	..(newloc)
+	color = null
+	material = SSmaterials.get_material_by_name(new_material)
 	if(!istype(material))
-		log_warning("obj/structure/bed/Initialize(): [src]\ref[src] has a bad material type. Deleting!")
 		qdel(src)
 		return
-	if(new_padding_material && !map_storage_loaded)
+	if(new_padding_material)
 		padding_material = SSmaterials.get_material_by_name(new_padding_material)
-	
-	update_material()
-	queue_icon_update()
-
-/obj/structure/bed/proc/update_material()
-	//Setup matter values so refunds works properly
-	matter = list()
-	matter[material.name] = 2 SHEETS
-	if(padding_material)
-		matter[padding_material.name] = 1 SHEET
+	update_icon()
 
 /obj/structure/bed/get_material()
 	return material
 
 // Reuse the cache/code from stools, todo maybe unify.
 /obj/structure/bed/on_update_icon()
-	// Clear prior icon
-	icon_state = "blank"
+	// Prep icon.
+	icon_state = ""
 	overlays.Cut()
-
-	var/cache_key
-
-	// Base Icon
-	cache_key = "[base_icon]-[material.name]"
-	if(!icon_cache[cache_key])
-		var/image/I = image(src.icon, "[base_icon]")
-		I.color = material.icon_colour
-		icon_cache[cache_key] = I
-	
-	overlays |= icon_cache[cache_key]
-
-	// Padding Icon
+	// Base icon.
+	var/cache_key = "[base_icon]-[material.name]"
+	if(isnull(stool_cache[cache_key]))
+		var/image/I = image('icons/obj/furniture.dmi', base_icon)
+		if(material_alteration & MATERIAL_ALTERATION_COLOR)
+			I.color = material.icon_colour
+		stool_cache[cache_key] = I
+	overlays |= stool_cache[cache_key]
+	// Padding overlay.
 	if(padding_material)
-		cache_key = "[base_icon]-padding-[padding_material.name]"
-		if(!icon_cache[cache_key])
-			var/image/I = image(src.icon, "[base_icon]_padding")
-			I.color = padding_material.icon_colour
-			icon_cache[cache_key] = I
+		var/padding_cache_key = "[base_icon]-padding-[padding_material.name]"
+		if(isnull(stool_cache[padding_cache_key]))
+			var/image/I =  image(icon, "[base_icon]_padding")
+			if(material_alteration & MATERIAL_ALTERATION_COLOR)
+				I.color = padding_material.icon_colour
+			stool_cache[padding_cache_key] = I
+		overlays |= stool_cache[padding_cache_key]
 
-		overlays |= icon_cache[cache_key]
+	// Strings.
+	if(material_alteration & MATERIAL_ALTERATION_NAME)
+		SetName(padding_material ? "[padding_material.adjective_name] [initial(name)]" : "[material.adjective_name] [initial(name)]") //this is not perfect but it will do for now.
 
-	// Fluff
-	// This is not perfect but it will do for now.
-	SetName(padding_material ? "[padding_material.adjective_name] [initial(name)]" : "[material.adjective_name] [initial(name)]") 
-	desc = padding_material ? "[initial(desc)] It's made of [material.use_name] and covered with [padding_material.use_name]." : "[initial(desc)] It's made of [material.use_name]."
+	if(material_alteration & MATERIAL_ALTERATION_DESC)
+		desc = initial(desc)
+		desc += padding_material ? " It's made of [material.use_name] and covered with [padding_material.use_name]." : " It's made of [material.use_name]."
 
 /obj/structure/bed/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	if(istype(mover) && mover.checkpass(PASS_FLAG_TABLE))
@@ -121,7 +98,6 @@
 			return
 		var/obj/item/stack/C = W
 		if(C.get_amount() < 1) // How??
-			user.drop_from_inventory(C)
 			qdel(C)
 			return
 		var/padding_type //This is awful but it needs to be like this until tiles are given a material var.
@@ -181,13 +157,16 @@
 	if(padding_material)
 		padding_material.place_sheet(get_turf(src))
 		padding_material = null
-	update_material()
 	update_icon()
 
 /obj/structure/bed/proc/add_padding(var/padding_type)
 	padding_material = SSmaterials.get_material_by_name(padding_type)
-	update_material()
 	update_icon()
+
+/obj/structure/bed/dismantle()
+	material.place_sheet(get_turf(src))
+	if(padding_material)
+		padding_material.place_sheet(get_turf(src))
 
 /obj/structure/bed/psych
 	name = "psychiatrist's couch"
@@ -196,17 +175,10 @@
 	base_icon = "psychbed"
 
 /obj/structure/bed/psych/New(var/newloc)
-	..(newloc,MATERIAL_WOOD, MATERIAL_LEATHER)
+	..(newloc,MATERIAL_WALNUT, MATERIAL_LEATHER_GENERIC)
 
 /obj/structure/bed/padded/New(var/newloc)
-	..(newloc,MATERIAL_ALUMINIUM,MATERIAL_COTTON)
-
-/obj/structure/bed/alien
-	name = "resting contraption"
-	desc = "This looks similar to contraptions from earth. Could aliens be stealing our technology?"
-
-/obj/structure/bed/alien/New(var/newloc)
-	..(newloc,MATERIAL_RESIN)
+	..(newloc,MATERIAL_ALUMINIUM,MATERIAL_CLOTH)
 
 /*
  * Roller beds
@@ -216,17 +188,11 @@
 	icon = 'icons/obj/rollerbed.dmi'
 	icon_state = "down"
 	anchored = 0
-	buckle_pixel_shift = "x=0;y=6"
+	buckle_pixel_shift = "x=0;y=0;z=6"
 	var/item_form_type = /obj/item/roller	//The folded-up object path.
 	var/obj/item/weapon/reagent_containers/beaker
 	var/iv_attached = 0
 	var/iv_stand = TRUE
-
-/obj/structure/bed/roller/New(newloc, new_material, new_padding_material)
-	. = ..()
-	ADD_SAVED_VAR(beaker)
-	ADD_SAVED_VAR(iv_attached)
-	ADD_SAVED_VAR(iv_stand)
 
 /obj/structure/bed/roller/on_update_icon()
 	overlays.Cut()

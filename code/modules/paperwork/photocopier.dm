@@ -1,34 +1,25 @@
 /obj/machinery/photocopier
 	name = "photocopier"
-	icon = 'icons/obj/machines/photocopier.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "photocopier"
 	var/insert_anim = "photocopier_animation"
 	anchored = 1
 	density = 1
-	use_power = 1
 	idle_power_usage = 30
 	active_power_usage = 200
 	power_channel = EQUIP
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
-	obj_flags = OBJ_FLAG_ANCHORABLE | OBJ_FLAG_DAMAGEABLE
-	circuit_type = /obj/item/weapon/circuitboard/photocopier
+	obj_flags = OBJ_FLAG_ANCHORABLE
 	var/obj/item/copyitem = null	//what's in the copier!
 	var/copies = 1	//how many copies to print!
 	var/toner = 30 //how much toner is left! woooooo~
 	var/maxcopies = 10	//how many copies can be copied at once- idea shamelessly stolen from bs12's copier!
 
-/obj/machinery/photocopier/New()
-	..()
-	ADD_SAVED_VAR(copyitem)
-	ADD_SAVED_VAR(copies)
-	ADD_SAVED_VAR(toner)
+/obj/machinery/photocopier/interface_interact(mob/user)
+	interact(user)
+	return TRUE
 
-	ADD_SKIP_EMPTY(copyitem)
-
-/obj/machinery/photocopier/attack_ai(mob/user as mob)
-	return attack_hand(user)
-
-/obj/machinery/photocopier/attack_hand(mob/user as mob)
+/obj/machinery/photocopier/interact(mob/user)
 	user.set_machine(src)
 
 	var/dat = "Photocopier<BR><BR>"
@@ -46,7 +37,7 @@
 	dat += "Current toner level: [toner]"
 	if(!toner)
 		dat +="<BR>Please insert a new toner cartridge!"
-	user << browse(dat, "window=copier")
+	show_browser(user, dat, "window=copier")
 	onclose(user, "copier")
 	return
 
@@ -58,9 +49,8 @@
 		for(var/i = 0, i < copies, i++)
 			if(toner <= 0)
 				break
-
 			if (istype(copyitem, /obj/item/weapon/paper))
-				copy(copyitem)
+				copy(copyitem, 1)
 				sleep(15)
 			else if (istype(copyitem, /obj/item/weapon/photo))
 				photocopy(copyitem)
@@ -76,7 +66,6 @@
 		updateUsrDialog()
 	else if(href_list["remove"])
 		if(copyitem)
-			copyitem.loc = usr.loc
 			usr.put_in_hands(copyitem)
 			to_chat(usr, "<span class='notice'>You take \the [copyitem] out of \the [src].</span>")
 			copyitem = null
@@ -113,13 +102,6 @@
 		updateUsrDialog()
 
 /obj/machinery/photocopier/attackby(obj/item/O as obj, mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		updateUsrDialog()
-		return
-	if(default_deconstruction_crowbar(user, O))
-		return
-	if(default_part_replacement(user, O))
-		return
 	if(istype(O, /obj/item/weapon/paper) || istype(O, /obj/item/weapon/photo) || istype(O, /obj/item/weapon/paper_bundle))
 		if(!copyitem)
 			if(!user.unEquip(O, src))
@@ -141,8 +123,7 @@
 			updateUsrDialog()
 		else
 			to_chat(user, "<span class='notice'>This cartridge is not yet ready for replacement! Use up the rest of the toner.</span>")
-	else 
-		return ..()
+	else return ..()
 
 /obj/machinery/photocopier/ex_act(severity)
 	switch(severity)
@@ -187,11 +168,11 @@
 	var/image/img                                //and puts a matching
 	for (var/j = 1, j <= min(temp_overlays.len, copy.ico.len), j++) //gray overlay onto the copy
 		if (findtext(copy.ico[j], "cap") || findtext(copy.ico[j], "cent"))
-			img = image('icons/obj/items/paper.dmi', "paper_stamp-circle")
+			img = image('icons/obj/bureaucracy.dmi', "paper_stamp-circle")
 		else if (findtext(copy.ico[j], "deny"))
-			img = image('icons/obj/items/paper.dmi', "paper_stamp-x")
+			img = image('icons/obj/bureaucracy.dmi', "paper_stamp-x")
 		else
-			img = image('icons/obj/items/paper.dmi', "paper_stamp-dots")
+			img = image('icons/obj/bureaucracy.dmi', "paper_stamp-dots")
 		img.pixel_x = copy.offset_x[j]
 		img.pixel_y = copy.offset_y[j]
 		c.overlays += img

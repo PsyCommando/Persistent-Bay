@@ -1,4 +1,20 @@
-//Effects
+// Damage things. TODO: Merge these down to reduce on defines.
+// Way to waste perfectly good damage-type names (BRUTE) on this... If you were really worried about case sensitivity, you could have just used lowertext(damagetype) in the proc.
+#define BRUTE       "brute"
+#define BURN        "fire"
+#define TOX         "tox"
+#define OXY         "oxy"
+#define CLONE       "clone"
+#define PAIN        "pain"
+#define ELECTROCUTE "electrocute"
+#define PSIONIC     "psi"
+
+#define CUT       "cut"
+#define BRUISE    "bruise"
+#define PIERCE    "pierce"
+#define LASER     "laser"
+#define SHATTER   "shatter"
+
 #define STUN      "stun"
 #define WEAKEN    "weaken"
 #define PARALYZE  "paralize"
@@ -7,10 +23,15 @@
 #define STUTTER   "stutter"
 #define EYE_BLUR  "eye_blur"
 #define DROWSY    "drowsy"
-#define PAIN      "pain"
 
 // Damage flags
+#define DAM_SHARP     1
+#define DAM_EDGE      2
+#define DAM_LASER     4
+#define DAM_BULLET    8
+#define DAM_EXPLODE   16
 #define DAM_DISPERSED 32 // Makes apply_damage calls without specified zone distribute damage rather than randomly choose organ (for humans)
+#define DAM_BIO       64 // Toxin damage that should be mitigated by biological (i.e. sterile) armor
 
 #define FIRE_DAMAGE_MODIFIER 0.0215 // Higher values result in more external fire damage to the skin. (default 0.0215)
 #define  AIR_DAMAGE_MODIFIER 2.025  // More means less damage from hot air scalding lungs, less = more damage. (default 2.025)
@@ -39,6 +60,7 @@
 #define ORGAN_FLAG_FINGERPRINT    (1<<5) // The organ has a fingerprint.
 #define ORGAN_FLAG_GENDERED_ICON  (1<<6) // The icon state for this organ appends _m/_f.
 #define ORGAN_FLAG_HEALS_OVERKILL (1<<7) // The organ heals from overkill damage.
+#define ORGAN_FLAG_DEFORMED       (1<<8) // The organ is permanently disfigured.
 
 // Droplimb types.
 #define DROPLIMB_EDGE 0

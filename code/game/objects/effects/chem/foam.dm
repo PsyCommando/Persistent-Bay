@@ -11,7 +11,6 @@
 	layer = ABOVE_OBJ_LAYER
 	mouse_opacity = 0
 	animate_movement = 0
-	should_save = 0 //Dont save it, its a temporary effect
 	var/amount = 3
 	var/expand = 1
 	var/metal = 0
@@ -131,12 +130,10 @@
 	name = "foamed metal"
 	desc = "A lightweight foamed metal wall."
 	var/metal = 1 // 1 = aluminium, 2 = iron
-	should_save = 1
 
 /obj/structure/foamedmetal/New()
 	..()
 	update_nearby_tiles(1)
-	ADD_SAVED_VAR(metal)
 
 /obj/structure/foamedmetal/Destroy()
 	set_density(0)

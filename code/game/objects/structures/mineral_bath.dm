@@ -14,14 +14,14 @@
 
 /obj/structure/adherent_bath/return_air()
 	var/datum/gas_mixture/venus = new(CELL_VOLUME, SYNTH_HEAT_LEVEL_1 - 10)
-	venus.adjust_multi("chlorine", MOLES_N2STANDARD, "phoron", MOLES_O2STANDARD)
+	venus.adjust_multi(GAS_CHLORINE, MOLES_N2STANDARD, GAS_PHORON, MOLES_O2STANDARD)
 	return venus
 
 /obj/structure/adherent_bath/attackby(var/obj/item/thing, var/mob/user)
 	if(istype(thing, /obj/item/grab))
 		var/obj/item/grab/G = thing
 		if(enter_bath(G.affecting))
-			user.unEquip(G)
+			qdel(G)
 		return
 	. = ..()
 
@@ -126,7 +126,7 @@
 		if(prob(10))
 			for(var/thing in H.internal_organs)
 				var/obj/item/organ/internal/I = thing
-				if(BP_IS_CRYSTAL(I) && I.isdamaged())
+				if(BP_IS_CRYSTAL(I) && I.damage)
 					I.heal_damage(rand(3,5))
 					if(prob(25))
 						to_chat(H, "<span class='notice'>The mineral-rich bath mends your [I.name].</span>")

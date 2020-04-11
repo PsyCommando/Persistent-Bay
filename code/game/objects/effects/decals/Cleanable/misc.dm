@@ -12,26 +12,12 @@
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "ash"
 
-/obj/effect/decal/cleanable/ash/SetupReagents()
-	. = ..()
-	create_reagents(10)
-	reagents.add_reagent(/datum/reagent/carbon, 10)
-
 /obj/effect/decal/cleanable/ash/attack_hand(var/mob/user)
 	to_chat(user, "<span class='notice'>[src] sifts through your fingers.</span>")
 	var/turf/simulated/floor/F = get_turf(src)
 	if (istype(F))
 		F.dirt += 4
 	qdel(src)
-
-//Scoop the ashes up in a beaker to get some carbon
-/obj/effect/decal/cleanable/ash/attackby(obj/item/I, mob/user)
-	if(I.is_open_container() && I.reagents && I.reagents.get_free_space() > 0 && reagents.total_volume > 0)
-		reagents.trans_to(I, 10)
-		user.visible_message(SPAN_NOTICE("[user] carefully scoops up the ashes into \the [I]."), SPAN_NOTICE("You scoop up as much of \the [src] as possible into \the [I]."))
-		qdel(src)
-		return FALSE
-	return ..()
 
 /obj/effect/decal/cleanable/greenglow/Initialize()
 	. = ..()
@@ -67,7 +53,6 @@
 /obj/effect/decal/cleanable/cobweb
 	name = "cobweb"
 	desc = "Somebody should remove that."
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "cobweb1"
@@ -83,7 +68,6 @@
 /obj/effect/decal/cleanable/cobweb2
 	name = "cobweb"
 	desc = "Somebody should remove that."
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "cobweb2"
@@ -97,28 +81,20 @@
 	icon_state = "vomit_1"
 	persistent = TRUE
 	generic_filth = TRUE
-	var/list/viruses = list()
 
 /obj/effect/decal/cleanable/vomit/New()
+	random_icon_states = icon_states(icon)
 	..()
 	atom_flags |= ATOM_FLAG_OPEN_CONTAINER
-
-/obj/effect/decal/cleanable/vomit/Initialize(ml, _age)
-	. = ..()
-	if(!map_storage_loaded)
-		random_icon_states = icon_states(icon)
-		if(prob(75))
-			var/matrix/M = matrix()
-			M.Turn(pick(90, 180, 270))
-			transform = M
-
-/obj/effect/decal/cleanable/vomit/SetupReagents()
 	create_reagents(30, src)
+	if(prob(75))
+		var/matrix/M = matrix()
+		M.Turn(pick(90, 180, 270))
+		transform = M
 
 /obj/effect/decal/cleanable/vomit/on_update_icon()
 	. = ..()
-	if(reagents)
-		color = reagents.get_color()
+	color = reagents.get_color()
 
 /obj/effect/decal/cleanable/tomato_smudge
 	name = "tomato smudge"

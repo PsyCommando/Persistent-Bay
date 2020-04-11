@@ -4,7 +4,6 @@
 	icon_state = "galoshes"
 	permeability_coefficient = 0.05
 	item_flags = ITEM_FLAG_NOSLIP
-	can_hold_knife = 1
 	species_restricted = null
 
 /obj/item/clothing/shoes/galoshes/Initialize()
@@ -17,23 +16,22 @@
 	icon_state = "jackboots"
 	item_state = "jackboots"
 	force = 3
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		bullet = ARMOR_BALLISTIC_MINOR, 
+		laser = ARMOR_LASER_MINOR, 
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.7
-	can_hold_knife = 1
+	gas_transfer_coefficient = 0.90
+	permeability_coefficient = 0.50
 	cold_protection = FEET
+	body_parts_covered = FEET
+	heat_protection = FEET
 	min_cold_protection_temperature = HELMET_MIN_COLD_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 5,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
 
 /obj/item/clothing/shoes/jackboots/unathi
 	name = "toe-less jackboots"
@@ -47,22 +45,19 @@
 	desc = "A pair of steel-toed work boots designed for use in industrial settings. Safety first."
 	icon_state = "workboots"
 	item_state = "workboots"
-	permeability_coefficient = 0.03
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		laser = ARMOR_LASER_MINOR, 
+		energy = ARMOR_ENERGY_SMALL, 
+		bomb = ARMOR_BOMB_PADDED
+		)
 	siemens_coefficient = 0.7
-	can_hold_knife = 1
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 5,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	gas_transfer_coefficient = 0.90
+	permeability_coefficient = 0.50
+	body_parts_covered = FEET
+	heat_protection = FEET
+	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
 
 /obj/item/clothing/shoes/workboots/toeless
 	name = "toe-less workboots"

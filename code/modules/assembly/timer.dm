@@ -3,7 +3,7 @@
 	desc = "Used to time things. Works well with contraptions which have to count down. Tick tock."
 	icon_state = "timer"
 	origin_tech = list(TECH_MAGNET = 1)
-	matter = list(MATERIAL_STEEL = 500, MATERIAL_GLASS = 50)
+	matter = list(MATERIAL_STEEL = 500, MATERIAL_GLASS = 50, MATERIAL_WASTE = 10)
 
 	wires = WIRE_PULSE
 
@@ -11,11 +11,6 @@
 
 	var/timing = 0
 	var/time = 10
-
-/obj/item/device/assembly/timer/New()
-	. = ..()
-	ADD_SAVED_VAR(timing)
-	ADD_SAVED_VAR(time)
 
 /obj/item/device/assembly/timer/proc/timer_end()
 
@@ -82,14 +77,14 @@
 	var/dat = text("<TT><B>Timing Unit</B>\n[] []:[]\n<A href='?src=\ref[];tp=-30'>-</A> <A href='?src=\ref[];tp=-1'>-</A> <A href='?src=\ref[];tp=1'>+</A> <A href='?src=\ref[];tp=30'>+</A>\n</TT>", (timing ? text("<A href='?src=\ref[];time=0'>Timing</A>", src) : text("<A href='?src=\ref[];time=1'>Not Timing</A>", src)), minute, second, src, src, src, src)
 	dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
 	dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
-	user << browse(dat, "window=timer")
+	show_browser(user, dat, "window=timer")
 	onclose(user, "timer")
 	return
 
 
 /obj/item/device/assembly/timer/Topic(href, href_list, state = GLOB.physical_state)
 	if((. = ..()))
-		usr << browse(null, "window=timer")
+		close_browser(usr, "window=timer")
 		onclose(usr, "timer")
 		return
 
@@ -103,7 +98,7 @@
 		time = min(max(round(time), 0), 600)
 
 	if(href_list["close"])
-		usr << browse(null, "window=timer")
+		close_browser(usr, "window=timer")
 		return
 
 	if(usr)

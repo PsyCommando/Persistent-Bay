@@ -9,6 +9,15 @@
 	var/mob/living/carbon/human/H = new(a)
 	H.ckey = user.ckey
 	H.change_appearance(APPEARANCE_GENDER|APPEARANCE_EYE_COLOR|APPEARANCE_HAIR|APPEARANCE_FACIAL_HAIR|APPEARANCE_HAIR_COLOR|APPEARANCE_FACIAL_HAIR_COLOR|APPEARANCE_SKIN)
+
+	var/obj/item/weapon/implant/translator/natural/I = new()
+	I.implant_in_mob(H, BP_HEAD)
+	if (master.languages.len)
+		var/datum/language/lang = master.languages[1]
+		H.add_language(lang.name)
+		H.set_default_language(lang)
+		I.languages[lang.name] = 1
+
 	modify_servant(equip_servant(H), H)
 	set_antag(H.mind, master)
 	var/name_choice = sanitize(input(H, "Choose a name. If you leave this blank, it will be defaulted to your current characters.", "Name change") as null|text, MAX_NAME_LEN)
@@ -102,8 +111,23 @@
 		if("Bear")
 			var/obj/item/clothing/under/under = locate() in equipment
 			var/obj/item/clothing/head/head = locate() in equipment
-			under.armor = list(melee = 60, bullet = 35, laser = 20,energy = 20, bomb = 0, bio = 0, rad = 0) //More armor
-			head.armor = list(melee = 30, bullet = 15, laser = 10,energy = 10, bomb = 0, bio = 0, rad = 0)
+
+			var/datum/extension/armor/A = get_extension(under, /datum/extension/armor)
+			if(A)
+				A.armor_values = list(
+					melee = ARMOR_MELEE_VERY_HIGH, 
+					bullet = ARMOR_BALLISTIC_PISTOL, 
+					laser = ARMOR_LASER_SMALL, 
+					energy = ARMOR_ENERGY_SMALL
+					) //More armor
+			A = get_extension(head, /datum/extension/armor)
+			if(A)
+				A.armor_values = list(
+					melee = ARMOR_MELEE_RESISTANT, 
+					bullet = ARMOR_BALLISTIC_MINOR, 
+					laser = ARMOR_LASER_MINOR, 
+					energy = ARMOR_ENERGY_MINOR
+					)
 			familiar_type = /mob/living/simple_animal/hostile/bear
 	var/spell/targeted/shapeshift/familiar/F = new()
 	F.possible_transformations = list(familiar_type)

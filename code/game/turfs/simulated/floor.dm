@@ -19,33 +19,11 @@
 	var/flooring_override
 	var/initial_flooring
 	var/decl/flooring/flooring
-	var/mineral = MATERIAL_STEEL
-
-	var/prior_floortype = /turf/space
-	var/prior_resources = list()
+	var/mineral = DEFAULT_WALL_MATERIAL
 
 	thermal_conductivity = 0.040
 	heat_capacity = 10000
 	var/lava = 0
-
-/turf/simulated/floor/Initialize()
-	if(!map_storage_loaded && initial_flooring)
-		set_flooring(decls_repository.get_decl(initial_flooring))
-	else if(flooring)
-		set_flooring(flooring)
-	else
-		make_plating()
-	. = ..()
-
-/turf/simulated/floor/ReplaceWithLattice()
-	var/resources = prior_resources
-	var/floortype = prior_floortype
-	src.ChangeTurf(prior_floortype)
-	spawn()
-		var/turf/simulated/T = locate(src.x, src.y, src.z)
-		if(ispath(floortype, /turf/simulated))
-			T.resources = resources
-		new /obj/structure/lattice(T)
 
 /turf/simulated/floor/is_plating()
 	return !flooring
@@ -55,18 +33,10 @@
 
 /turf/simulated/floor/New(var/newloc, var/floortype)
 	..(newloc)
-//	if(!floortype && initial_flooring)
-//		floortype = initial_flooring
+	if(!floortype && initial_flooring)
+		floortype = initial_flooring
 	if(floortype)
 		set_flooring(decls_repository.get_decl(floortype))
-	
-	ADD_SAVED_VAR(broken)
-	ADD_SAVED_VAR(burnt)
-	ADD_SAVED_VAR(flooring)
-	ADD_SAVED_VAR(mineral)
-
-	ADD_SKIP_EMPTY(flooring)
-	ADD_SKIP_EMPTY(mineral)
 
 /turf/simulated/floor/proc/set_flooring(var/decl/flooring/newflooring)
 	make_plating(defer_icon_update = 1)
@@ -88,7 +58,7 @@
 	icon = base_icon
 	icon_state = base_icon_state
 	color = base_color
-	plane = PLATING_PLANE
+	layer = PLATING_LAYER
 
 	if(flooring)
 		flooring.on_remove()
@@ -110,9 +80,9 @@
 		O.hide(O.hides_under_flooring() && src.flooring)
 
 	if(flooring)
-		plane = TURF_PLANE
+		layer = TURF_LAYER
 	else
-		plane = PLATING_PLANE
+		layer = PLATING_LAYER
 
 /turf/simulated/floor/can_engrave()
 	return (!flooring || flooring.can_engrave)
@@ -124,7 +94,7 @@
 	initial_gas = null
 
 /turf/simulated/floor/shuttle_ceiling/air
-	initial_gas = list("oxygen" = MOLES_O2STANDARD, "nitrogen" = MOLES_N2STANDARD)
+	initial_gas = list(GAS_OXYGEN = MOLES_O2STANDARD, GAS_NITROGEN = MOLES_N2STANDARD)
 
 /turf/simulated/floor/is_floor()
 	return TRUE

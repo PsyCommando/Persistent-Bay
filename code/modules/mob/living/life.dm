@@ -1,11 +1,8 @@
-/mob/living/var/last_hud_update = 0
 /mob/living/Life()
 	set invisibility = 0
+	set background = BACKGROUND_ENABLED
 
 	..()
-	if(last_hud_update > world.time)
-		last_hud_update = world.time + 15 SECONDS
-		update_action_buttons()
 
 	if (HasMovementHandler(/datum/movement_handler/mob/transformation/))
 		return
@@ -137,7 +134,7 @@
 
 /mob/living/proc/handle_impaired_vision()
 	//Eyes
-	if(sdisabilities & BLIND || stat)	//blindness from disability or unconsciousness doesn't get better on its own
+	if(sdisabilities & BLINDED || stat)	//blindness from disability or unconsciousness doesn't get better on its own
 		eye_blind = max(eye_blind, 1)
 	else if(eye_blind)			//blindness, heals slowly over time
 		eye_blind = max(eye_blind-1,0)
@@ -146,7 +143,7 @@
 
 /mob/living/proc/handle_impaired_hearing()
 	//Ears
-	if(sdisabilities & DEAF)	//disabled-deaf, doesn't get better on its own
+	if(sdisabilities & DEAFENED)	//disabled-deaf, doesn't get better on its own
 		setEarDamage(null, max(ear_deaf, 1))
 	else if(ear_damage < 25)
 		adjustEarDamage(-0.05, -1)	// having ear damage impairs the recovery of ear_deaf
@@ -192,13 +189,25 @@
 		reset_view(null)
 
 /mob/living/proc/update_sight()
+	set_sight(0)
+	set_see_in_dark(0)
 	if(stat == DEAD || eyeobj)
 		update_dead_sight()
 	else
 		update_living_sight()
 
+	var/list/vision = get_accumulated_vision_handlers()
+	set_sight(sight | vision[1])
+	set_see_invisible(max(vision[2], see_invisible))
+
 /mob/living/proc/update_living_sight()
-	set_sight(sight&(~(SEE_TURFS|SEE_MOBS|SEE_OBJS)))
+	var/set_sight_flags = sight & ~(SEE_TURFS|SEE_MOBS|SEE_OBJS)
+	if(stat & UNCONSCIOUS)
+		set_sight_flags |= BLIND
+	else
+		set_sight_flags &= ~BLIND
+
+	set_sight(set_sight_flags)
 	set_see_in_dark(initial(see_in_dark))
 	set_see_invisible(initial(see_invisible))
 

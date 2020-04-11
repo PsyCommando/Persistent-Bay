@@ -9,7 +9,7 @@
 /obj/item/weapon/paper
 	name = "sheet of paper"
 	gender = NEUTER
-	icon = 'icons/obj/items/paper.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "paper"
 	item_state = "paper"
 	randpixel = 8
@@ -43,43 +43,11 @@
 	var/const/fancyfont = "Segoe Script"
 
 	var/scan_file_type = /datum/computer_file/data/text
-	
-	var/info_links_fixed
+
 /obj/item/weapon/paper/New(loc, text, title, list/md = null)
 	..(loc)
-	ADD_SAVED_VAR(info)
-	ADD_SAVED_VAR(info_links)
-	ADD_SAVED_VAR(stamps)
-	ADD_SAVED_VAR(fields)
-	ADD_SAVED_VAR(free_space)
-	ADD_SAVED_VAR(stamped)
-	ADD_SAVED_VAR(ico)
-	ADD_SAVED_VAR(last_modified_ckey)
-	ADD_SAVED_VAR(age)
-	ADD_SAVED_VAR(metadata)
-
-	ADD_SKIP_EMPTY(info)
-	ADD_SKIP_EMPTY(info_links)
-	ADD_SKIP_EMPTY(stamps)
-	ADD_SKIP_EMPTY(fields)
-	ADD_SKIP_EMPTY(ico)
-	ADD_SKIP_EMPTY(last_modified_ckey)
-	ADD_SKIP_EMPTY(age)
-	ADD_SKIP_EMPTY(metadata)
-
 	set_content(text ? text : info, title)
 	metadata = md
-
-/obj/item/weapon/paper/after_load()
-	info_links = replacetext(info_links,"***MY_REF***","\ref[src]")
-	update_icon()
-	..()
-
-/obj/item/weapon/paper/Write(savefile/f)
-	var/proper_links = info_links
-	info_links = replacetext(info_links,"\ref[src]","***MY_REF***")
-	StandardWrite(f)
-	info_links = proper_links
 
 /obj/item/weapon/paper/proc/set_content(text,title)
 	if(title)
@@ -102,11 +70,11 @@
 	if(new_text)
 		free_space -= length(strip_html_properly(new_text))
 
-/obj/item/weapon/paper/examine(mob/user)
+/obj/item/weapon/paper/examine(mob/user, distance)
 	. = ..()
 	if(name != "sheet of paper")
 		to_chat(user, "It's titled '[name]'.")
-	if(in_range(user, src) || isghost(user))
+	if(distance <= 1)
 		show_content(usr)
 	else
 		to_chat(user, "<span class='notice'>You have to go closer if you want to read it.</span>")
@@ -116,7 +84,7 @@
 	if(!forceshow && istype(user,/mob/living/silicon/ai))
 		var/mob/living/silicon/ai/AI = user
 		can_read = get_dist(src, AI.camera) < 2
-	user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[can_read ? info : stars(info)][stamps]</BODY></HTML>", "window=[name]")
+	show_browser(user, "<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[can_read ? info : stars(info)][stamps]</BODY></HTML>", "window=[name]")
 	onclose(user, "[name]")
 
 /obj/item/weapon/paper/verb/rename()
@@ -130,9 +98,10 @@
 	var/n_name = sanitizeSafe(input(usr, "What would you like to label the paper?", "Paper Labelling", null)  as text, MAX_NAME_LEN)
 
 	// We check loc one level up, so we can rename in clipboards and such. See also: /obj/item/weapon/photo/rename()
-	if((loc == usr || loc.loc && loc.loc == usr) && usr.stat == 0 && n_name)
-		SetName(n_name)
-		add_fingerprint(usr)
+	if(!n_name || !CanInteract(usr, GLOB.deep_inventory_state))
+		return
+	SetName(n_name)
+	add_fingerprint(usr)
 
 /obj/item/weapon/paper/attack_self(mob/living/user as mob)
 	if(user.a_intent == I_HURT)
@@ -297,10 +266,6 @@
 			else
 				to_chat(user, "<span class='warning'>You must hold \the [P] steady to burn \the [src].</span>")
 
-/obj/item/weapon/paper/fire_act(datum/gas_mixture/air, temperature, volume)
-	new /obj/effect/decal/cleanable/ash(src.loc)
-	qdel(src)
-	return
 
 /obj/item/weapon/paper/Topic(href, href_list)
 	..()
@@ -315,31 +280,34 @@
 			to_chat(usr, "<span class='info'>There isn't enough space left on \the [src] to write anything.</span>")
 			return
 
-		var/t =  sanitize(input("Enter what you want to write:", "Write", null, null) as message, free_space, extra = 0, trim = 0)
-
-		if(!t)
-			return
-
-		var/obj/item/i = usr.get_active_hand() // Check to see if he still got that darn pen, also check what type of pen
+		var/obj/item/I = usr.get_active_hand() // Check to see if he still got that darn pen, also check what type of pen
 		var/iscrayon = 0
 		var/isfancy = 0
-		if(!istype(i, /obj/item/weapon/pen))
+		if(!istype(I, /obj/item/weapon/pen))
 			if(usr.back && istype(usr.back,/obj/item/weapon/rig))
 				var/obj/item/weapon/rig/r = usr.back
 				var/obj/item/rig_module/device/pen/m = locate(/obj/item/rig_module/device/pen) in r.installed_modules
 				if(!r.offline && m)
-					i = m.device
+					I = m.device
 				else
 					return
 			else
 				return
+		
+		var/obj/item/weapon/pen/P = I
+		if(!P.active)
+			P.toggle()
 
-		if(istype(i, /obj/item/weapon/pen/crayon))
-			iscrayon = 1
+		if(P.iscrayon)
+			iscrayon = TRUE
 
-		if(istype(i, /obj/item/weapon/pen/fancy))
-			isfancy = 1
+		if(P.isfancy)
+			isfancy = TRUE
 
+		var/t =  sanitize(input("Enter what you want to write:", "Write", null, null) as message, free_space, extra = 0, trim = 0)
+
+		if(!t)
+			return
 
 		// if paper is not in usr, then it must be near them, or in a clipboard or folder, which must be in or near usr
 		if(src.loc != usr && !src.Adjacent(usr) && !((istype(src.loc, /obj/item/weapon/material/clipboard) || istype(src.loc, /obj/item/weapon/folder)) && (src.loc.loc == usr || src.loc.Adjacent(usr)) ) )
@@ -347,7 +315,7 @@
 
 		var/last_fields_value = fields
 
-		t = parsepencode(t, i, usr, iscrayon, isfancy) // Encode everything from pencode to html
+		t = parsepencode(t, I, usr, iscrayon, isfancy) // Encode everything from pencode to html
 
 
 		if(fields > MAX_FIELDS)
@@ -365,7 +333,7 @@
 
 		update_space(t)
 
-		usr << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[info_links][stamps]</BODY></HTML>", "window=[name]") // Update the window
+		show_browser(usr, "<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[info_links][stamps]</BODY></HTML>", "window=[name]") // Update the window
 
 		playsound(src, pick('sound/effects/pen1.ogg','sound/effects/pen2.ogg'), 10)
 		update_icon()
@@ -419,7 +387,7 @@
 		if ( istype(RP) && RP.mode == 2 )
 			RP.RenamePaper(user,src)
 		else
-			user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[info_links][stamps]</BODY></HTML>", "window=[name]")
+			show_browser(user, "<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[info_links][stamps]</BODY></HTML>", "window=[name]")
 		return
 
 	else if(istype(P, /obj/item/weapon/stamp) || istype(P, /obj/item/clothing/ring/seal))
@@ -428,10 +396,10 @@
 
 		stamps += (stamps=="" ? "<HR>" : "<BR>") + "<i>This paper has been stamped with the [P.name].</i>"
 
-		var/image/stampoverlay = image(icon)
+		var/image/stampoverlay = image('icons/obj/bureaucracy.dmi')
 		var/x
 		var/y
-		if(istype(P, /obj/item/weapon/stamp/captain) || istype(P, /obj/item/weapon/stamp/centcomm))
+		if(istype(P, /obj/item/weapon/stamp/captain) || istype(P, /obj/item/weapon/stamp/boss))
 			x = rand(-2, 0)
 			y = rand(-1, 2)
 		else
@@ -469,92 +437,19 @@
 		var/obj/item/weapon/paper_bundle/attacking_bundle = P
 		attacking_bundle.insert_sheet_at(user, (attacking_bundle.pages.len)+1, src)
 		attacking_bundle.update_icon()
-	else 
-		return ..()
+
 	add_fingerprint(user)
 
-//Whether the paper can be added to a paper bundle
 /obj/item/weapon/paper/proc/can_bundle()
 	return TRUE
 
 /obj/item/weapon/paper/proc/show_info(var/mob/user)
 	return info
 
-/*
- * Paper packages (not to be confused with bundled paper)
- */
-/obj/item/weapon/paper_package
-	name = "package of paper"
-	gender = NEUTER
-	icon = 'icons/obj/items/paper.dmi'
-	icon_state = "paperpackage"
-	item_state = "paperpackage"
-	randpixel = 8
-	throwforce = 0
-	w_class = ITEM_SIZE_SMALL
-	throw_range = 2
-	throw_speed = 1
-	layer = ABOVE_OBJ_LAYER
-	attack_verb = list("bureaucratized")
-
-	var/amount = 50 //How much paper is stored
-
 //For supply.
 /obj/item/weapon/paper/manifest
 	name = "supply manifest"
-	icon_state = "paper_words"
 	var/is_copy = 1
-
-/obj/item/weapon/paper/export
-	name = "export manifest"
-	icon_state = "paper_words"
-	var/is_copy = 1
-	var/export_id = 0
-	var/business_name = 0
-
-/obj/item/weapon/paper/export/business
-	name = "export manifest"
-	business_name = null
-
-/obj/item/weapon/paper/export/business/show_content(mob/user, forceshow)
-	var/can_read = (istype(user, /mob/living/carbon/human) || isghost(user) || istype(user, /mob/living/silicon)) || forceshow
-	if(!forceshow && istype(user,/mob/living/silicon/ai))
-		var/mob/living/silicon/ai/AI = user
-		can_read = get_dist(src, AI.camera) < 2
-	var/info2 = info
-	info2 += "LINKED BUSINESS: [business_name]<br>"
-	if(src.Adjacent(user))
-		info2 += "<br>Swipe business name-tag <A href='?src=\ref[src];connect=1'>or enter full business name here.</A>"
-	else
-		info2 += "<br>Swipe business name-tag or enter full business name here."
-	user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY bgcolor='[color]'>[can_read ? info2 : stars(info)][stamps]</BODY></HTML>", "window=[name]")
-	onclose(user, "[name]")
-
-
-/obj/item/weapon/paper/export/business/attackby(obj/item/weapon/P as obj, mob/user as mob)
-	if(istype(P, /obj/item/weapon/pen))
-		return
-	else if(istype(P, /obj/item/weapon/card/id))
-		var/obj/item/weapon/card/id/id = P
-		if(id.selected_business)
-			var/datum/small_business/business = get_business(id.selected_business)
-			if(business)
-				business_name = business.name
-				to_chat(user, "Business linked to export.")
-		return
-	..()
-/obj/item/weapon/paper/export/business/Topic(href, href_list)
-	..()
-	if(!usr || (usr.stat || usr.restrained()))
-		return
-	if(href_list["connect"])
-		var/select_name =  sanitize(input(usr,"Enter the full name of the business.","Connect Business", "") as null|text)
-		var/datum/small_business/viewing = get_business(select_name)
-		if(viewing && src.Adjacent(usr))
-			business_name = viewing.name
-			to_chat(usr, "Business linked to export.")
-
-
 /*
  * Premade paper
  */
@@ -574,7 +469,7 @@
 
 /obj/item/weapon/paper/exodus_armory
 	name = "armory inventory"
-	info = "<center>\[logo]<BR><b><large>NSS Exodus</large></b><BR><i><date></i><BR><i>Armoury Inventory - Revision <field></i></center><hr><center>Armoury</center><list>\[*]<b>Deployable barriers</b>: 4\[*]<b>Biohazard suit(s)</b>: 1\[*]<b>Biohazard hood(s)</b>: 1\[*]<b>Face Mask(s)</b>: 1\[*]<b>Extended-capacity emergency oxygen tank(s)</b>: 1\[*]<b>Bomb suit(s)</b>: 1\[*]<b>Bomb hood(s)</b>: 1\[*]<b>Security officer's jumpsuit(s)</b>: 1\[*]<b>Brown shoes</b>: 1\[*]<b>Handcuff(s)</b>: 14\[*]<b>R.O.B.U.S.T. cartridges</b>: 7\[*]<b>Flash(s)</b>: 4\[*]<b>Can(s) of pepperspray</b>: 4\[*]<b>Gas mask(s)</b>: 6<field></list><hr><center>Secure Armoury</center><list>\[*]<b>LAEP90 Perun energy guns</b>: 4\[*]<b>Stun Revolver(s)</b>: 1\[*]<b>Taser Gun(s)</b>: 4\[*]<b>Stun baton(s)</b>: 4\[*]<b>Airlock Brace</b>: 3\[*]<b>Maintenance Jack</b>: 1\[*]<b>Stab Vest(s)</b>: 3\[*]<b>Riot helmet(s)</b>: 3\[*]<b>Riot shield(s)</b>: 3\[*]<b>Corporate security heavy armoured vest(s)</b>: 4\[*]<b>NanoTrasen helmet(s)</b>: 4\[*]<b>Portable flasher(s)</b>: 3\[*]<b>Tracking implant(s)</b>: 4\[*]<b>Chemical implant(s)</b>: 5\[*]<b>Implanter(s)</b>: 2\[*]<b>Implant pad(s)</b>: 2\[*]<b>Locator(s)</b>: 1<field></list><hr><center>Tactical Equipment</center><list>\[*]<b>Implanter</b>: 1\[*]<b>Death Alarm implant(s)</b>: 7\[*]<b>Security radio headset(s)</b>: 4\[*]<b>Ablative vest(s)</b>: 2\[*]<b>Ablative helmet(s)</b>: 2\[*]<b>Ballistic vest(s)</b>: 2\[*]<b>Ballistic helmet(s)</b>: 2\[*]<b>Tear Gas Grenade(s)</b>: 7\[*]<b>Flashbang(s)</b>: 7\[*]<b>Beanbag Shell(s)</b>: 7\[*]<b>Stun Shell(s)</b>: 7\[*]<b>Illumination Shell(s)</b>: 7\[*]<b>W-T Remmington 29x shotgun(s)</b>: 2\[*]<b>NT Mk60 EW Halicon ion rifle(s)</b>: 2\[*]<b>Hephaestus Industries G40E laser carbine(s)</b>: 4\[*]<b>Flare(s)</b>: 4<field></list><hr><b>Warden (print)</b>:<field><b>Signature</b>:<br>"
+	info = "<center>\[logo]<BR><b><large>NSS Exodus</large></b><BR><i><date></i><BR><i>Armoury Inventory - Revision <field></i></center><hr><center>Armoury</center><list>\[*]<b>Deployable barriers</b>: 4\[*]<b>Biohazard suit(s)</b>: 1\[*]<b>Biohazard hood(s)</b>: 1\[*]<b>Face Mask(s)</b>: 1\[*]<b>Extended-capacity emergency oxygen tank(s)</b>: 1\[*]<b>Bomb suit(s)</b>: 1\[*]<b>Bomb hood(s)</b>: 1\[*]<b>Security officer's jumpsuit(s)</b>: 1\[*]<b>Brown shoes</b>: 1\[*]<b>Handcuff(s)</b>: 14\[*]<b>R.O.B.U.S.T. cartridges</b>: 7\[*]<b>Flash(s)</b>: 4\[*]<b>Can(s) of pepperspray</b>: 4\[*]<b>Gas mask(s)</b>: 6<field></list><hr><center>Secure Armoury</center><list>\[*]<b>LAEP90 Perun energy guns</b>: 4\[*]<b>Stun Revolver(s)</b>: 1\[*]<b>Electrolaser(s)</b>: 4\[*]<b>Stun baton(s)</b>: 4\[*]<b>Airlock Brace</b>: 3\[*]<b>Maintenance Jack</b>: 1\[*]<b>Stab Vest(s)</b>: 3\[*]<b>Riot helmet(s)</b>: 3\[*]<b>Riot shield(s)</b>: 3\[*]<b>Corporate security heavy armoured vest(s)</b>: 4\[*]<b>NanoTrasen helmet(s)</b>: 4\[*]<b>Portable flasher(s)</b>: 3\[*]<b>Tracking implant(s)</b>: 4\[*]<b>Chemical implant(s)</b>: 5\[*]<b>Implanter(s)</b>: 2\[*]<b>Implant pad(s)</b>: 2\[*]<b>Locator(s)</b>: 1<field></list><hr><center>Tactical Equipment</center><list>\[*]<b>Implanter</b>: 1\[*]<b>Death Alarm implant(s)</b>: 7\[*]<b>Security radio headset(s)</b>: 4\[*]<b>Ablative vest(s)</b>: 2\[*]<b>Ablative helmet(s)</b>: 2\[*]<b>Ballistic vest(s)</b>: 2\[*]<b>Ballistic helmet(s)</b>: 2\[*]<b>Tear Gas Grenade(s)</b>: 7\[*]<b>Flashbang(s)</b>: 7\[*]<b>Beanbag Shell(s)</b>: 7\[*]<b>Stun Shell(s)</b>: 7\[*]<b>Illumination Shell(s)</b>: 7\[*]<b>W-T Remmington 29x shotgun(s)</b>: 2\[*]<b>NT Mk60 EW Halicon ion rifle(s)</b>: 2\[*]<b>Hephaestus Industries G40E laser carbine(s)</b>: 4\[*]<b>Flare(s)</b>: 4<field></list><hr><b>Warden (print)</b>:<field><b>Signature</b>:<br>"
 
 /obj/item/weapon/paper/exodus_cmo
 	name = "outgoing CMO's notes"
@@ -589,19 +484,23 @@
 	info = "Bruises sustained in the holodeck can be healed simply by sleeping."
 
 /obj/item/weapon/paper/workvisa
-	name = "Work Visa"
-	info = "<center><b><large>Work Visa of the <field></large></b></center><br><center><field><br><br><i><small>Issued on behalf of the <field>.</small></i></center><hr><BR>This paper hereby permits the carrier to travel unhindered through <field> for the purpose of work and labor."
-	desc = "A flimsy piece of laminated cardboard issued by the Government."
+	name = "Sol Work Visa"
+	info = "<center><b><large>Work Visa of the Sol Central Government</large></b></center><br><center><img src = sollogo.png><br><br><i><small>Issued on behalf of the Secretary-General.</small></i></center><hr><BR>This paper hereby permits the carrier to travel unhindered through Sol territories, colonies, and space for the purpose of work and labor."
+	desc = "A flimsy piece of laminated cardboard issued by the Sol Central Government."
 
 /obj/item/weapon/paper/workvisa/New()
 	..()
 	icon_state = "workvisa" //Has to be here or it'll assume default paper sprites.
 
 /obj/item/weapon/paper/travelvisa
-	name = "Travel Visa"
-	info = "<center><b><large>Travel Visa of the <field></large></b></center><br><center><field><br><br><i><small>Issued on behalf of the <field>.</small></i></center><hr><BR>This paper hereby permits the carrier to travel unhindered through <field> for the purpose of pleasure and recreation."
-	desc = "A flimsy piece of laminated cardboard issued by the Government."
+	name = "Sol Travel Visa"
+	info = "<center><b><large>Travel Visa of the Sol Central Government</large></b></center><br><center><img src = sollogo.png><br><br><i><small>Issued on behalf of the Secretary-General.</small></i></center><hr><BR>This paper hereby permits the carrier to travel unhindered through Sol territories, colonies, and space for the purpose of pleasure and recreation."
+	desc = "A flimsy piece of laminated cardboard issued by the Sol Central Government."
 
 /obj/item/weapon/paper/travelvisa/New()
 	..()
 	icon_state = "travelvisa"
+
+/obj/item/weapon/paper/aromatherapy_disclaimer
+	name = "aromatherapy disclaimer"
+	info = "<I>The manufacturer and the retailer make no claims of the contained products' effacy.</I> <BR><BR><B>Use at your own risk.</B>"

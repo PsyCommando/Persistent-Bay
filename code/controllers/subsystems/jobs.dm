@@ -29,7 +29,7 @@ SUBSYSTEM_DEF(jobs)
 
 	// Create main map jobs.
 	primary_job_datums.Cut()
-	for(var/jobtype in (list(/datum/job/assistant) | GLOB.using_map.allowed_jobs))
+	for(var/jobtype in (list(DEFAULT_JOB_TYPE) | GLOB.using_map.allowed_jobs))
 		var/datum/job/job = get_by_path(jobtype)
 		if(!job)
 			job = new jobtype
@@ -116,7 +116,10 @@ SUBSYSTEM_DEF(jobs)
 	syndicate_code_phrase = generate_code_phrase()
 	syndicate_code_response	= generate_code_phrase()
 
-	return ..()
+	// Set up AI spawn locations
+	spawn_empty_ai()
+
+	. = ..()
 
 /datum/controller/subsystem/jobs/proc/guest_jobbans(var/job)
 	for(var/dept in list(COM, MSC, SEC))
@@ -138,6 +141,7 @@ SUBSYSTEM_DEF(jobs)
 	return titles_to_datums[rank]
 
 /datum/controller/subsystem/jobs/proc/get_by_path(var/path)
+	RETURN_TYPE(/datum/job)
 	return types_to_datums[path]
 
 /datum/controller/subsystem/jobs/proc/check_general_join_blockers(var/mob/new_player/joining, var/datum/job/job)
@@ -152,9 +156,9 @@ SUBSYSTEM_DEF(jobs)
 	if(!config.enter_allowed)
 		to_chat(joining, "<span class='warning'>There is an administrative lock on entering the game!</span>")
 		return FALSE
-	// if(SSticker.mode && SSticker.mode.explosion_in_progress)
-	// 	to_chat(joining, "<span class='warning'>The [station_name()] is currently exploding. Joining would go poorly.</span>")
-	// 	return FALSE
+	if(SSticker.mode && SSticker.mode.explosion_in_progress)
+		to_chat(joining, "<span class='warning'>The [station_name()] is currently exploding. Joining would go poorly.</span>")
+		return FALSE
 	return TRUE
 
 /datum/controller/subsystem/jobs/proc/check_latejoin_blockers(var/mob/new_player/joining, var/datum/job/job)
@@ -177,7 +181,7 @@ SUBSYSTEM_DEF(jobs)
 	if(airstatus || radlevel > 0)
 		var/reply = alert(spawner, "Warning. Your selected spawn location seems to have unfavorable conditions. \
 		You may die shortly after spawning. \
-		Spawn anyway? More information: [airstatus] Radiation: [radlevel] Bq", "Atmosphere warning", "Abort", "Spawn anyway")
+		Spawn anyway? More information: [airstatus] Radiation: [radlevel] Roentgen", "Atmosphere warning", "Abort", "Spawn anyway")
 		if(reply == "Abort")
 			return FALSE
 		else
@@ -185,19 +189,18 @@ SUBSYSTEM_DEF(jobs)
 			log_and_message_admins("User [spawner] spawned at spawn point with dangerous atmosphere.")
 	return TRUE
 
-
-/datum/controller/subsystem/jobs/proc/assign_role(var/mob/new_player/player, var/rank, var/latejoin = 0)
+/datum/controller/subsystem/jobs/proc/assign_role(var/mob/new_player/player, var/rank, var/latejoin = 0, var/datum/game_mode/mode = SSticker.mode)
 	if(player && player.mind && rank)
 		var/datum/job/job = get_by_title(rank)
 		if(!job)
-			return 0
-		if(job.minimum_character_age && (player.client.prefs.age < job.minimum_character_age))
 			return 0
 		if(jobban_isbanned(player, rank))
 			return 0
 		if(!job.player_old_enough(player.client))
 			return 0
 		if(job.is_restricted(player.client.prefs))
+			return 0
+		if(job.title in mode.disabled_jobs)
 			return 0
 
 		var/position_limit = job.total_positions
@@ -223,11 +226,11 @@ SUBSYSTEM_DEF(jobs)
 			continue
 		if(flag && !(flag in player.client.prefs.be_special_role))
 			continue
-//		if(player.client.prefs.CorrectLevel(job,level))
-		candidates += player
+		if(player.client.prefs.CorrectLevel(job,level))
+			candidates += player
 	return candidates
 
-/datum/controller/subsystem/jobs/proc/give_random_job(var/mob/new_player/player)
+/datum/controller/subsystem/jobs/proc/give_random_job(var/mob/new_player/player, var/datum/game_mode/mode = SSticker.mode)
 	for(var/datum/job/job in shuffle(primary_job_datums))
 		if(!job)
 			continue
@@ -243,13 +246,15 @@ SUBSYSTEM_DEF(jobs)
 			continue
 		if(!job.player_old_enough(player.client))
 			continue
+		if(job.title in mode.disabled_jobs)
+			continue
 		if((job.current_positions < job.spawn_positions) || job.spawn_positions == -1)
-			assign_role(player, job.title)
+			assign_role(player, job.title, mode = mode)
 			unassigned_roundstart -= player
 			break
 
 ///This proc is called before the level loop of divide_occupations() and will try to select a head, ignoring ALL non-head preferences for every level until it locates a head or runs out of levels to check
-/datum/controller/subsystem/jobs/proc/fill_head_position()
+/datum/controller/subsystem/jobs/proc/fill_head_position(var/datum/game_mode/mode)
 	for(var/level = 1 to 3)
 		for(var/command_position in titles_by_department(COM))
 			var/datum/job/job = get_by_title(command_position)
@@ -279,105 +284,105 @@ SUBSYSTEM_DEF(jobs)
 						// If there's ABSOLUTELY NOBODY ELSE
 						if(candidates.len == 1) weightedCandidates[V] = 1
 			var/mob/new_player/candidate = pickweight(weightedCandidates)
-			if(assign_role(candidate, command_position))
+			if(assign_role(candidate, command_position, mode = mode))
 				return 1
 	return 0
 
 ///This proc is called at the start of the level loop of divide_occupations() and will cause head jobs to be checked before any other jobs of the same level
-/datum/controller/subsystem/jobs/proc/CheckHeadPositions(var/level)
+/datum/controller/subsystem/jobs/proc/CheckHeadPositions(var/level, var/datum/game_mode/mode)
 	for(var/command_position in titles_by_department(COM))
 		var/datum/job/job = get_by_title(command_position)
 		if(!job)	continue
 		var/list/candidates = find_occupation_candidates(job, level)
 		if(!candidates.len)	continue
 		var/mob/new_player/candidate = pick(candidates)
-		assign_role(candidate, command_position)
+		assign_role(candidate, command_position, mode = mode)
 
 /** Proc divide_occupations
  *  fills var "assigned_role" for all ready players.
  *  This proc must not have any side effect besides of modifying "assigned_role".
  **/
 /datum/controller/subsystem/jobs/proc/divide_occupations(datum/game_mode/mode)
-	// if(GLOB.triai)
-	// 	for(var/datum/job/A in primary_job_datums)
-	// 		if(A.title == "AI")
-	// 			A.spawn_positions = 3
-	// 			break
-	// //Get the players who are ready
-	// for(var/mob/new_player/player in GLOB.player_list)
-	// 	if(player.ready && player.mind && !player.mind.assigned_role)
-	// 		unassigned_roundstart += player
-	// if(unassigned_roundstart.len == 0)	return 0
-	// //Shuffle players and jobs
-	// unassigned_roundstart = shuffle(unassigned_roundstart)
-	// //People who wants to be assistants, sure, go on.
-	// var/datum/job/assist = new DEFAULT_JOB_TYPE ()
-	// var/list/assistant_candidates = find_occupation_candidates(assist, 3)
-	// for(var/mob/new_player/player in assistant_candidates)
-	// 	assign_role(player, GLOB.using_map.default_assistant_title)
-	// 	assistant_candidates -= player
+	if(GLOB.triai)
+		for(var/datum/job/A in primary_job_datums)
+			if(A.title == "AI")
+				A.spawn_positions = 3
+				break
+	//Get the players who are ready
+	for(var/mob/new_player/player in GLOB.player_list)
+		if(player.ready && player.mind && !player.mind.assigned_role)
+			unassigned_roundstart += player
+	if(unassigned_roundstart.len == 0)	return 0
+	//Shuffle players and jobs
+	unassigned_roundstart = shuffle(unassigned_roundstart)
+	//People who wants to be assistants, sure, go on.
+	var/datum/job/assist = new DEFAULT_JOB_TYPE ()
+	var/list/assistant_candidates = find_occupation_candidates(assist, 3)
+	for(var/mob/new_player/player in assistant_candidates)
+		assign_role(player, GLOB.using_map.default_assistant_title, mode = mode)
+		assistant_candidates -= player
 
-	// //Select one head
-	// fill_head_position()
+	//Select one head
+	fill_head_position(mode)
 
-	// //Other jobs are now checked
-	// // New job giving system by Donkie
-	// // This will cause lots of more loops, but since it's only done once it shouldn't really matter much at all.
-	// // Hopefully this will add more randomness and fairness to job giving.
+	//Other jobs are now checked
+	// New job giving system by Donkie
+	// This will cause lots of more loops, but since it's only done once it shouldn't really matter much at all.
+	// Hopefully this will add more randomness and fairness to job giving.
 
-	// // Loop through all levels from high to low
-	// var/list/shuffledoccupations = shuffle(primary_job_datums)
-	// for(var/level = 1 to 3)
-	// 	//Check the head jobs first each level
-	// 	CheckHeadPositions(level)
+	// Loop through all levels from high to low
+	var/list/shuffledoccupations = shuffle(primary_job_datums)
+	for(var/level = 1 to 3)
+		//Check the head jobs first each level
+		CheckHeadPositions(level, mode)
 
-	// 	// Loop through all unassigned players
-	// 	var/list/deferred_jobs = list()
-	// 	for(var/mob/new_player/player in unassigned_roundstart)
-	// 		// Loop through all jobs
-	// 		for(var/datum/job/job in shuffledoccupations) // SHUFFLE ME BABY
-	// 			if(job && !mode.disabled_jobs.Find(job.title) )
-	// 				if(job.defer_roundstart_spawn)
-	// 					deferred_jobs[job] = TRUE
-	// 				else if(attempt_role_assignment(player, job, level))
-	// 					unassigned_roundstart -= player
-	// 					break
+		// Loop through all unassigned players
+		var/list/deferred_jobs = list()
+		for(var/mob/new_player/player in unassigned_roundstart)
+			// Loop through all jobs
+			for(var/datum/job/job in shuffledoccupations) // SHUFFLE ME BABY
+				if(job && !mode.disabled_jobs.Find(job.title) )
+					if(job.defer_roundstart_spawn)
+						deferred_jobs[job] = TRUE
+					else if(attempt_role_assignment(player, job, level, mode))
+						unassigned_roundstart -= player
+						break
 
-	// 	if(LAZYLEN(deferred_jobs))
-	// 		for(var/mob/new_player/player in unassigned_roundstart)
-	// 			for(var/datum/job/job in deferred_jobs)
-	// 				if(attempt_role_assignment(player, job, level))
-	// 					unassigned_roundstart -= player
-	// 					break
-	// 		deferred_jobs.Cut()
+		if(LAZYLEN(deferred_jobs))
+			for(var/mob/new_player/player in unassigned_roundstart)
+				for(var/datum/job/job in deferred_jobs)
+					if(attempt_role_assignment(player, job, level, mode))
+						unassigned_roundstart -= player
+						break
+			deferred_jobs.Cut()
 
-	// // Hand out random jobs to the people who didn't get any in the last check
-	// // Also makes sure that they got their preference correct
-	// for(var/mob/new_player/player in unassigned_roundstart)
-	// 	if(player.client.prefs.alternate_option == GET_RANDOM_JOB)
-	// 		give_random_job(player)
-	// // For those who wanted to be assistant if their preferences were filled, here you go.
-	// for(var/mob/new_player/player in unassigned_roundstart)
-	// 	if(player.client.prefs.alternate_option == BE_ASSISTANT)
-	// 		var/datum/job/ass = /datum/job/assistant
-	// 		if((GLOB.using_map.flags & MAP_HAS_BRANCH) && player.client.prefs.branches[initial(ass.title)])
-	// 			var/datum/mil_branch/branch = mil_branches.get_branch(player.client.prefs.branches[initial(ass.title)])
-	// 			ass = branch.assistant_job
-	// 		assign_role(player, initial(ass.title))
-	// //For ones returning to lobby
-	// for(var/mob/new_player/player in unassigned_roundstart)
-	// 	if(player.client.prefs.alternate_option == RETURN_TO_LOBBY)
-	// 		player.ready = 0
-	// 		player.new_player_panel()
-	// 		unassigned_roundstart -= player
-	// return TRUE
+	// Hand out random jobs to the people who didn't get any in the last check
+	// Also makes sure that they got their preference correct
+	for(var/mob/new_player/player in unassigned_roundstart)
+		if(player.client.prefs.alternate_option == GET_RANDOM_JOB)
+			give_random_job(player, mode)
+	// For those who wanted to be assistant if their preferences were filled, here you go.
+	for(var/mob/new_player/player in unassigned_roundstart)
+		if(player.client.prefs.alternate_option == BE_ASSISTANT)
+			var/datum/job/ass = DEFAULT_JOB_TYPE
+			if((GLOB.using_map.flags & MAP_HAS_BRANCH) && player.client.prefs.branches[initial(ass.title)])
+				var/datum/mil_branch/branch = mil_branches.get_branch(player.client.prefs.branches[initial(ass.title)])
+				ass = branch.assistant_job
+			assign_role(player, initial(ass.title), mode = mode)
+	//For ones returning to lobby
+	for(var/mob/new_player/player in unassigned_roundstart)
+		if(player.client.prefs.alternate_option == RETURN_TO_LOBBY)
+			player.ready = 0
+			player.new_player_panel()
+			unassigned_roundstart -= player
+	return TRUE
 
-/datum/controller/subsystem/jobs/proc/attempt_role_assignment(var/mob/new_player/player, var/datum/job/job, var/level)
+/datum/controller/subsystem/jobs/proc/attempt_role_assignment(var/mob/new_player/player, var/datum/job/job, var/level, var/datum/game_mode/mode)
 	if(!jobban_isbanned(player, job.title) && \
 	 job.player_old_enough(player.client) && \
-	 //player.client.prefs.CorrectLevel(job, level) &&
+	 player.client.prefs.CorrectLevel(job, level) && \
 	 job.is_position_available())
-		assign_role(player, job.title)
+		assign_role(player, job.title, mode = mode)
 		return TRUE
 	return FALSE
 
@@ -395,7 +400,7 @@ SUBSYSTEM_DEF(jobs)
 			if(G)
 				var/permitted = 0
 				if(G.allowed_branches)
-					if(H.char_branch && H.char_branch.type in G.allowed_branches)
+					if(H.char_branch && (H.char_branch.type in G.allowed_branches))
 						permitted = 1
 				else
 					permitted = 1
@@ -409,10 +414,10 @@ SUBSYSTEM_DEF(jobs)
 					else
 						permitted = 1
 
-				// if(permitted && G.allowed_skills)
-				// 	for(var/required in G.allowed_skills)
-				// 		if(!H.skill_check(required,G.allowed_skills[required]))
-				// 			permitted = 0
+				if(permitted && G.allowed_skills)
+					for(var/required in G.allowed_skills)
+						if(!H.skill_check(required,G.allowed_skills[required]))
+							permitted = 0
 
 				if(G.whitelisted && (!(H.species.name in G.whitelisted)))
 					permitted = 0
@@ -450,14 +455,14 @@ SUBSYSTEM_DEF(jobs)
 	var/list/spawn_in_storage
 
 	if(job)
-		// if(H.client)
-		// 	if(GLOB.using_map.flags & MAP_HAS_BRANCH)
-		// 		H.char_branch = mil_branches.get_branch(H.client.prefs.branches[rank])
-		// 	if(GLOB.using_map.flags & MAP_HAS_RANK)
-		// 		H.char_rank = mil_branches.get_rank(H.client.prefs.branches[rank], H.client.prefs.ranks[rank])
+		if(H.client)
+			if(GLOB.using_map.flags & MAP_HAS_BRANCH)
+				H.char_branch = mil_branches.get_branch(H.client.prefs.branches[rank])
+			if(GLOB.using_map.flags & MAP_HAS_RANK)
+				H.char_rank = mil_branches.get_rank(H.client.prefs.branches[rank], H.client.prefs.ranks[rank])
 
 		// Transfers the skill settings for the job to the mob
-		//H.skillset.obtain_from_client(job, H.client)
+		H.skillset.obtain_from_client(job, H.client)
 
 		//Equip job items.
 		job.setup_account(H)
@@ -469,14 +474,20 @@ SUBSYSTEM_DEF(jobs)
 				if(H.char_branch.email_domain)
 					domain = H.char_branch.email_domain
 			else
-				domain = EMAIL_DOMAIN_DEFAULT
+				domain = "freemail.net"
 			if(domain)
-				ntnet_global.create_email(H, H.real_name, domain)
+				ntnet_global.create_email(H, H.real_name, domain, rank)
 		// END EMAIL GENERATION
 
 		job.equip(H, H.mind ? H.mind.role_alt_title : "", H.char_branch, H.char_rank)
 		job.apply_fingerprints(H)
 		spawn_in_storage = equip_custom_loadout(H, job)
+
+		var/obj/item/clothing/under/uniform = H.w_uniform
+		if(istype(uniform) && uniform.has_sensor)
+			uniform.sensor_mode = SUIT_SENSOR_MODES[H.client.prefs.sensor_setting]
+			if(H.client.prefs.sensors_locked)
+				uniform.has_sensor = SUIT_LOCKED_SENSORS
 	else
 		to_chat(H, "Your job is [rank] and the game just can't handle it! Please report this bug to an administrator.")
 
@@ -505,9 +516,9 @@ SUBSYSTEM_DEF(jobs)
 		if(department_account)
 			remembered_info += "<b>Your department's account number is:</b> #[department_account.account_number]<br>"
 			remembered_info += "<b>Your department's account pin is:</b> [department_account.remote_access_pin]<br>"
-			remembered_info += "<b>Your department's account funds are:</b> T[department_account.money]<br>"
+			remembered_info += "<b>Your department's account funds are:</b> [GLOB.using_map.local_currency_name_short][department_account.money]<br>"
 
-		H.mind.store_memory(remembered_info)
+		H.StoreMemory(remembered_info, /decl/memory_options/system)
 
 	var/alt_title = null
 	if(H.mind)
@@ -515,14 +526,10 @@ SUBSYSTEM_DEF(jobs)
 		H.mind.assigned_role = rank
 		alt_title = H.mind.role_alt_title
 
-		switch(rank)
-			if("Robot")
-				return H.Robotize(SSrobots.get_mob_type_by_title(alt_title ? alt_title : job.title))
-			if("AI")
-				return H
-			if("Captain")
-				var/sound/announce_sound = (GAME_STATE <= RUNLEVEL_SETUP)? null : sound('sound/misc/boatswain.ogg', volume=20)
-				captain_announcement.Announce("All hands, Captain [H.real_name] on deck!", new_sound=announce_sound)
+	var/mob/other_mob = job.handle_variant_join(H, alt_title)
+	if(other_mob)
+		job.post_equip_rank(other_mob, alt_title || rank)
+		return other_mob
 
 	if(spawn_in_storage)
 		for(var/datum/gear/G in spawn_in_storage)
@@ -539,7 +546,7 @@ SUBSYSTEM_DEF(jobs)
 			W.buckled_mob = H
 			W.add_fingerprint(H)
 
-	to_chat(H, "<B>You are [job.total_positions == 1 ? "the" : "a"] [alt_title ? alt_title : rank].</B>")
+	to_chat(H, "<font size = 3><B>You are [job.total_positions == 1 ? "the" : "a"] [alt_title ? alt_title : rank].</B></font>")
 
 	if(job.supervisors)
 		to_chat(H, "<b>As the [alt_title ? alt_title : rank] you answer directly to [job.supervisors]. Special circumstances may change this.</b>")
@@ -551,7 +558,7 @@ SUBSYSTEM_DEF(jobs)
 
 	//Gives glasses to the vision impaired
 	if(H.disabilities & NEARSIGHTED)
-		var/equipped = H.equip_to_slot_or_del(new /obj/item/clothing/glasses/regular(H), slot_glasses)
+		var/equipped = H.equip_to_slot_or_del(new /obj/item/clothing/glasses/prescription(H), slot_glasses)
 		if(equipped)
 			var/obj/item/clothing/glasses/G = H.glasses
 			G.prescription = 7
@@ -559,10 +566,19 @@ SUBSYSTEM_DEF(jobs)
 	BITSET(H.hud_updateflag, ID_HUD)
 	BITSET(H.hud_updateflag, IMPLOYAL_HUD)
 	BITSET(H.hud_updateflag, SPECIALROLE_HUD)
-	
-	job.post_equip_rank(H)
+
+	job.post_equip_rank(H, alt_title || rank)
 
 	return H
 
 /datum/controller/subsystem/jobs/proc/titles_by_department(var/dept)
 	return positions_by_department["[dept]"] || list()
+
+/datum/controller/subsystem/jobs/proc/spawn_empty_ai()
+	for(var/obj/effect/landmark/start/S in landmarks_list)
+		if(S.name != "AI")
+			continue
+		if(locate(/mob/living) in S.loc)
+			continue
+		empty_playable_ai_cores += new /obj/structure/AIcore/deactivated(get_turf(S))
+	return 1

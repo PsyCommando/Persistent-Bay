@@ -1,80 +1,36 @@
 // It is a gizmo that flashes a small area
 
 /obj/machinery/flasher
-	name = "Mounted flash"
+	name = "mounted flash"
 	desc = "A wall-mounted flashbulb device."
-	icon = 'icons/obj/machines/flashers.dmi'
+	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "mflash1"
-	anchored = TRUE
-	use_power = POWER_USE_IDLE
-	idle_power_usage = 2
-	movable_flags = MOVABLE_FLAG_PROXMOVE
-	
-	id_tag = null
-	frequency = SEC_FREQ
-	radio_filter_in = RADIO_FLASHERS
-	radio_filter_out = RADIO_FLASHERS
-	radio_check_id = TRUE
-
-	var/flash_range = 2 //this is roughly the size of brig cell
-	var/disable = FALSE
+	var/range = 2 //this is roughly the size of brig cell
+	var/disable = 0
 	var/last_flash = 0 //Don't want it getting spammed like regular flashes
 	var/strength = 10 //How weakened targets are when flashed.
 	var/base_state = "mflash"
-	var/_wifi_id
-	var/datum/wifi/receiver/button/flasher/wifi_receiver
+	anchored = 1
+	idle_power_usage = 2
+	movable_flags = MOVABLE_FLAG_PROXMOVE
 
-/obj/machinery/flasher/portable //Portable version of the flasher. Only flashes when anchored
-	name 		= "portable flasher"
-	desc 		= "A portable flashing device. Wrench to activate and deactivate. Cannot detect slow movements."
-	icon_state 	= "pflash1"
-	base_state 	= "pflash"
-	strength 	= 8
-	anchored 	= FALSE
-	density 	= TRUE
-	mass		= 2.0 //kg
+	uncreated_component_parts = list(
+		/obj/item/weapon/stock_parts/radio/receiver,
+		/obj/item/weapon/stock_parts/power/apc
+	)
+	public_methods = list(
+		/decl/public_access/public_method/flasher_flash
+	)
+	stock_part_presets = list(/decl/stock_part_preset/radio/receiver/flasher = 1)
 
-/obj/machinery/flasher/portable/on_update_icon()
-	if (operable())
+
+/obj/machinery/flasher/on_update_icon()
+	if ( !(stat & (BROKEN|NOPOWER)) )
 		icon_state = "[base_state]1"
+//		src.sd_SetLuminosity(2)
 	else
 		icon_state = "[base_state]1-p"
-
-/obj/machinery/flasher/Initialize()
-	. = ..()
-	if(_wifi_id)
-		wifi_receiver = new(_wifi_id, src)
-	queue_icon_update()
-
-/obj/machinery/flasher/Destroy()
-	QDEL_NULL(wifi_receiver)
-	return ..()
-
-/obj/machinery/flasher/OnSignal(var/datum/signal/signal)
-	. = ..()
-	if(signal.data["activate"] || signal.data["flash"])
-		flash()
-
-/obj/machinery/flasher/update_icon()
-	//Those are wall mounted so align them to walls
-	switch(dir)
-		if(NORTH)
-			src.pixel_x = 0
-			src.pixel_y = -26
-		if(SOUTH)
-			src.pixel_x = 0
-			src.pixel_y = 26
-		if(EAST)
-			src.pixel_x = -22
-			src.pixel_y = 0
-		if(WEST)
-			src.pixel_x = 22
-			src.pixel_y = 0
-	
-	if (operable())
-		icon_state = "[base_state]1"
-	else
-		icon_state = "[base_state]1-p"
+//		src.sd_SetLuminosity(0)
 
 //Don't want to render prison breaks impossible
 /obj/machinery/flasher/attackby(obj/item/weapon/W as obj, mob/user as mob)
@@ -82,11 +38,11 @@
 		add_fingerprint(user, 0, W)
 		src.disable = !src.disable
 		if (src.disable)
-			user.visible_message(SPAN_WARNING("[user] has disconnected the [src]'s flashbulb!"), SPAN_WARNING("You disconnect the [src]'s flashbulb!"))
+			user.visible_message("<span class='warning'>[user] has disconnected the [src]'s flashbulb!</span>", "<span class='warning'>You disconnect the [src]'s flashbulb!</span>")
 		if (!src.disable)
-			user.visible_message(SPAN_WARNING("[user] has connected the [src]'s flashbulb!"), SPAN_WARNING("You connect the [src]'s flashbulb!"))
+			user.visible_message("<span class='warning'>[user] has connected the [src]'s flashbulb!</span>", "<span class='warning'>You connect the [src]'s flashbulb!</span>")
 	else
-		return ..()
+		..()
 
 //Let the AI trigger them directly.
 /obj/machinery/flasher/attack_ai()
@@ -108,7 +64,7 @@
 	use_power_oneoff(1500)
 
 	for (var/mob/living/O in viewers(src, null))
-		if (get_dist(src, O) > src.flash_range)
+		if (get_dist(src, O) > src.range)
 			continue
 
 		var/flash_time = strength
@@ -117,33 +73,42 @@
 				continue
 			if(ishuman(O))
 				var/mob/living/carbon/human/H = O
-				flash_time = round(H.species.flash_mod * flash_time)
+				flash_time = round(H.getFlashMod() * flash_time)
 				if(flash_time <= 0)
 					return
 				var/obj/item/organ/internal/eyes/E = H.internal_organs_by_name[H.species.vision_organ]
 				if(!E)
 					return
-				if(E.is_bruised() && prob(E.get_damages() + 50))
+				if(E.is_bruised() && prob(E.damage + 50))
 					H.flash_eyes()
-					E.rem_health(rand(1, 5))
+					E.damage += rand(1, 5)
 
 		if(!O.blinded)
 			do_flash(O, flash_time)
 
 /obj/machinery/flasher/proc/do_flash(var/mob/living/victim, var/flash_time)
-			victim.flash_eyes()
-			victim.eye_blurry += flash_time
-			victim.confused += (flash_time + 2)
-			victim.Stun(flash_time / 2)
-			victim.Weaken(3)
+	victim.flash_eyes()
+	victim.eye_blurry += flash_time
+	victim.confused += (flash_time + 2)
+	victim.Stun(flash_time / 2)
+	victim.Weaken(3)
 
 /obj/machinery/flasher/emp_act(severity)
-	if(inoperable())
+	if(stat & (BROKEN|NOPOWER))
 		..(severity)
 		return
 	if(prob(75/severity))
 		flash()
 	..(severity)
+
+/obj/machinery/flasher/portable //Portable version of the flasher. Only flashes when anchored
+	name = "portable flasher"
+	desc = "A portable flashing device. Wrench to activate and deactivate. Cannot detect slow movements."
+	icon_state = "pflash1"
+	strength = 8
+	anchored = 0
+	base_state = "pflash"
+	density = 1
 
 /obj/machinery/flasher/portable/HasProximity(atom/movable/AM as mob|obj)
 	if(!anchored || disable || last_flash && world.time < last_flash + 150)
@@ -163,11 +128,23 @@
 		src.anchored = !src.anchored
 
 		if (!src.anchored)
-			user.show_message(text(SPAN_WARNING("[src] can now be moved.")))
+			user.show_message(text("<span class='warning'>[src] can now be moved.</span>"))
 			src.overlays.Cut()
 
 		else if (src.anchored)
-			user.show_message(text(SPAN_WARNING("[src] is now secured.")))
+			user.show_message(text("<span class='warning'>[src] is now secured.</span>"))
 			src.overlays += "[base_state]-s"
-		return TRUE
-	return ..()
+
+/obj/machinery/button/flasher
+	name = "flasher button"
+	desc = "A remote control switch for a mounted flasher."
+	cooldown = 5 SECONDS
+
+/decl/public_access/public_method/flasher_flash
+	name = "flash"
+	desc = "Performs a flash, if possible."
+	call_proc = /obj/machinery/flasher/proc/flash
+
+/decl/stock_part_preset/radio/receiver/flasher
+	frequency = BUTTON_FREQ
+	receive_and_call = list("button_active" = /decl/public_access/public_method/flasher_flash)

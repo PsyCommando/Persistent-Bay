@@ -7,6 +7,9 @@
 	filename = "deckmngr"
 	filedesc = "Deck Management"
 	nanomodule_path = /datum/nano_module/deck_management
+	program_icon_state = "request"
+	program_key_state = "rd_key"
+	program_menu_icon = "clock"
 	extended_desc = "A tool for managing shuttles, filling out flight plans, and submitting flight-related paperwork."
 	size = 18
 	available_on_ntnet = 1
@@ -23,7 +26,7 @@
 	var/list/report_prototypes = list()              //Stores report prototypes to use for UI purposes.
 	var/datum/shuttle/prototype_shuttle              //The shuttle for which the prototypes were built (to avoid excessive prototype rebuilding)
 	//The default access needed to properly use. Should be set in map files.
-	var/default_access = list(access_cargo, access_heads)  //The format is (needs one of list(these access constants or lists of access constants))
+	var/default_access = list(access_cargo, access_bridge)  //The format is (needs one of list(these access constants or lists of access constants))
 
 /datum/nano_module/deck_management/New()
 	..()
@@ -148,7 +151,7 @@
 	var/mission_data = list()
 	mission_data["name"] = mission.name
 	mission_data["departure"] = mission.depart_time || "N/A"
-	mission_data["return"] = mission.return_time || "N/A"
+	mission_data["return_time"] = mission.return_time || "N/A"
 	switch(mission.stage)
 		if(SHUTTLE_MISSION_QUEUED)
 			mission_data["status"] = "Mission Scheduled."
@@ -174,7 +177,7 @@
 			return 1
 
 /datum/nano_module/deck_management/proc/get_shuttle_access(mob/user, datum/shuttle/shuttle)
-	return shuttle.logging_access ? (check_access(user, shuttle.logging_access) || check_access(user, access_heads)) : 0
+	return shuttle.logging_access ? (check_access(user, shuttle.logging_access) || check_access(user, access_bridge)) : 0
 
 /datum/nano_module/deck_management/proc/set_shuttle(mob/user, shuttle_name, need_access = 1)
 	var/datum/shuttle/shuttle

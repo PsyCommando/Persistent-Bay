@@ -5,11 +5,11 @@
 	item_state = "plunger_black"
 	icon = 'icons/obj/plunger.dmi'
 	attack_verb = list("plunged")
-	force = 2
+	force = 1
 	w_class = 3
 	slot_flags = SLOT_HEAD | SLOT_MASK
-	sound_hit = 'sound/effects/plunger.ogg'
-	matter = list(MATERIAL_WOOD = 500, MATERIAL_PLASTIC = 250)
+	hitsound = 'sound/effects/plunger.ogg'
+	matter = list("steel" = 5000)
 
 /obj/item/device/plunger/robot
 	name = "plunger"
@@ -20,4 +20,4 @@
 	attack_verb = list("plunged")
 	force = 1
 	w_class = 3
-	sound_hit = 'sound/effects/plunger.ogg'
+	hitsound = 'sound/effects/plunger.ogg'

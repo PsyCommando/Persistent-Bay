@@ -1,5 +1,4 @@
 // The following procs are used to grab players for mobs produced by a seed (mostly for dionaea).
-/*
 /datum/seed/proc/handle_living_product(var/mob/living/host)
 	if(!host || !istype(host)) return
 
@@ -17,4 +16,3 @@
 				var/obj/item/seeds/S = new(get_turf(host))
 				S.seed_type = name
 				S.update_seed()
-*/

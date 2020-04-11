@@ -3,15 +3,14 @@
 	desc = "A thing to keep your butts in."
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "ashtray"
+	max_force = 10
 	force_divisor = 0.1
 	thrown_force_divisor = 0.1
 	randpixel = 5
-	damtype = DAM_BLUNT
-	mass = 1
 	var/max_butts = 10
 
 /obj/item/weapon/material/ashtray/examine(mob/user)
-	..()
+	. = ..()
 	if(material)
 		to_chat(user, "It's made of [material.display_name].")
 	if(contents.len >= max_butts)
@@ -45,12 +44,13 @@
 
 		if(user.unEquip(W, src))
 			visible_message("[user] places [W] in [src].")
+			set_extension(src, /datum/extension/scent/ashtray)
 			update_icon()
 	else
 		..()
 		health = max(0,health - W.force)
 		if (health < 1)
-			kill()
+			shatter()
 
 /obj/item/weapon/material/ashtray/throw_impact(atom/hit_atom)
 	if (health > 0)
@@ -59,8 +59,9 @@
 			visible_message("<span class='danger'>\The [src] slams into [hit_atom], spilling its contents!</span>")
 			for (var/obj/O in contents)
 				O.dropInto(loc)
+			remove_extension(src, /datum/extension/scent)
 		if (health < 1)
-			kill()
+			shatter()
 			return
 		update_icon()
 	return ..()

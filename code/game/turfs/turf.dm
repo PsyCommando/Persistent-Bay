@@ -2,8 +2,7 @@
 	icon = 'icons/turf/floors.dmi'
 	level = 1
 
-	plane = TURF_PLANE
-	layer = BASE_TURF_LAYER
+	layer = TURF_LAYER
 
 	var/turf_flags
 
@@ -25,7 +24,6 @@
 	var/blessed = 0             // Has the turf been blessed?
 
 	var/list/decals
-	var/list/saved_decals = list()
 
 	var/movement_delay
 
@@ -35,23 +33,22 @@
 	var/flooded // Whether or not this turf is absolutely flooded ie. a water source.
 	var/footstep_type
 
-/turf/New()
-	..()
-	for(var/atom/movable/AM as mob|obj in src)
-		spawn( 0 )
-			src.Entered(AM)
-			return
+	var/tmp/changing_turf
 
+/turf/Initialize(mapload, ...)
+	. = ..()
 	if(dynamic_lighting)
 		luminosity = 0
 	else
 		luminosity = 1
-	ADD_SAVED_VAR(holy)
-	ADD_SAVED_VAR(blessed)
-	ADD_SAVED_VAR(flooded)
-	ADD_SAVED_VAR(saved_decals)
 
-	ADD_SKIP_EMPTY(saved_decals)
+	opaque_counter = opacity
+
+	if (mapload && permit_ao)
+		queue_ao()
+
+	if (z_flags & ZM_MIMIC_BELOW)
+		setup_zmimic(mapload)
 
 /turf/on_update_icon()
 	update_flood_overlay()
@@ -65,9 +62,25 @@
 		QDEL_NULL(flood_object)
 
 /turf/Destroy()
+	if (!changing_turf)
+		crash_with("Improper turf qdel. Do not qdel turfs directly.")
+
+	changing_turf = FALSE
+
 	remove_cleanables()
 	fluid_update()
 	REMOVE_ACTIVE_FLUID_SOURCE(src)
+
+	if (ao_queued)
+		SSao.queue -= src
+		ao_queued = 0
+
+	if (z_flags & ZM_MIMIC_BELOW)
+		cleanup_zmimic()
+
+	if (bound_overlay)
+		QDEL_NULL(bound_overlay)
+
 	..()
 	return QDEL_HINT_IWILLGC
 
@@ -82,25 +95,37 @@
 
 	if(user.restrained())
 		return 0
-	if(isnull(user.pulling) || user.pulling.anchored || !isturf(user.pulling.loc))
-		return 0
-	if(user.pulling.loc != user.loc && get_dist(user, user.pulling) > 1)
-		return 0
-	if(user.pulling)
+	if (user.pulling)
+		if(user.pulling.anchored || !isturf(user.pulling.loc))
+			return 0
+		if(user.pulling.loc != user.loc && get_dist(user, user.pulling) > 1)
+			return 0
 		do_pull_click(user, src)
-	return 1
+
+	.=handle_hand_interception(user)
+	if (!.)
+		return 1
+
+/turf/proc/handle_hand_interception(var/mob/user)
+	var/datum/extension/turf_hand/THE
+	for (var/A in src)
+		var/datum/extension/turf_hand/TH = get_extension(A, /datum/extension/turf_hand)
+		if (istype(TH) && TH.priority > THE?.priority) //Only overwrite if the new one is higher. For matching values, its first come first served
+			THE = TH
+
+	if (THE)
+		return THE.OnHandInterception(user)
 
 /turf/attack_robot(var/mob/user)
 	if(Adjacent(user))
 		attack_hand(user)
 
-/turf/attackby(obj/item/weapon/W as obj, mob/user as mob)
+turf/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/weapon/storage))
 		var/obj/item/weapon/storage/S = W
 		if(S.use_to_pickup && S.collection_mode)
 			S.gather_all(src, user)
 	return ..()
-
 
 /turf/Enter(atom/movable/mover as mob|obj, atom/forget as mob|obj|turf|area)
 
@@ -157,8 +182,6 @@ var/const/enterloopsanity = 100
 
 	if(ismob(A))
 		var/mob/M = A
-		if (isliving(M) && M.stat != DEAD)
-			SSmazemap.map_data["[M.z]"]?.set_active()
 		if(!M.check_solid_ground())
 			inertial_drift(M)
 			//we'll end up checking solid ground again but we still need to check the other things.
@@ -270,26 +293,29 @@ var/const/enterloopsanity = 100
 	return
 
 /turf/proc/remove_decals()
-	if(LAZYLEN(decals))
-		QDEL_NULL_LIST(decals)
-	if(LAZYLEN(saved_decals))
-		QDEL_NULL_LIST(saved_decals)
+	if(decals && decals.len)
+		decals.Cut()
+		decals = null
 
 // Called when turf is hit by a thrown object
-/turf/hitby(atom/movable/AM as mob|obj, var/speed)
+/turf/hitby(atom/movable/AM as mob|obj, var/datum/thrownthing/TT)
 	if(src.density)
-		spawn(2)
-			step(AM, turn(AM.last_move, 180))
 		if(isliving(AM))
 			var/mob/living/M = AM
-			M.turf_collision(src, speed)
+			M.turf_collision(src, TT.speed)
+			if(M.pinned.len)
+				return
 
+		var/intial_dir = TT.init_dir
+		spawn(2)
+			step(AM, turn(intial_dir, 180))
+				
 /turf/proc/can_engrave()
 	return FALSE
 
 /turf/proc/try_graffiti(var/mob/vandal, var/obj/item/tool)
 
-	if(!tool || !tool.can_graffiti() || !can_engrave() || vandal.a_intent != I_HELP)
+	if(!tool.sharp || !can_engrave() || vandal.a_intent != I_HELP)
 		return FALSE
 
 	if(jobban_isbanned(vandal, "Graffiti"))
@@ -334,3 +360,13 @@ var/const/enterloopsanity = 100
 
 /turf/proc/is_floor()
 	return FALSE
+
+/turf/proc/get_obstruction()
+	if (density)
+		LAZYADD(., src)
+	if (contents.len > 100 || contents.len <= !!lighting_overlay)
+		return    // fuck it, too/not-enough much shit here
+	for (var/thing in src)
+		var/atom/movable/AM = thing
+		if (AM.simulated && AM.blocks_airlock())
+			LAZYADD(., AM)

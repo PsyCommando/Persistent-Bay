@@ -3,21 +3,10 @@
 	icon_keyboard = "teleport_key"
 	icon_screen = "teleport"
 	light_color = "#77fff8"
-	//circuit = /obj/item/weapon/circuitboard/sensors
+	extra_view = 4
 	var/obj/machinery/shipsensors/sensors
-	var/viewing = 0
-	var/list/viewers
 
-/obj/machinery/computer/ship/sensors/Destroy()
-	sensors = null
-	if(LAZYLEN(viewers))
-		for(var/weakref/W in viewers)
-			var/M = W.resolve()
-			if(M)
-				unlook(M)
-	. = ..()
-
-/obj/machinery/computer/ship/sensors/attempt_hook_up(obj/effect/overmap/ship/sector)
+/obj/machinery/computer/ship/sensors/attempt_hook_up(obj/effect/overmap/visitable/ship/sector)
 	if(!(. = ..()))
 		return
 	find_sensors()
@@ -37,10 +26,10 @@
 
 	var/data[0]
 
-	data["viewing"] = viewing
+	data["viewing"] = viewing_overmap(user)
 	if(sensors)
 		data["on"] = sensors.use_power
-		data["range"] = sensors.sensor_range
+		data["range"] = sensors.range
 		data["health"] = sensors.health
 		data["max_health"] = sensors.max_health
 		data["heat"] = sensors.heat
@@ -56,6 +45,8 @@
 		var/list/contacts = list()
 		for(var/obj/effect/overmap/O in view(7,linked))
 			if(linked == O)
+				continue
+			if(!O.scannable)
 				continue
 			var/bearing = round(90 - Atan2(O.x - linked.x, O.y - linked.y),5)
 			if(bearing < 0)
@@ -75,57 +66,16 @@
 		ui.open()
 		ui.set_auto_update(1)
 
-/obj/machinery/computer/ship/sensors/check_eye(var/mob/user as mob)
-	if (!get_dist(user, src) > 1 || user.blinded || !linked )
-		viewing = 0
-	if (!viewing)
-		return -1
-	else
-		return 0
-
-/obj/machinery/computer/ship/sensors/attack_hand(var/mob/user as mob)
-	if(..())
-		viewing = 0
-		unlook(user)
-		return
-
-	if(!isAI(user))
-		if(viewing)
-			look(user)
-
-/obj/machinery/computer/ship/sensors/proc/look(var/mob/user)
-	if(linked)
-		user.reset_view(linked)
-	if(user.client)
-		user.client.view = world.view + 4
-	GLOB.moved_event.register(user, src, /obj/machinery/computer/ship/sensors/proc/unlook)
-	GLOB.stat_set_event.register(user, src, /obj/machinery/computer/ship/sensors/proc/unlook)
-	LAZYDISTINCTADD(viewers, weakref(user))
-
-/obj/machinery/computer/ship/sensors/proc/unlook(var/mob/user)
-	user.reset_view()
-	if(user.client)
-		user.client.view = world.view
-	GLOB.moved_event.unregister(user, src, /obj/machinery/computer/ship/sensors/proc/unlook)
-	GLOB.stat_set_event.unregister(user, src, /obj/machinery/computer/ship/sensors/proc/unlook)
-	LAZYREMOVE(viewers, weakref(user))
-
 /obj/machinery/computer/ship/sensors/OnTopic(var/mob/user, var/list/href_list, state)
 	if(..())
-		return TOPIC_HANDLED
-
-	if(href_list["close"])
-		unlook(user)
-		user.unset_machine()
 		return TOPIC_HANDLED
 
 	if (!linked)
 		return TOPIC_NOACTION
 
 	if (href_list["viewing"])
-		viewing = !viewing
 		if(user && !isAI(user))
-			viewing ? look(user) : unlook(user)
+			viewing_overmap(user) ? unlook(user) : look(user)
 		return TOPIC_REFRESH
 
 	if (href_list["link"])
@@ -134,7 +84,7 @@
 
 	if(sensors)
 		if (href_list["range"])
-			var/nrange = input("Set new sensors range", "Sensor range", sensors.sensor_range) as num|null
+			var/nrange = input("Set new sensors range", "Sensor range", sensors.range) as num|null
 			if(!CanInteract(user,state))
 				return TOPIC_NOACTION
 			if (nrange)
@@ -151,16 +101,12 @@
 			new/obj/item/weapon/paper/(get_turf(src), O.get_scan_data(user), "paper (Sensor Scan - [O])")
 		return TOPIC_HANDLED
 
-/obj/machinery/computer/ship/sensors/CouldNotUseTopic(mob/user)
-	unlook(user)
-	. = ..()
-
 /obj/machinery/computer/ship/sensors/Process()
 	..()
 	if(!linked)
 		return
 	if(sensors && sensors.use_power && sensors.powered())
-		var/sensor_range = round(sensors.sensor_range*1.5) + 1
+		var/sensor_range = round(sensors.range*1.5) + 1
 		linked.set_light(1, sensor_range, sensor_range+1)
 	else
 		linked.set_light(0)
@@ -168,21 +114,22 @@
 /obj/machinery/shipsensors
 	name = "sensors suite"
 	desc = "Long range gravity scanner with various other sensors, used to detect irregularities in surrounding space. Can only run in vacuum to protect delicate quantum BS elements."
-	icon = 'icons/obj/machines/sensors.dmi'
+	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "sensors"
 	anchored = 1
-	max_health = 200
+	var/max_health = 200
+	var/health = 200
 	var/critical_heat = 50 // sparks and takes damage when active & above this heat
 	var/heat_reduction = 1.5 // mitigates this much heat per tick
 	var/heat = 0
-	var/sensor_range = 1
+	var/range = 1
 	idle_power_usage = 5000
 
 /obj/machinery/shipsensors/attackby(obj/item/weapon/W, mob/user)
 	var/damage = max_health - health
 	if(damage && isWelder(W))
 
-		var/obj/item/weapon/tool/weldingtool/WT = W
+		var/obj/item/weapon/weldingtool/WT = W
 
 		if(!WT.isOn())
 			return
@@ -237,7 +184,6 @@
 	queue_icon_update()
 
 /obj/machinery/shipsensors/Process()
-	..()
 	if(use_power) //can't run in non-vacuum
 		if(!in_vacuum())
 			toggle()
@@ -260,14 +206,19 @@
 		toggle()
 
 /obj/machinery/shipsensors/proc/set_range(nrange)
-	sensor_range = nrange
-	change_power_consumption(1500 * (sensor_range**2), POWER_USE_IDLE) //Exponential increase, also affects speed of overheating
+	range = nrange
+	change_power_consumption(1500 * (range**2), POWER_USE_IDLE) //Exponential increase, also affects speed of overheating
 
 /obj/machinery/shipsensors/emp_act(severity)
 	if(!use_power)
 		return
 	take_damage(20/severity)
 	toggle()
+
+/obj/machinery/shipsensors/proc/take_damage(value)
+	health = min(max(health - value, 0),max_health)
+	if(use_power && health == 0)
+		toggle()
 
 /obj/machinery/shipsensors/weak
 	heat_reduction = 0.2

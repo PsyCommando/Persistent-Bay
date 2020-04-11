@@ -19,7 +19,7 @@
 	var/lum_b = 0
 
 	var/needs_update = FALSE
-	should_save = 0
+
 /atom/movable/lighting_overlay/Initialize()
 	// doesn't need special init
 	atom_flags |= ATOM_FLAG_INITIALIZED
@@ -27,7 +27,7 @@
 
 /atom/movable/lighting_overlay/New(var/atom/loc, var/no_update = FALSE)
 	var/turf/T = loc //If this runtimes atleast we'll know what's creating overlays outside of turfs.
-	if(T && T.dynamic_lighting)
+	if(T?.dynamic_lighting)
 		. = ..()
 		verbs.Cut()
 		total_lighting_overlays++
@@ -114,6 +114,8 @@
 		)
 
 	luminosity = set_luminosity
+	// if (T.above && T.above.shadower)
+	// 	T.above.shadower.copy_lighting(src)
 
 // Variety of overrides so the overlays don't get affected by weird things.
 /atom/movable/lighting_overlay/ex_act()

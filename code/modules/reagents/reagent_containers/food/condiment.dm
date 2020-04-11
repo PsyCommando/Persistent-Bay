@@ -14,6 +14,7 @@
 	possible_transfer_amounts = "1;5;10"
 	center_of_mass = "x=16;y=6"
 	volume = 50
+	var/list/starting_reagents
 	var/global/list/special_bottles = list(
 		/datum/reagent/nutriment/ketchup = /obj/item/weapon/reagent_containers/food/condiment/ketchup,
 		/datum/reagent/nutriment/barbecue = /obj/item/weapon/reagent_containers/food/condiment/barbecue,
@@ -29,24 +30,23 @@
 		/datum/reagent/nutriment/vinegar = /obj/item/weapon/reagent_containers/food/condiment/vinegar
 		)
 
-//Handled in base class
-// /obj/item/weapon/reagent_containers/food/condiment/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
-// 	if(istype(W, /obj/item/weapon/pen) || istype(W, /obj/item/device/flashlight/pen))
-// 		var/tmp_label = sanitizeSafe(input(user, "Enter a label for [name]", "Label", label), MAX_NAME_LEN)
-// 		if(tmp_label == label)
-// 			return
-// 		if(length(tmp_label) > 10)
-// 			to_chat(user, "<span class='notice'>The label can be at most 10 characters long.</span>")
-// 		else
-// 			if(length(tmp_label))
-// 				to_chat(user, "<span class='notice'>You set the label to \"[tmp_label]\".</span>")
-// 				label = tmp_label
-// 				name = addtext(name," ([label])")
-// 			else
-// 				to_chat(user, "<span class='notice'>You remove the label.</span>")
-// 				label = null
-// 				on_reagent_change()
-// 		return
+/obj/item/weapon/reagent_containers/food/condiment/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
+	if(istype(W, /obj/item/weapon/pen) || istype(W, /obj/item/device/flashlight/pen))
+		var/tmp_label = sanitizeSafe(input(user, "Enter a label for [name]", "Label", label_text), MAX_NAME_LEN)
+		if(tmp_label == label_text)
+			return
+		if(length(tmp_label) > 10)
+			to_chat(user, "<span class='notice'>The label can be at most 10 characters long.</span>")
+		else
+			if(length(tmp_label))
+				to_chat(user, "<span class='notice'>You set the label to \"[tmp_label]\".</span>")
+				label_text = tmp_label
+				name = addtext(name," ([label_text])")
+			else
+				to_chat(user, "<span class='notice'>You remove the label.</span>")
+				label_text = null
+				on_reagent_change()
+		return
 
 
 
@@ -86,6 +86,11 @@
 /obj/item/weapon/reagent_containers/food/condiment/self_feed_message(var/mob/user)
 	to_chat(user, "<span class='notice'>You swallow some of contents of \the [src].</span>")
 
+/obj/item/weapon/reagent_containers/food/condiment/Initialize()
+	. = ..()
+	for(var/R in starting_reagents)
+		reagents.add_reagent(R, starting_reagents[R])
+
 /obj/item/weapon/reagent_containers/food/condiment/on_reagent_change()
 	var/reagent = reagents.get_master_reagent_type()
 	if(reagent in special_bottles)
@@ -102,87 +107,67 @@
 			icon_state = "mixedcondiments"
 		else
 			icon_state = "emptycondiment"
-	//Handled by label extension via events
-	// if(label)
-	// 	name = addtext(name," ([label])")
+	if(label_text)
+		name = addtext(name," ([label_text])")
 
 /obj/item/weapon/reagent_containers/food/condiment/enzyme
 	name = "universal enzyme"
 	desc = "Used in cooking various dishes."
 	icon_state = "enzyme"
-	starts_with = list(/datum/reagent/enzyme = 50)
-/obj/item/weapon/reagent_containers/food/condiment/enzyme/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/enzyme = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/barbecue
 	name = "barbecue sauce"
 	desc = "Barbecue sauce, it's labeled 'sweet and spicy'"
 	icon_state = "barbecue"
-	starts_with = list(/datum/reagent/nutriment/barbecue = 50)
-/obj/item/weapon/reagent_containers/food/condiment/barbecue/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/barbecue = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/sugar
 	name = "sugar"
 	desc = "Cavities in a bottle."
-	starts_with = list(/datum/reagent/sugar = 50)
-/obj/item/weapon/reagent_containers/food/condiment/sugar/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/sugar = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/ketchup
 	name = "ketchup"
 	desc = "Tomato, but more liquid, stronger, better."
 	icon_state = "ketchup"
-	starts_with = list(/datum/reagent/nutriment/ketchup = 50)
-/obj/item/weapon/reagent_containers/food/condiment/ketchup/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/ketchup = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/cornoil
 	name = "corn oil"
 	desc = "A delicious oil used in cooking. Made from corn."
 	icon_state = "oliveoil"
-	starts_with = list(/datum/reagent/nutriment/cornoil = 50)
-/obj/item/weapon/reagent_containers/food/condiment/cornoil/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/cornoil = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/vinegar
 	name = "vinegar"
 	icon_state = "vinegar"
 	desc = "As acidic as it gets in the kitchen."
-	starts_with = list(/datum/reagent/nutriment/vinegar = 50)
-/obj/item/weapon/reagent_containers/food/condiment/vinegar/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/vinegar = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/mayo
 	name = "mayonnaise"
 	icon_state = "mayo"
 	desc = "Mayonnaise, used for centuries to make things edible."
-	starts_with = list(/datum/reagent/nutriment/mayo = 50)
-/obj/item/weapon/reagent_containers/food/condiment/mayo/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/mayo = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/frostoil
 	name = "coldsauce"
 	desc = "Leaves the tongue numb in its passage."
 	icon_state = "coldsauce"
-	starts_with = list(/datum/reagent/frostoil = 50)
-/obj/item/weapon/reagent_containers/food/condiment/frostoil/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/frostoil = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/capsaicin
 	name = "hotsauce"
 	desc = "You can almost TASTE the stomach ulcers now!"
 	icon_state = "hotsauce"
-	starts_with = list(/datum/reagent/capsaicin = 50)
-/obj/item/weapon/reagent_containers/food/condiment/capsaicin/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/capsaicin = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/small
 	possible_transfer_amounts = "1;20"
 	amount_per_transfer_from_this = 1
 	volume = 20
-/obj/item/weapon/reagent_containers/food/condiment/small/empty
-	starts_with = null
+
 /obj/item/weapon/reagent_containers/food/condiment/small/on_reagent_change()
 	return
 
@@ -191,27 +176,21 @@
 	desc = "Salt. From space oceans, presumably."
 	icon_state = "saltshakersmall"
 	center_of_mass = "x=16;y=9"
-	starts_with = list(/datum/reagent/sodiumchloride = 20)
-/obj/item/weapon/reagent_containers/food/condiment/small/saltshaker/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/sodiumchloride = 20)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/peppermill
 	name = "pepper mill"
 	desc = "Often used to flavor food or make people sneeze."
 	icon_state = "peppermillsmall"
 	center_of_mass = "x=16;y=8"
-	starts_with = list(/datum/reagent/blackpepper = 20)
-/obj/item/weapon/reagent_containers/food/condiment/small/peppermill/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/blackpepper = 20)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/sugar
 	name = "sugar"
 	desc = "Sweetness in a bottle"
 	icon_state = "sugarsmall"
 	center_of_mass = "x=17;y=9"
-	starts_with = list(/datum/reagent/sugar = 20)
-/obj/item/weapon/reagent_containers/food/condiment/small/sugar/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/sugar = 20)
 
 //MRE condiments and drinks.
 
@@ -226,151 +205,117 @@
 	name = "salt packet"
 	desc = "Contains 5u of table salt."
 	icon_state = "packet_small_white"
-	starts_with = list(/datum/reagent/sodiumchloride = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/salt/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/sodiumchloride = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/pepper
 	name = "pepper packet"
 	desc = "Contains 5u of black pepper."
 	icon_state = "packet_small_black"
-	starts_with = list(/datum/reagent/blackpepper = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/pepper/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/blackpepper = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/sugar
 	name = "sugar packet"
 	desc = "Contains 5u of refined sugar."
 	icon_state = "packet_small_white"
-	starts_with = list(/datum/reagent/sugar = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/sugar/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/sugar = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/jelly
 	name = "jelly packet"
 	desc = "Contains 10u of cherry jelly. Best used for spreading on crackers."
-	starts_with = list(/datum/reagent/nutriment/cherryjelly = 10)
+	starting_reagents = list(/datum/reagent/nutriment/cherryjelly = 10)
 	icon_state = "packet_medium"
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/jelly/empty
-	starts_with = null
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/honey
 	name = "honey packet"
 	desc = "Contains 10u of honey."
-	starts_with = list(/datum/reagent/sugar = 10)
+	starting_reagents = list(/datum/reagent/sugar = 10)
 	icon_state = "packet_medium"
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/honey/empty
-	starts_with = null
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/capsaicin
 	name = "hot sauce packet"
 	desc = "Contains 5u of hot sauce. Enjoy in moderation."
 	icon_state = "packet_small_red"
-	starts_with = list(/datum/reagent/capsaicin = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/capsaicin/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/capsaicin = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/ketchup
 	name = "ketchup packet"
 	desc = "Contains 5u of ketchup."
 	icon_state = "packet_small_red"
-	starts_with = list(/datum/reagent/nutriment/ketchup = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/ketchup/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/ketchup = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/mayo
 	name = "mayonnaise packet"
 	desc = "Contains 5u of mayonnaise."
 	icon_state = "packet_small_white"
-	starts_with = list(/datum/reagent/nutriment/mayo = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/mayo/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/mayo = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/soy
 	name = "soy sauce packet"
 	desc = "Contains 5u of soy sauce."
 	icon_state = "packet_small_black"
-	starts_with = list(/datum/reagent/nutriment/soysauce = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/soy/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/soysauce = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/coffee
-	name = "coffee powder packet"
-	desc = "Contains 5u of coffee powder. Mix with 25u of water and heat."
-	starts_with = list(/datum/reagent/nutriment/coffee = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/coffee/empty
-	starts_with = null
+	name = "instant coffee powder packet"
+	desc = "Contains 5u of instant coffee powder. Mix with 25u of water."
+	starting_reagents = list(/datum/reagent/nutriment/coffee/instant = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/tea
-	name = "tea powder packet"
-	desc = "Contains 5u of black tea powder. Mix with 25u of water and heat."
-	starts_with = list(/datum/reagent/nutriment/tea = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/tea/empty
-	starts_with = null
+	name = "instant tea powder packet"
+	desc = "Contains 5u of instant black tea powder. Mix with 25u of water."
+	starting_reagents = list(/datum/reagent/nutriment/tea/instant = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/cocoa
 	name = "cocoa powder packet"
 	desc = "Contains 5u of cocoa powder. Mix with 25u of water and heat."
-	starts_with = list(/datum/reagent/nutriment/coco = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/cocoa/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/coco = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/grape
 	name = "grape juice powder packet"
 	desc = "Contains 5u of powdered grape juice. Mix with 15u of water."
-	starts_with = list(/datum/reagent/nutriment/instantjuice/grape = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/grape/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/instantjuice/grape = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/orange
 	name = "orange juice powder packet"
 	desc = "Contains 5u of powdered orange juice. Mix with 15u of water."
-	starts_with = list(/datum/reagent/nutriment/instantjuice/orange = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/orange/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/instantjuice/orange = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/watermelon
 	name = "watermelon juice powder packet"
 	desc = "Contains 5u of powdered watermelon juice. Mix with 15u of water."
-	starts_with = list(/datum/reagent/nutriment/instantjuice/watermelon = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/watermelon/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/instantjuice/watermelon = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/apple
 	name = "apple juice powder packet"
 	desc = "Contains 5u of powdered apple juice. Mix with 15u of water."
-	starts_with = list(/datum/reagent/nutriment/instantjuice/apple = 5)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/apple/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/instantjuice/apple = 5)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/protein
 	name = "protein powder packet"
 	desc = "Contains 10u of powdered protein. Mix with 20u of water."
 	icon_state = "packet_medium"
-	starts_with = list(/datum/reagent/nutriment/protein = 10)
-/obj/item/weapon/reagent_containers/food/condiment/small/packet/protein/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/protein = 10)
 
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon
 	name = "crayon powder packet"
 	desc = "Contains 10u of powdered crayon. Mix with 30u of water."
-	starts_with = list(/datum/reagent/crayon_dust = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/red
-	starts_with = list(/datum/reagent/crayon_dust/red = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/red = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/orange
-	starts_with = list(/datum/reagent/crayon_dust/orange = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/orange = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/yellow
-	starts_with = list(/datum/reagent/crayon_dust/yellow = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/yellow = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/green
-	starts_with = list(/datum/reagent/crayon_dust/green = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/green = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/blue
-	starts_with = list(/datum/reagent/crayon_dust/blue = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/blue = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/purple
-	starts_with = list(/datum/reagent/crayon_dust/purple = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/purple = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/grey
-	starts_with = list(/datum/reagent/crayon_dust/grey = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/grey = 10)
 /obj/item/weapon/reagent_containers/food/condiment/small/packet/crayon/brown
-	starts_with = list(/datum/reagent/crayon_dust/brown = 10)
+	starting_reagents = list(/datum/reagent/crayon_dust/brown = 10)
 
 //End of MRE stuff.
 
@@ -381,9 +326,7 @@
 	icon_state = "flour"
 	item_state = "flour"
 	randpixel = 10
-	starts_with = list(/datum/reagent/nutriment/flour = 50)
-/obj/item/weapon/reagent_containers/food/condiment/flour/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/flour = 50)
 
 /obj/item/weapon/reagent_containers/food/condiment/flour/on_reagent_change()
 	return
@@ -397,9 +340,7 @@
 	randpixel = 10
 	volume = 500
 	w_class = ITEM_SIZE_LARGE
-	starts_with = list(/datum/reagent/sodiumchloride = 500)
-/obj/item/weapon/reagent_containers/food/condiment/salt/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/sodiumchloride = 500)
 
 /obj/item/weapon/reagent_containers/food/condiment/salt/on_reagent_change()
 	return
@@ -409,9 +350,7 @@
 	desc = "A small bottle of the essential oil of some kind of mint plant."
 	icon = 'icons/obj/food.dmi'
 	icon_state = "coldsauce"
-	starts_with = list(/datum/reagent/nutriment/mint = 15)
-/obj/item/weapon/reagent_containers/food/condiment/mint/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/mint = 15)
 
 /obj/item/weapon/reagent_containers/food/condiment/mint/on_reagent_change()
 	return
@@ -422,6 +361,4 @@
 	icon_state = "soysauce"
 	amount_per_transfer_from_this = 1
 	volume = 20
-	starts_with = list(/datum/reagent/nutriment/soysauce = 20)
-/obj/item/weapon/reagent_containers/food/condiment/soysauce/empty
-	starts_with = null
+	starting_reagents = list(/datum/reagent/nutriment/soysauce = 20)

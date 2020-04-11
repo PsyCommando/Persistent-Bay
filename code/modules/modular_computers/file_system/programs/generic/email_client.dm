@@ -5,7 +5,7 @@
 	program_icon_state = "generic"
 	program_key_state = "generic_key"
 	program_menu_icon = "mail-closed"
-	size = 4
+	size = 7
 	requires_ntnet = 1
 	available_on_ntnet = 1
 	var/stored_login = ""
@@ -16,7 +16,7 @@
 	nanomodule_path = /datum/nano_module/email_client
 
 // Persistency. Unless you log out, or unless your password changes, this will pre-fill the login data when restarting the program
-/datum/computer_file/program/email_client/kill_program()
+/datum/computer_file/program/email_client/on_shutdown()
 	if(NM)
 		var/datum/nano_module/email_client/NME = NM
 		if(NME.current_account)
@@ -28,7 +28,7 @@
 			stored_password = ""
 	. = ..()
 
-/datum/computer_file/program/email_client/run_program()
+/datum/computer_file/program/email_client/on_startup()
 	. = ..()
 
 	if(NM)
@@ -40,8 +40,7 @@
 		NME.check_for_new_messages(1)
 
 /datum/computer_file/program/email_client/proc/new_mail_notify()
-	computer.visible_message("\The [computer] beeps softly, indicating a new email has been received.", 1)
-	playsound(computer, 'sound/machines/twobeep.ogg', 50, 1)
+	computer.visible_notification("You got mail!")
 
 /datum/computer_file/program/email_client/process_tick()
 	..()
@@ -82,13 +81,21 @@
 	var/datum/computer_file/data/email_account/current_account = null
 	var/datum/computer_file/data/email_message/current_message = null
 
+/datum/nano_module/email_client/proc/get_functional_drive()
+	var/datum/extension/interactive/ntos/os = get_extension(nano_host(), /datum/extension/interactive/ntos)
+	var/obj/item/weapon/stock_parts/computer/hard_drive/drive = os && os.get_component(/obj/item/weapon/stock_parts/computer/hard_drive)
+	if(!drive || !drive.check_functionality())
+		error = "Error uploading file. Are you using a functional and NTOSv2-compliant device?"
+		return
+	return drive
+
 /datum/nano_module/email_client/proc/mail_received(var/datum/computer_file/data/email_message/received_message)
 	var/mob/living/L = get_holder_of_type(host, /mob/living)
 	if(L)
 		var/list/msg = list()
 		msg += "*--*\n"
 		msg += "<span class='notice'>New mail received from [received_message.source]:</span>\n"
-		msg += "<b>Subject:</b> [received_message.title]\n<b>Message:</b>\n[pencode2html(received_message.stored_data)]\n"
+		msg += "<b>Subject:</b> [received_message.title]\n<b>Message:</b>\n[digitalPencode2html(received_message.stored_data)]\n"
 		if(received_message.attachment)
 			msg += "<b>Attachment:</b> [received_message.attachment.filename].[received_message.attachment.filetype] ([received_message.attachment.size]GQ)\n"
 		msg += "<a href='?src=\ref[src];open;reply=[received_message.uid]'>Reply</a>\n"
@@ -101,15 +108,13 @@
 
 /datum/nano_module/email_client/proc/log_in()
 	var/list/id_login
-
-	if(istype(host, /obj/item/modular_computer))
-		var/obj/item/modular_computer/computer = host
-		var/obj/item/weapon/card/id/id = computer.GetIdCard()
-		if(!id && ismob(computer.loc))
-			var/mob/M = computer.loc
-			id = M.GetIdCard()
-		if(id)
-			id_login = id.associated_email_login.Copy()
+	var/atom/movable/A = nano_host()
+	var/obj/item/weapon/card/id/id = A.GetIdCard()
+	if(!id && ismob(A.loc))
+		var/mob/M = A.loc
+		id = M.GetIdCard()
+	if(id)
+		id_login = id.associated_email_login.Copy()
 
 	var/datum/computer_file/data/email_account/target
 	for(var/datum/computer_file/data/email_account/account in ntnet_global.email_accounts)
@@ -175,7 +180,6 @@
 
 /datum/nano_module/email_client/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
 	var/list/data = host.initial_data()
-	var/datum/computer_file/data/email_account/current_account = Get_Email_Account(user.real_name) //#FIXME: This is being called a lot when running the email client!! It seems fairly expensive too.
 
 	// Password has been changed by other client connected to this email account
 	if(current_account)
@@ -205,6 +209,8 @@
 				if(!account.can_login)
 					continue
 				all_accounts.Add(list(list(
+					"name" = account.fullname,
+					"job" = account.assignment,
 					"login" = account.login
 				)))
 			data["addressbook"] = 1
@@ -212,7 +218,7 @@
 		else if(new_message)
 			data["new_message"] = 1
 			data["msg_title"] = msg_title
-			data["msg_body"] = pencode2html(msg_body)
+			data["msg_body"] = digitalPencode2html(msg_body)
 			data["msg_recipient"] = msg_recipient
 			if(msg_attachment)
 				data["msg_hasattachment"] = 1
@@ -220,10 +226,10 @@
 				data["msg_attachment_size"] = msg_attachment.size
 		else if (current_message)
 			data["cur_title"] = current_message.title
-			data["cur_body"] = pencode2html(current_message.stored_data)
+			data["cur_body"] = digitalPencode2html(current_message.stored_data)
 			data["cur_timestamp"] = current_message.timestamp
 			data["cur_source"] = current_message.source
-			data["cur_uid"] = "\ref[current_message]"
+			data["cur_uid"] = current_message.uid
 			if(istype(current_message.attachment))
 				data["cur_hasattachment"] = 1
 				data["cur_attachment_filename"] = "[current_message.attachment.filename].[current_message.attachment.filetype]"
@@ -249,10 +255,10 @@
 				for(var/datum/computer_file/data/email_message/message in message_source)
 					all_messages.Add(list(list(
 						"title" = message.title,
-						"body" = pencode2html(message.stored_data),
+						"body" = digitalPencode2html(message.stored_data),
 						"source" = message.source,
 						"timestamp" = message.timestamp,
-						"ref" = "\ref[message]"
+						"uid" = message.uid
 					)))
 				data["messages"] = all_messages
 				data["messagecount"] = all_messages.len
@@ -269,7 +275,7 @@
 		ui.set_initial_data(data)
 		ui.open()
 
-/datum/nano_module/email_client/proc/find_message_by_fuid(var/fuid, var/datum/computer_file/data/email_account/current_account)
+/datum/nano_module/email_client/proc/find_message_by_fuid(var/fuid)
 	if(!istype(current_account))
 		return
 
@@ -295,14 +301,13 @@
 		return
 	download_progress = min(download_progress + netspeed, downloading.size)
 	if(download_progress >= downloading.size)
-		var/obj/item/modular_computer/MC = nano_host()
-		if(!istype(MC) || !MC.hard_drive || !MC.hard_drive.check_functionality())
-			error = "Error uploading file. Are you using a functional and NTOSv2-compliant device?"
+		var/obj/item/weapon/stock_parts/computer/hard_drive/drive = get_functional_drive()
+		if(!drive)
 			downloading = null
 			download_progress = 0
 			return 1
 
-		if(MC.hard_drive.store_file(downloading))
+		if(drive.store_file(downloading))
 			error = "File successfully downloaded to local device."
 		else
 			error = "Error saving file: I/O Error: The hard drive may be full or nonfunctional."
@@ -315,7 +320,7 @@
 	if(..())
 		return 1
 	var/mob/living/user = usr
-	var/datum/computer_file/data/email_account/current_account = Get_Email_Account(user.real_name)// Any actual interaction (button pressing) is considered as acknowledging received message, for the purpose of notification icons.
+
 	if(href_list["open"])
 		ui_interact()
 
@@ -369,7 +374,7 @@
 		return 1
 
 	if(href_list["edit_recipient"])
-		var/newrecipient = sanitize(input(user,"Enter recipient's name:", "Recipient", msg_recipient), 100)
+		var/newrecipient = sanitize(input(user,"Enter recipient's email address:", "Recipient", msg_recipient), 100)
 		if(newrecipient)
 			msg_recipient = newrecipient
 			addressbook = 0
@@ -394,7 +399,7 @@
 	if(href_list["delete"])
 		if(!istype(current_account))
 			return 1
-		var/datum/computer_file/data/email_message/M = locate(href_list["delete"])
+		var/datum/computer_file/data/email_message/M = find_message_by_fuid(href_list["delete"])
 		if(!istype(M))
 			return 1
 		if(folder == "Deleted")
@@ -411,8 +416,8 @@
 	if(href_list["send"])
 		if(!current_account)
 			return 1
-		if((msg_title == "") || (msg_body == "") || (msg_recipient == ""))
-			error = "Error sending mail: Title or message body is empty!"
+		if((msg_body == "") || (msg_recipient == ""))
+			error = "Error sending mail: Message body is empty!"
 			return 1
 		if(!length(msg_title))
 			msg_title = "No subject"
@@ -435,15 +440,13 @@
 		return 1
 
 	if(href_list["reply"])
-		var/datum/computer_file/data/email_message/M = locate(href_list["reply"])
+		var/datum/computer_file/data/email_message/M = find_message_by_fuid(href_list["reply"])
 		if(!istype(M))
 			return 1
 		error = null
 		new_message = TRUE
 		msg_recipient = M.source
 		msg_title = "Re: [M.title]"
-		msg_body = "\[editorbr\]\[editorbr\]\[editorbr\]\[br\]==============================\[br\]\[editorbr\]"
-		msg_body += "Received by [current_account.login] at [M.timestamp]\[br\]\[editorbr\][M.stored_data]"
 		var/atom/movable/AM = host
 		if(istype(AM))
 			if(ismob(AM.loc))
@@ -451,9 +454,8 @@
 		return 1
 
 	if(href_list["view"])
-		var/datum/computer_file/data/email_message/M = locate(href_list["view"])
+		var/datum/computer_file/data/email_message/M = find_message_by_fuid(href_list["view"])
 		if(istype(M))
-			M.unread = 0
 			current_message = M
 		return 1
 
@@ -489,10 +491,8 @@
 
 	if(href_list["save"])
 		// Fully dependant on modular computers here.
-		var/obj/item/modular_computer/MC = nano_host()
-
-		if(!istype(MC) || !MC.hard_drive || !MC.hard_drive.check_functionality())
-			error = "Error exporting file. Are you using a functional and NTOS-compliant device?"
+		var/obj/item/weapon/stock_parts/computer/hard_drive/drive = get_functional_drive()
+		if(!drive)
 			return 1
 
 		var/filename = sanitize(input(user,"Please specify file name:", "Message export"), 100)
@@ -504,22 +504,22 @@
 		if(!istype(mail))
 			return 1
 		mail.filename = filename
-		if(!MC.hard_drive || !MC.hard_drive.store_file(mail))
+
+		drive = get_functional_drive()
+		if(!drive || !drive.store_file(mail))
 			error = "Internal I/O error when writing file, the hard drive may be full."
 		else
 			error = "Email exported successfully"
 		return 1
 
 	if(href_list["addattachment"])
-		var/obj/item/modular_computer/MC = nano_host()
+		var/obj/item/weapon/stock_parts/computer/hard_drive/drive = get_functional_drive()
 		msg_attachment = null
-
-		if(!istype(MC) || !MC.hard_drive || !MC.hard_drive.check_functionality())
-			error = "Error uploading file. Are you using a functional and NTOSv2-compliant device?"
+		if(!drive)
 			return 1
 
 		var/list/filenames = list()
-		for(var/datum/computer_file/CF in MC.hard_drive.stored_files)
+		for(var/datum/computer_file/CF in drive.stored_files)
 			if(CF.unsendable)
 				continue
 			filenames.Add(CF.filename)
@@ -528,11 +528,11 @@
 		if(!picked_file)
 			return 1
 
-		if(!istype(MC) || !MC.hard_drive || !MC.hard_drive.check_functionality())
-			error = "Error uploading file. Are you using a functional and NTOSv2-compliant device?"
+		drive = get_functional_drive()
+		if(!drive)
 			return 1
 
-		for(var/datum/computer_file/CF in MC.hard_drive.stored_files)
+		for(var/datum/computer_file/CF in drive.stored_files)
 			if(CF.unsendable)
 				continue
 			if(CF.filename == picked_file)
@@ -553,9 +553,8 @@
 	if(href_list["downloadattachment"])
 		if(!current_account || !current_message || !current_message.attachment)
 			return 1
-		var/obj/item/modular_computer/MC = nano_host()
-		if(!istype(MC) || !MC.hard_drive || !MC.hard_drive.check_functionality())
-			error = "Error downloading file. Are you using a functional and NTOSv2-compliant device?"
+		var/obj/item/weapon/stock_parts/computer/hard_drive/drive = get_functional_drive()
+		if(!drive)
 			return 1
 
 		downloading = current_message.attachment.clone()

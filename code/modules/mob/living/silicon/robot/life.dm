@@ -86,10 +86,6 @@
 	if(health < config.health_threshold_dead && src.stat != 2) //die only once
 		death()
 
-	if(last_hud_update < world.time)
-		last_hud_update = world.time + 15 SECONDS
-		update_action_buttons()
-
 	if (src.stat != DEAD) //Alive.
 		if (src.paralysis || src.stunned || src.weakened || !src.has_power) //Stunned etc.
 			src.set_stat(UNCONSCIOUS)
@@ -125,9 +121,9 @@
 
 	src.set_density(!src.lying)
 
-	if ((src.sdisabilities & BLIND))
+	if ((src.sdisabilities & BLINDED))
 		src.blinded = 1
-	if ((src.sdisabilities & DEAF))
+	if ((src.sdisabilities & DEAFENED))
 		src.ear_deaf = 1
 
 	if (src.eye_blurry > 0)
@@ -139,7 +135,7 @@
 		src.druggy = max(0, src.druggy)
 
 	//update the state of modules and components here
-	if (src.stat != 0)
+	if (src.stat != CONSCIOUS)
 		uneq_all()
 
 	if(silicon_radio)
@@ -148,7 +144,7 @@
 		else
 			silicon_radio.on = 1
 
-	if(is_component_functioning("camera"))
+	if(isnull(components["camera"]) || is_component_functioning("camera"))
 		src.blinded = 0
 	else
 		src.blinded = 1

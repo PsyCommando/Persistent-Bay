@@ -9,9 +9,6 @@
 	else
 		SetName(initial(name))
 
-	if(labelled)
-		SetName(name + " ([labelled])")
-
 	overlays.Cut()
 	var/new_overlays = list()
 	// Updates the plant overlay.
@@ -72,17 +69,11 @@
 
 	overlays |= new_overlays
 
-	if(mechanical)
-		if(seed && closed_system)
-			set_light(tray_light / 10.0, tray_light / 2.0, 10, 1.2, COLOR_RESEARCH)
-		else
-			set_light(0)
+	// Update bioluminescence.
+	if(seed && seed.get_trait(TRAIT_BIOLUM))
+		set_light(0.5, 0.1, 3, l_color = seed.get_trait(TRAIT_BIOLUM_COLOUR))
 	else
-		// Update bioluminescence. //Should do this a better way imo
-		if(seed && seed.get_trait(TRAIT_BIOLUM))
-			set_light(0.5, 0.1, 3, l_color = seed.get_trait(TRAIT_BIOLUM_COLOUR))
-		else
-			set_light(0)
+		set_light(0)
 
 /obj/machinery/portable_atmospherics/hydroponics/proc/get_overlay_stage()
 	. = 1

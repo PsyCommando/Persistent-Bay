@@ -12,14 +12,12 @@
 					/obj/item/clothing/gloves/thick/botany,
 					/obj/item/clothing/suit/apron,
 					/obj/item/weapon/material/minihoe,
-					/obj/item/weapon/storage/box/botanydisk,
-					/obj/item/weapon/tool/wirecutters/clippers,
+					/obj/item/weapon/storage/box/botanydisk
 					)
 	cost = 15
 	containername = "hydroponics supply crate"
 	access = access_hydroponics
 
-//samples
 /decl/hierarchy/supply_pack/hydroponics/seeds
 	name = "Samples - Mundane Seeds"
 	contains = list(/obj/item/seeds/chiliseed,
@@ -41,6 +39,7 @@
 					/obj/item/seeds/sugarcaneseed)
 	cost = 10
 	containername = "seeds crate"
+	access = access_hydroponics
 
 /decl/hierarchy/supply_pack/hydroponics/weedcontrol
 	name = "Gear - Weed control"
@@ -50,18 +49,19 @@
 					/obj/item/weapon/grenade/chem_grenade/antiweed = 2)
 	cost = 25
 	containername = "weed control crate"
-
+	access = access_hydroponics
 
 /decl/hierarchy/supply_pack/hydroponics/exoticseeds
 	name = "Samples - Exotic seeds"
-	contains = list(/obj/item/seeds/libertymycelium,
+	contains = list(/obj/item/seeds/replicapod = 2,
+					/obj/item/seeds/libertymycelium,
 					/obj/item/seeds/reishimycelium,
 					/obj/item/seeds/random = 6,
 					/obj/item/seeds/kudzuseed)
 	cost = 15
-	containertype = /obj/structure/closet/crate/secure/hydrosec
-	containername = "exotic seeds crate"
-	access = core_access_science_programs
+	containertype = /obj/structure/closet/crate/secure
+	containername = "exotic Seeds crate"
+	access = access_xenobiology
 
 /decl/hierarchy/supply_pack/hydroponics/watertank
 	name = "Liquid - Water tank"
@@ -70,22 +70,23 @@
 	containertype = /obj/structure/largecrate
 	containername = "water tank crate"
 
-//equipment
 /decl/hierarchy/supply_pack/hydroponics/bee_keeper
 	name = "Equipment - Beekeeping"
 	contains = list(/obj/item/beehive_assembly,
 					/obj/item/bee_smoker,
 					/obj/item/honey_frame = 5,
 					/obj/item/bee_pack)
-	cost = 35
+	cost = 40
 	containername = "beekeeping crate"
+	access = access_hydroponics
 
 /decl/hierarchy/supply_pack/hydroponics/hydrotray
 	name = "Equipment - Hydroponics tray"
 	contains = list(/obj/machinery/portable_atmospherics/hydroponics{anchored = 0})
-	cost = 28
+	cost = 30
 	containertype = /obj/structure/closet/crate/large/hydroponics
 	containername = "hydroponics tray crate"
+	access = access_hydroponics
 
 /decl/hierarchy/supply_pack/hydroponics/pottedplant
 	name = "Deco - Potted plants"

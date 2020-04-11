@@ -2,7 +2,7 @@
 	MATERIAL DATUMS
 	This data is used by various parts of the game for basic physical properties and behaviors
 	of the metals/materials used for constructing many objects. Each var is commented and should be pretty
-	self-explanatory but the various object types may have their own documentation. ~Z
+	self-explanatory but the various object types may have their own documentation.
 
 	PATHS THAT USE DATUMS
 		turf/simulated/wall
@@ -41,6 +41,7 @@
 	var/display_name                      // Prettier name for display.
 	var/adjective_name
 	var/use_name
+	var/wall_name = "wall"                // Name given to walls of this material
 	var/flags = 0                         // Various status modifiers.
 	var/sheet_singular_name = "sheet"
 	var/sheet_plural_name = "sheets"
@@ -71,15 +72,14 @@
 	var/cut_delay = 0            // Delay in ticks when cutting through this wall.
 	var/radioactivity            // Radiation var. Used in wall and object processing to irradiate surroundings.
 	var/ignition_point           // K, point at which the material catches on fire.
-	var/energy_combustion = 8    // MJ/kilo-unit Basically the heat energy given off for burning 1,000 units of said material(8 is given for generic trash on wikipedia)
 	var/melting_point = 1800     // K, walls will take damage if they're next to a fire hotter than this
-	var/brute_armor = 2          // Brute damage to a wall is divided by this value if the wall is reinforced by this material.
-	var/burn_armor = 0           // Same as above, but for Burn damage type. If blank brute_armor's value is used.
+	var/brute_armor = 2	 		 // Brute damage to a wall is divided by this value if the wall is reinforced by this material.
+	var/burn_armor				 // Same as above, but for Burn damage type. If blank brute_armor's value is used.
 	var/integrity = 150          // General-use HP value for products.
 	var/opacity = 1              // Is the material transparent? 0.5< makes transparent walls/doors.
 	var/explosion_resistance = 5 // Only used by walls currently.
 	var/conductive = 1           // Objects with this var add CONDUCTS to flags on spawn.
-	var/luminescence = 0
+	var/luminescence
 	var/list/alloy_materials     // If set, material can be produced via alloying these materials in these amounts.
 	var/units_per_sheet = SHEET_MATERIAL_AMOUNT
 
@@ -88,7 +88,7 @@
 	var/list/window_options = list()
 
 	// Damage values.
-	var/hardness = 60            // Prob of wall destruction by hulk, used for edge damage in weapons.
+	var/hardness = MATERIAL_HARD            // Prob of wall destruction by hulk, used for edge damage in weapons.
 	var/weight = 20              // Determines blunt damage/throwforce for weapons.
 
 	// Noise when someone is faceplanted onto a table made of this material.
@@ -98,11 +98,11 @@
 	// Noise made when you hit structure made of this material.
 	var/hitsound = 'sound/weapons/genhit.ogg'
 	// Path to resulting stacktype. Todo remove need for this.
-	var/stack_type = /obj/item/stack/material
+	var/stack_type = /obj/item/stack/material/generic
 	// Wallrot crumble message.
 	var/rotting_touch_message = "crumbles under your touch"
 	// Modifies skill checks when constructing with this material.
-	var/construction_difficulty = 0
+	var/construction_difficulty = MATERIAL_EASY_DIY
 
 	// Mining behavior.
 	var/alloy_product
@@ -115,33 +115,29 @@
 	var/ore_scan_icon
 	var/ore_icon_overlay
 	var/sale_price
-	var/list/ore_matter = list() //material contained in the ore itself
+	var/value = 1
 
 	// Xenoarch behavior.
 	var/list/xarch_ages = list("thousand" = 999, "million" = 999)
-	var/xarch_source_mineral = MATERIAL_IRON
+	var/xarch_source_mineral = "iron"
 
 // Placeholders for light tiles and rglass.
 /material/proc/reinforce(var/mob/user, var/obj/item/stack/material/used_stack, var/obj/item/stack/material/target_stack)
 	if(!used_stack.can_use(1))
-		to_chat(user, SPAN_WARNING("You need need at least one [used_stack.singular_name] to reinforce [target_stack]."))
+		to_chat(user, "<span class='warning'>You need need at least one [used_stack.singular_name] to reinforce [target_stack].</span>")
 		return
 
 	var/needed_sheets = 2 * used_stack.matter_multiplier
 	if(!target_stack.can_use(needed_sheets))
-		to_chat(user, SPAN_WARNING("You need need at least [needed_sheets] [target_stack.plural_name] for reinforcement with [used_stack]."))
+		to_chat(user, "<span class='warning'>You need need at least [needed_sheets] [target_stack.plural_name] for reinforcement with [used_stack].</span>")
 		return
 
 	var/material/reinf_mat = used_stack.material
-	if(reinf_mat.name == name)
-		to_chat(user, SPAN_WARNING("You can't reinforce a material with itself."))
-		return
-
 	if(reinf_mat.integrity <= integrity || reinf_mat.is_brittle())
-		to_chat(user, SPAN_WARNING("The [reinf_mat.display_name] is too structurally weak to reinforce the [display_name]."))
+		to_chat(user, "<span class='warning'>The [reinf_mat.display_name] is too structurally weak to reinforce the [display_name].</span>")
 		return
 
-	to_chat(user, SPAN_NOTICE("You reinforce the [target_stack] with the [reinf_mat.display_name]."))
+	to_chat(user, "<span class='notice'>You reinforce the [target_stack] with the [reinf_mat.display_name].</span>")
 	used_stack.use(1)
 	var/obj/item/stack/material/S = target_stack.split(needed_sheets)
 	S.reinf_material = reinf_mat
@@ -193,9 +189,9 @@
 	return hardness //todo
 
 /material/proc/get_attack_cooldown()
-	if(weight < 19)
+	if(weight <= MATERIAL_LIGHT)
 		return FAST_WEAPON_COOLDOWN
-	if(weight > 23)
+	if(weight >= MATERIAL_HEAVY)
 		return SLOW_WEAPON_COOLDOWN
 	return DEFAULT_WEAPON_COOLDOWN
 
@@ -212,21 +208,16 @@
 	name = "placeholder"
 
 // Places a girder object when a wall is dismantled, also applies reinforced material.
-/material/proc/place_dismantled_girder(var/turf/target, var/material/material, var/material/reinf_material)
+/material/proc/place_dismantled_girder(var/turf/target, var/material/reinf_material)
 	var/obj/structure/girder/G = new(target)
-	G.anchored = TRUE
-	if(material)
-		G.material = material
-		G.state = 2
 	if(reinf_material)
 		G.reinf_material = reinf_material
 		G.reinforce_girder()
-		G.state = 3
 
 // General wall debris product placement.
 // Not particularly necessary aside from snowflakey cult girders.
 /material/proc/place_dismantled_product(var/turf/target,var/is_devastated)
-	place_sheet(target, is_devastated ? 2 : 3)
+	place_sheet(target, is_devastated ? 1 : 2)
 
 // Debris product. Used ALL THE TIME.
 /material/proc/place_sheet(var/turf/target, var/amount = 1)
@@ -244,6 +235,6 @@
 /material/proc/combustion_effect(var/turf/T, var/temperature)
 	return
 
-//Returns the material content of the ore for this material if available
-/material/proc/get_ore_matter()
-	return ore_matter
+// Dumb overlay to apply over wall sprite for cheap texture effect
+/material/proc/get_wall_texture()
+	return

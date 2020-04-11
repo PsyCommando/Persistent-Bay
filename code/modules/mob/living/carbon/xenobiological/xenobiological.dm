@@ -1,16 +1,16 @@
 /mob/living/carbon/slime
 	name = "baby slime"
-	icon = 'icons/mob/slimes.dmi'
+	icon = 'icons/mob/simple_animal/slimes.dmi'
 	icon_state = "grey baby slime"
 	pass_flags = PASS_FLAG_TABLE
 	speak_emote = list("chirps")
 
-	maxHealth = 200
-	health = 200
+	maxHealth = 150
+	health = 150
 	gender = NEUTER
 
 	update_icon = 0
-	nutrition = 2400
+	nutrition = 800
 
 	see_in_dark = 8
 	update_slimes = 0
@@ -19,14 +19,21 @@
 	// for the sake of cleanliness, though, here they are.
 	status_flags = CANPARALYSE|CANPUSH
 
+	meat_type = null
+	meat_amount = 0
+	skin_material = null
+	skin_amount = 0
+	bone_material = null
+	bone_amount = 0
+
 	var/toxloss = 0
 	var/is_adult = 0
 	var/number = 0 // Used to understand when someone is talking to it
 	var/cores = 1 // the number of /obj/item/slime_extract's the slime has left inside
-	var/mutation_chance = 10 // Chance of mutating, should be between 5 and 15
+	var/mutation_chance = 30 // Chance of mutating, should be between 25 and 35
 
 	var/powerlevel = 0 // 0-10 controls how much electricity they are generating
-	var/amount_grown = 0 // controls how long the slime has been overfed, if 30, grows or reproduces
+	var/amount_grown = 0 // controls how long the slime has been overfed, if 10, grows or reproduces
 
 	var/mob/living/Victim = null // the person the slime is currently feeding on
 	var/mob/living/Target = null // AI variable - tells the slime to hunt this down
@@ -153,7 +160,7 @@
 
 	if (client.statpanel == "Status")
 		stat(null, "Nutrition: [nutrition]/[get_max_nutrition()]")
-		if(amount_grown >= 30)
+		if(amount_grown >= 10)
 			if(is_adult)
 				stat(null, "You can reproduce!")
 			else
@@ -166,7 +173,7 @@
 	return
 
 /mob/living/carbon/slime/bullet_act(var/obj/item/projectile/Proj)
-	attacked += 8
+	attacked += 10
 	..(Proj)
 	return 0
 
@@ -211,7 +218,7 @@
 
 	if(Victim)
 		if(Victim == M)
-			if(prob(50))
+			if(prob(60))
 				visible_message("<span class='warning'>\The [M] attempts to wrestle \the [src] off!</span>")
 				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
 
@@ -219,14 +226,14 @@
 				visible_message("<span class='warning'>\The [M] manages to wrestle \the [src] off!</span>")
 				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 
-				confused = max(confused, 3)
+				confused = max(confused, 2)
 				Feedstop()
 				UpdateFace()
 				step_away(src, M)
 			return
 
 		else
-			if(prob(20))
+			if(prob(30))
 				visible_message("<span class='warning'>\The [M] attempts to wrestle \the [src] off \the [Victim]!</span>")
 				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
 
@@ -234,7 +241,7 @@
 				visible_message("<span class='warning'>\The [M] manages to wrestle \the [src] off \the [Victim]!</span>")
 				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 
-				confused = max(confused, 3)
+				confused = max(confused, 2)
 				Feedstop()
 				UpdateFace()
 				step_away(src, M)
@@ -246,10 +253,10 @@
 			help_shake_act(M)
 
 		if (I_DISARM)
-			var/success = prob(50)
+			var/success = prob(40)
 			visible_message("<span class='warning'>\The [M] pushes \the [src]![success ? " \The [src] looks momentarily disoriented!" : ""]</span>")
 			if(success)
-				confused = max(confused, 3)
+				confused = max(confused, 2)
 				UpdateFace()
 				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 			else
@@ -259,7 +266,7 @@
 
 			var/damage = rand(1, 9)
 
-			attacked += 8
+			attacked += 10
 			if (prob(90))
 				if (MUTATION_HULK in M.mutations)
 					damage += 5
@@ -284,8 +291,8 @@
 
 /mob/living/carbon/slime/attackby(var/obj/item/W, var/mob/user)
 	if(W.force > 0)
-		attacked += 8
-		if(prob(20))
+		attacked += 10
+		if(!(stat) && prob(25)) //Only run this check if we're alive or otherwise motile, otherwise surgery will be agonizing for xenobiologists.
 			to_chat(user, "<span class='danger'>\The [W] passes right through \the [src]!</span>")
 			return
 
@@ -311,10 +318,12 @@
 	return 0
 
 /mob/living/carbon/slime/proc/gain_nutrition(var/amount)
-	nutrition += amount
+	adjust_nutrition(amount)
 	if(prob(amount * 2)) // Gain around one level per 50 nutrition
 		powerlevel++
 		if(powerlevel > 10)
 			powerlevel = 10
 			adjustToxLoss(-10)
-	nutrition = min(nutrition, get_max_nutrition())
+
+/mob/living/carbon/slime/adjust_nutrition(var/amt)
+	nutrition = Clamp(nutrition + amt, 0, get_max_nutrition())

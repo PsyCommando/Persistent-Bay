@@ -8,7 +8,8 @@ var/global/list/sparring_attack_cache = list()
 	var/attack_sound = "punch"
 	var/miss_sound = 'sound/weapons/punchmiss.ogg'
 	var/shredding = 0 // Calls the old attack_alien() behavior on objects/mobs when on harm intent.
-	var/sharpness = 0
+	var/sharp = 0
+	var/edge = 0
 	var/delay = 0
 
 	var/deal_halloss
@@ -16,13 +17,13 @@ var/global/list/sparring_attack_cache = list()
 
 	var/eye_attack_text
 	var/eye_attack_text_victim
-	var/damtype = DAM_BLUNT
+
 	var/attack_name = "fist"
 
 /datum/unarmed_attack/proc/get_damage_type()
 	if(deal_halloss)
-		return DAM_PAIN
-	return damtype
+		return PAIN
+	return BRUTE
 
 /datum/unarmed_attack/proc/get_sparring_variant()
 	if(sparring_variant_type)
@@ -54,7 +55,7 @@ var/global/list/sparring_attack_cache = list()
 		return
 
 	var/stun_chance = rand(0, 100)
-	var/armour = target.get_blocked_ratio(zone, damtype)
+	var/armour = target.get_blocked_ratio(zone, BRUTE, damage = attack_damage)
 
 	if(attack_damage >= 5 && armour < 1 && !(target == user) && stun_chance <= attack_damage * 5) // 25% standard chance
 		switch(zone) // strong punches can have effects depending on where they hit
@@ -116,19 +117,21 @@ var/global/list/sparring_attack_cache = list()
 	user.visible_message("<span class='danger'>[user] attempts to press \his [eye_attack_text] into [target]'s eyes, but they don't have any!</span>")
 
 /datum/unarmed_attack/proc/damage_flags()
-	return 0
+	return (src.sharp? DAM_SHARP : 0)|(src.edge? DAM_EDGE : 0)
 
 /datum/unarmed_attack/bite
 	attack_verb = list("bit")
 	attack_sound = 'sound/weapons/bite.ogg'
 	shredding = 0
 	damage = 0
-	sharpness = 0
+	sharp = 0
+	edge = 0
 	attack_name = "bite"
 
 /datum/unarmed_attack/bite/sharp
 	attack_verb = list("bit", "chomped")
-	sharpness = 1
+	sharp = 1
+	edge = 1
 
 /datum/unarmed_attack/bite/is_usable(var/mob/living/carbon/human/user, var/mob/living/carbon/human/target, var/zone)
 
@@ -280,5 +283,6 @@ var/global/list/sparring_attack_cache = list()
 	damage = 2
 	shredding = 0
 	damage = 0
-	sharpness = 0
+	sharp = 0
+	edge = 0
 	attack_name = "light hit"

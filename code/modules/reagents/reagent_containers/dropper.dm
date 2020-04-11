@@ -10,10 +10,7 @@
 	possible_transfer_amounts = "1;2;3;4;5"
 	w_class = ITEM_SIZE_TINY
 	slot_flags = SLOT_EARS
-	matter = list(MATERIAL_GLASS = 60)
 	volume = 5
-	item_flags = ITEM_FLAG_NO_BLUDGEON
-	force = 0
 
 	afterattack(var/obj/target, var/mob/user, var/proximity)
 		if(!target.reagents || !proximity) return
@@ -24,7 +21,7 @@
 				to_chat(user, "<span class='notice'>[target] is full.</span>")
 				return
 
-			if(!target.is_open_container() && !ismob(target) && !istype(target, /obj/item/weapon/reagent_containers/food) && !istype(target, /obj/item/clothing/mask/smokable/cigarette)) //You can inject humans and food but you cant remove the shit.
+			if(!target.is_open_container() && !ismob(target) && !istype(target, /obj/item/weapon/reagent_containers/food) && !istype(target, /obj/item/clothing/mask/smokable/cigarette)) //You can inject humans and food but you can't remove the shit.
 				to_chat(user, "<span class='notice'>You cannot directly fill this object.</span>")
 				return
 
@@ -94,7 +91,7 @@
 	on_reagent_change()
 		update_icon()
 
-	on_update_icon()
+	update_icon()
 		if(reagents.total_volume)
 			icon_state = "dropper1"
 		else

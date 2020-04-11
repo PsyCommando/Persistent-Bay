@@ -1,5 +1,5 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
-#define crash_with(msg) CRASH(msg)
+
 /*
  * A large number of misc global procs.
  */
@@ -323,7 +323,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 	var/select = null
 	var/list/borgs = list()
 	for (var/mob/living/silicon/robot/A in GLOB.player_list)
-		if (A.stat == 2 || A.connected_ai || A.scrambledcodes || istype(A,/mob/living/silicon/robot/drone) || !((get_turf(A))?.z in zs))
+		if (A.stat == 2 || A.connected_ai || A.scrambledcodes || istype(A,/mob/living/silicon/robot/drone) || !(get_z(A) in zs))
 			continue
 		var/name = "[A.real_name] ([A.modtype] [A.braintype])"
 		borgs[name] = A
@@ -338,7 +338,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 
 	. = list()
 	for(var/mob/living/silicon/ai/A in GLOB.living_mob_list_)
-		if(A.stat == DEAD || A.control_disabled || !((get_turf(A))?.z in zs))
+		if(A.stat == DEAD || A.control_disabled || !(get_z(A) in zs))
 			continue
 		. += A
 	return .
@@ -517,9 +517,11 @@ Turf and target are seperate in case you want to teleport some distance from a t
 /proc/between(var/low, var/middle, var/high)
 	return max(min(middle, high), low)
 
-proc/arctan(x)
+#if DM_VERSION < 513
+/proc/arctan(x)
 	var/y=arcsin(x/sqrt(1+x*x))
 	return y
+#endif
 
 //returns random gauss number
 proc/GaussRand(var/sigma)
@@ -624,8 +626,8 @@ proc/GaussRandRound(var/sigma,var/roundto)
 //Takes: Area type as a typepath OR an instance of the area.
 //Returns: A list of all atoms	(objs, turfs, mobs) in areas of that type of that type in the world.
 /proc/get_area_all_atoms(var/areatype)
-	if(!areatype) return null
-	if(istext(areatype)) areatype = text2path(areatype)
+	if(!areatype)
+		return null
 	if(isarea(areatype))
 		var/area/areatemp = areatype
 		areatype = areatemp.type
@@ -876,12 +878,12 @@ proc/get_mob_with_client_list()
 //Quick type checks for some tools
 var/global/list/common_tools = list(
 /obj/item/stack/cable_coil,
-/obj/item/weapon/tool/wrench,
-/obj/item/weapon/tool/weldingtool,
-/obj/item/weapon/tool/screwdriver,
-/obj/item/weapon/tool/wirecutters,
+/obj/item/weapon/wrench,
+/obj/item/weapon/weldingtool,
+/obj/item/weapon/screwdriver,
+/obj/item/weapon/wirecutters,
 /obj/item/device/multitool,
-/obj/item/weapon/tool/crowbar)
+/obj/item/weapon/crowbar)
 
 /proc/istool(O)
 	if(O && is_type_in_list(O, common_tools))
@@ -890,8 +892,8 @@ var/global/list/common_tools = list(
 
 /proc/is_hot(obj/item/W as obj)
 	switch(W.type)
-		if(/obj/item/weapon/tool/weldingtool)
-			var/obj/item/weapon/tool/weldingtool/WT = W
+		if(/obj/item/weapon/weldingtool)
+			var/obj/item/weapon/weldingtool/WT = W
 			if(WT.isOn())
 				return 3800
 			else
@@ -915,8 +917,8 @@ var/global/list/common_tools = list(
 			return 3800
 		if(/obj/item/weapon/melee/energy)
 			return 3500
-		if(/obj/item/weapon/blob_tendril) 
-			if(IsDamageTypeBurn(W.damtype))
+		if(/obj/item/weapon/blob_tendril)
+			if(W.damtype == BURN)
 				return 1000
 			else
 				return 0
@@ -924,6 +926,46 @@ var/global/list/common_tools = list(
 			return 0
 
 	return 0
+
+//Whether or not the given item counts as sharp in terms of dealing damage
+/proc/is_sharp(obj/O as obj)
+	if (!O) return 0
+	if (O.sharp) return 1
+	if (O.edge) return 1
+	return 0
+
+//Whether or not the given item counts as cutting with an edge in terms of removing limbs
+/proc/has_edge(obj/O as obj)
+	if (!O) return 0
+	if (O.edge) return 1
+	return 0
+
+
+//For items that can puncture e.g. thick plastic but aren't necessarily sharp
+//Returns 1 if the given item is capable of popping things like balloons, inflatable barriers, or cutting police tape.
+/obj/item/proc/can_puncture()
+	return src.sharp
+
+/obj/item/weapon/screwdriver/can_puncture()
+	return 1
+
+/obj/item/weapon/pen/can_puncture()
+	return 1
+
+/obj/item/weapon/weldingtool/can_puncture()
+	return 1
+
+/obj/item/weapon/screwdriver/can_puncture()
+	return 1
+
+/obj/item/weapon/shovel/can_puncture() //includes spades
+	return 1
+
+/obj/item/weapon/flame/can_puncture()
+	return src.lit
+
+/obj/item/clothing/mask/smokable/cigarette/can_puncture()
+	return src.lit
 
 //check if mob is lying down on something we can operate him on.
 /proc/can_operate(mob/living/carbon/M, mob/living/carbon/user)
@@ -973,7 +1015,7 @@ Checks if that loc and dir has a item on the wall
 */
 var/list/WALLITEMS = list(
 	/obj/machinery/power/apc, /obj/machinery/alarm, /obj/item/device/radio/intercom,
-	/obj/structure/extinguisher_cabinet, /obj/structure/reagent_dispensers/wall/peppertank,
+	/obj/structure/extinguisher_cabinet, /obj/structure/reagent_dispensers/peppertank,
 	/obj/machinery/status_display, /obj/machinery/requests_console, /obj/machinery/light_switch, /obj/structure/sign,
 	/obj/machinery/newscaster, /obj/machinery/firealarm, /obj/structure/noticeboard,
 	/obj/item/weapon/storage/secure/safe, /obj/machinery/door_timer, /obj/machinery/flasher, /obj/machinery/keycard_auth,
@@ -1037,8 +1079,6 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 /proc/dview(var/range = world.view, var/center, var/invis_flags = 0)
 	if(!center)
 		return
-	if(!GLOB.dview_mob) //Lazy init this fuck.
-		GLOB.dview_mob = new
 
 	GLOB.dview_mob.loc = center
 	GLOB.dview_mob.see_invisible = invis_flags
@@ -1046,25 +1086,19 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 	GLOB.dview_mob.loc = null
 
 /mob/dview
-	invisibility 	= 101
-	see_in_dark 	= 1e6
-	density 		= FALSE
-	anchored 		= TRUE
-	simulated 		= FALSE
-	virtual_mob 	= null
-	should_save 	= FALSE
-	var/destroy_ret = QDEL_HINT_LETMELIVE
+	invisibility = 101
+	density = 0
 
-/mob/dview/after_load()
-	destroy_ret = null //Let me delete pointless saved instances
-	qdel(src)
+	anchored = 1
+	simulated = 0
+
+	see_in_dark = 1e6
+
+	virtual_mob = null
 
 /mob/dview/Destroy()
-	if(!destroy_ret)
-		CRASH("Prevented attempt to delete dview mob: [log_info_line(src)]")
-	else
-		return ..()
-	return destroy_ret // Prevents destruction
+	crash_with("Prevented attempt to delete dview mob: [log_info_line(src)]")
+	return QDEL_HINT_LETMELIVE // Prevents destruction
 
 /atom/proc/get_light_and_color(var/atom/origin)
 	if(origin)
@@ -1075,11 +1109,10 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 	. = ..()
 	// We don't want to be in any mob lists; we're a dummy not a mob.
 	STOP_PROCESSING(SSmobs, src)
-	log_debug("Created dview mob! This should only show up once!")
 
 // call to generate a stack trace and print to runtime logs
-///proc/crash_with(msg)
-//	CRASH(msg)
+/proc/crash_at(msg, file, line)
+	CRASH("%% [file],[line] %% [msg]")
 
 /proc/pass()
 	return
@@ -1094,8 +1127,3 @@ GLOBAL_DATUM_INIT(dview_mob, /mob/dview, new)
 		M.start_pulling(t)
 	else
 		step(user.pulling, get_dir(user.pulling.loc, A))
-
-/proc/convert2energy(var/mass)
-	return (mass * SPEED_OF_LIGHT) * (mass * SPEED_OF_LIGHT)
-
-#define isPDA(A) istype(A,/obj/item/modular_computer/pda)

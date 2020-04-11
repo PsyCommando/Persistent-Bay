@@ -4,10 +4,14 @@
 	gender = PLURAL
 	organ_tag = BP_KIDNEYS
 	parent_organ = BP_GROIN
-	min_bruised_damage = 50
-	min_broken_damage = 80
-	max_health = 95
+	min_bruised_damage = 25
+	min_broken_damage = 45
+	max_damage = 70
+	relative_size = 10
 
+/obj/item/organ/internal/kidneys/robotize()
+	. = ..()
+	icon_state = "kidneys-prosthetic"
 
 /obj/item/organ/internal/kidneys/Process()
 	..()
@@ -40,9 +44,4 @@
 			if(status & ORGAN_DEAD)
 				owner.adjustToxLoss(1)
 
-/obj/item/organ/internal/kidneys/on_update_icon()
-	. = ..()
-	if(BP_IS_ROBOTIC(src))
-		icon_state = "[initial(icon_state)]-prosthetic"
-	else
-		icon_state = initial(icon_state)
+

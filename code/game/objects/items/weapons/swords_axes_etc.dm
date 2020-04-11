@@ -22,9 +22,9 @@
 		user.Weaken(3 * force)
 		if(ishuman(user))
 			var/mob/living/carbon/human/H = user
-			H.apply_damage(2*force, damtype, BP_HEAD)
+			H.apply_damage(2*force, BRUTE, BP_HEAD)
 		else
-			user.apply_damage(2*force)
+			user.take_organ_damage(2*force)
 		return
 	return ..()
 
@@ -82,9 +82,9 @@
 			user.Weaken(3 * force)
 			if(ishuman(user))
 				var/mob/living/carbon/human/H = user
-				H.apply_damage(2*force, damtype, BP_HEAD)
+				H.apply_damage(2*force, BRUTE, BP_HEAD)
 			else
-				user.apply_damage(2*force)
+				user.take_organ_damage(2*force)
 			return
 		if(..())
 			//playsound(src.loc, "swing_hit", 50, 1, -1)

@@ -62,7 +62,7 @@
 	else
 		pass("All player preferences have unique keys.")
 	return 1
-/*
+
 /datum/unit_test/access_datums_shall_be_unique
 	name = "UNIQUENESS: Access Datums Shall Be Unique"
 
@@ -72,7 +72,7 @@
 
 	for(var/a in get_all_access_datums())
 		var/datum/access/access = a
-		group_by(access_ids, num2text(access.id), access)
+		group_by(access_ids, access.id, access)
 		group_by(access_descs, access.desc, access)
 
 	var/number_of_issues = number_of_issues(access_ids, "Ids")
@@ -82,7 +82,7 @@
 	else
 		pass("All access datums are unique.")
 	return 1
-*/
+
 /datum/unit_test/outfit_datums_shall_have_unique_names
 	name = "UNIQUENESS: Outfit Datums Shall Have Unique Names"
 

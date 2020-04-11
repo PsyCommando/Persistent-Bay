@@ -1,5 +1,5 @@
 /obj/item/weapon/mop
-	desc = "The world of a janitor wouldn't be complete without a mop."
+	desc = "The world of janitalia wouldn't be complete without a mop."
 	name = "mop"
 	icon = 'icons/obj/janitor.dmi'
 	icon_state = "mop"
@@ -7,7 +7,6 @@
 	throwforce = 10.0
 	throw_speed = 5
 	throw_range = 10
-	matter = list(MATERIAL_STEEL = 200)
 	w_class = ITEM_SIZE_NORMAL
 	attack_verb = list("mopped", "bashed", "bludgeoned", "whacked")
 	var/mopping = 0
@@ -100,7 +99,7 @@
 		reagents.add_reagent(refill_reagent, refill_rate)
 
 /obj/item/weapon/mop/advanced/examine(mob/user)
-	..()
+	. = ..()
 	to_chat(user, "<span class='notice'>The condenser switch is set to <b>[refill_enabled ? "ON" : "OFF"]</b>.</span>")
 
 /obj/item/weapon/mop/advanced/Destroy()

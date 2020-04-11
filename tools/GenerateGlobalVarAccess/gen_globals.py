@@ -27,7 +27,6 @@ import hashlib
 import os
 import sys
 import re
-import io
 from distutils import spawn
 try:
 	import subprocess32 as subprocess
@@ -53,7 +52,7 @@ def main():
 
 	else:
 		tree = CompileFile(namespace.projectfile)
-		with io.open("dump.txt", "wt", encoding='latin-1') as f:
+		with open("dump.txt", "wt", encoding='latin-1') as f:
 			f.write(tree)
 
 

@@ -42,7 +42,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 		return 0
 
 	var/decl/asset_cache/asset_cache = decls_repository.get_decl(/decl/asset_cache)
-	client << browse_rsc(asset_cache.cache[asset_name], asset_name)
+	send_rsc(client, asset_cache.cache[asset_name], asset_name)
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		if (client)
 			client.cache += asset_name
@@ -94,7 +94,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 	var/decl/asset_cache/asset_cache = decls_repository.get_decl(/decl/asset_cache)
 	for(var/asset in unreceived)
 		if (asset in asset_cache.cache)
-			client << browse_rsc(asset_cache.cache[asset], asset)
+			send_rsc(client, asset_cache.cache[asset], asset)
 
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		if (client)
@@ -174,13 +174,6 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 
 
 //DEFINITIONS FOR ASSET DATUMS START HERE.
-
-/datum/asset/simple/tgui
-	assets = list(
-		"tgui.css"	= 'tgui/assets/tgui.css',
-		"tgui.js"	= 'tgui/assets/tgui.js'
-	)
-
 /datum/asset/nanoui
 	var/list/common = list()
 

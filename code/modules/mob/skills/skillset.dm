@@ -12,28 +12,11 @@
 	var/list/nm_viewing
 
 /datum/skillset/New(mob/mob)
-	if(mob)
-		owner = mob
+	owner = mob
 	for(var/datum/skill_verb/SV in GLOB.skill_verbs)
 		if(SV.should_have_verb(src))
 			SV.give_to_skillset(src)
 	..()
-
-	ADD_SAVED_VAR(skill_list)
-	ADD_SAVED_VAR(owner)
-	ADD_SAVED_VAR(skill_buffs)
-
-	ADD_SKIP_EMPTY(skill_list)
-	ADD_SKIP_EMPTY(owner)
-	ADD_SKIP_EMPTY(skill_buffs)
-
-/datum/skillset/after_load()
-	. = ..()
-	for(var/datum/skill_buff/sb in skill_buffs)
-		sb.skillset = src //Make sure our skill_buffs have the correct owner
-	for(var/datum/skill_verb/SV in GLOB.skill_verbs)
-		if(SV.should_have_verb(src))
-			SV.give_to_skillset(src)
 
 /datum/skillset/Destroy()
 	owner = null
@@ -77,30 +60,25 @@
 		skill.update_special_effects(owner, get_value(skill.type))
 
 /datum/skillset/proc/obtain_from_client(datum/job/job, client/given_client, override = 0)
-	//### Disabled skill transfer from skill assignment menu for now ###
 	if(!skills_transferable)
 		return
 	if(!override && owner.mind && player_is_antag(owner.mind))		//Antags are dealt with at a different time. Note that this may be called before or after antag roles are assigned.
 		return
 	if(!given_client)
 		return
-	var/allocation = list()
-	skill_list = list()
-	for(var/decl/hierarchy/skill/S in GLOB.skills)
-		skill_list[S.type] = SKILL_MIN + (allocation[S] || 0)
-	on_levels_change()
-	// var/allocation = given_client.prefs.skills_allocated[job] || list()
-	// skill_list = list()
 
-	// for(var/decl/hierarchy/skill/S in GLOB.skills)
-	//	var/min = job ? given_client.prefs.get_min_skill(job, S) : SKILL_MIN
-	//	skill_list[S.type] = min + (allocation[S] || 0)
-	// on_levels_change()
+	var/allocation = given_client.prefs.skills_allocated[job] || list()
+	skill_list = list()
+
+	for(var/decl/hierarchy/skill/S in GLOB.skills)
+		var/min = job ? given_client.prefs.get_min_skill(job, S) : SKILL_MIN
+		skill_list[S.type] = min + (allocation[S] || 0)
+	on_levels_change()
 
 //Skill-related mob helper procs
 
 /mob/proc/get_skill_value(skill_path)
-	return istype(skillset)? skillset.get_value(skill_path) : null
+	return skillset.get_value(skill_path)
 
 /mob/proc/reset_skillset()
 	qdel(skillset)
@@ -113,6 +91,13 @@
 /mob/proc/skill_check(skill_path, needed)
 	var/points = get_skill_value(skill_path)
 	return points >= needed
+
+//Passing a list in format of 'skill = level_needed'
+/mob/proc/skill_check_multiple(skill_reqs)
+	for(var/skill in skill_reqs)
+		. = skill_check(skill, skill_reqs[skill])
+		if(!.)
+			return
 
 /mob/proc/get_skill_difference(skill_path, mob/opponent)
 	return get_skill_value(skill_path) - opponent.get_skill_value(skill_path)
@@ -145,19 +130,19 @@
 
 // Show skills verb
 
-mob/living/verb/show_skills()
+/mob/living/verb/show_skills()
 	set category = "IC"
 	set name = "Show Own Skills"
 
 	skillset.open_ui()
 
-datum/skillset/proc/open_ui()
+/datum/skillset/proc/open_ui()
 	if(!owner)
 		return
 	if(!NM)
 		NM = new nm_type(owner)
 	NM.ui_interact(owner)
 
-datum/skillset/proc/refresh_uis()
+/datum/skillset/proc/refresh_uis()
 	for(var/nano_module in nm_viewing)
 		SSnano.update_uis(nano_module)

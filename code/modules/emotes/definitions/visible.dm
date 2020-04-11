@@ -44,25 +44,11 @@
 	key ="jump"
 	emote_message_3p = "USER jumps!"
 
-/decl/emote/visible/hiss
-	key ="hiss_"
-	emote_message_3p_target = "USER hisses softly at TARGET."
-	emote_message_3p = "USER hisses softly."
-
 /decl/emote/visible/shiver
 	key ="shiver"
 	emote_message_3p = "USER shivers."
 	conscious = 0
-	
-/decl/emote/visible/snap
-	key = "snap"
-	emote_message_3p_target = "USER snaps their fingers at TARGET."
-	emote_message_3p = "USER snaps their fingers."
-	
-/decl/emote/visible/snap/do_extra(var/mob/user)	
-	playsound(user.loc, 'sound/effects/fingersnap.ogg', 50, 1)
-	
-	
+
 /decl/emote/visible/collapse
 	key ="collapse"
 	emote_message_3p = "USER collapses!"

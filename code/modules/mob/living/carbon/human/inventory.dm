@@ -1,4 +1,3 @@
-#define REMOVE_INTERNALS if(internal){ if(internals){ internals.icon_state = "internal0" }; internal = null }
 /*
 Add fingerprints to items when we put them in our hands.
 This saves us from having to call add_fingerprint() any time something is put in a human's hands programmatically.
@@ -19,19 +18,8 @@ This saves us from having to call add_fingerprint() any time something is put in
 				update_inv_l_hand(0)
 			else
 				update_inv_r_hand(0)
-		else if(!isnull(H.s_active) && H.s_active.can_be_inserted(I, H, 1))
-			H.s_active.handle_item_insertion(I)
-			return
-
-		var/obj/item/weapon/storage/S = H.belt
-		if(istype(S) && S != H.s_active && S.can_be_inserted(I, H, 1))
-			S.handle_item_insertion(I)
-			return
-		S = H.back
-		if(istype(S) && S != H.s_active && S.can_be_inserted(I, H, 1))
-			S.handle_item_insertion(I)
-			return
-		to_chat(H, "<span class='warning'>You are unable to equip that.</span>")
+		else
+			to_chat(H, "<span class='warning'>You are unable to equip that.</span>")
 
 /mob/living/carbon/human/proc/equip_in_one_of_slots(obj/item/W, list/slots, del_on_fail = 1)
 	for (var/slot in slots)
@@ -164,7 +152,7 @@ This saves us from having to call add_fingerprint() any time something is put in
 		if(src)
 			var/obj/item/clothing/mask/wear_mask = src.get_equipped_item(slot_wear_mask)
 			if(!(wear_mask && (wear_mask.item_flags & ITEM_FLAG_AIRTIGHT)))
-				REMOVE_INTERNALS
+				set_internals(null)
 		update_inv_head()
 	else if (W == l_ear)
 		l_ear = null
@@ -191,7 +179,7 @@ This saves us from having to call add_fingerprint() any time something is put in
 				update_inv_ears(0)
 		var/obj/item/clothing/mask/head = src.get_equipped_item(slot_head)
 		if(!(head && (head.item_flags & ITEM_FLAG_AIRTIGHT)))
-			REMOVE_INTERNALS
+			set_internals(null)
 		update_inv_wear_mask()
 	else if (W == wear_id)
 		wear_id = null
@@ -232,69 +220,6 @@ This saves us from having to call add_fingerprint() any time something is put in
 	return 1
 
 
-/mob/living/carbon/human/redraw_inv()
-	var/obj/item/W
-	if(back)
-		W = back
-		W.hud_layerise()
-	if(wear_mask)
-		W = wear_mask
-		W.hud_layerise()
-	if(handcuffed)
-		W = handcuffed
-		W.hud_layerise()
-	if(l_hand)
-		W = l_hand
-		W.hud_layerise()
-		W.screen_loc = ui_lhand
-	if(r_hand)
-		W = r_hand
-		W.hud_layerise()
-		W.screen_loc = ui_rhand
-
-
-	if(belt)
-		W = belt
-		W.hud_layerise()
-	if(wear_id)
-		W = wear_id
-		W.hud_layerise()
-	if(l_ear)
-		W = l_ear
-		W.hud_layerise()
-	if(r_ear)
-		W = r_ear
-		W.hud_layerise()
-	if(glasses)
-		W = glasses
-		W.hud_layerise()
-	if(gloves)
-		W = gloves
-		W.hud_layerise()
-	if(head)
-		W = head
-		W.hud_layerise()
-	if(shoes)
-		W = shoes
-		W.hud_layerise()
-	if(wear_suit)
-		W = wear_suit
-		W.hud_layerise()
-	if(w_uniform)
-		W = w_uniform
-		W.hud_layerise()
-	if(l_store)
-		W = l_store
-		W.hud_layerise()
-	if(r_store)
-		W = r_store
-		W.hud_layerise()
-	if(s_store)
-		W = s_store
-		W.hud_layerise()
-	if(hud_used)
-		hud_used.persistant_inventory_update()
-		//hud_used.hands_inventory_update()
 
 //This is an UNSAFE proc. Use mob_can_equip() before calling this one! Or rather use equip_to_slot_if_possible() or advanced_equip_to_slot_if_possible()
 //set redraw_mob to 0 if you don't wish the hud to be updated - if you're doing it manually in your own proc.
@@ -506,11 +431,3 @@ This saves us from having to call add_fingerprint() any time something is put in
 	if(O)
 		return get_covering_equipped_item(O.body_part)
 
-/mob/living/carbon/human/proc/has_item_equipped(var/itemtype)
-	var/list/equipped = get_equipped_items()
-	for(var/obj/item/E in equipped)
-		if(istype(E, itemtype))
-			return E
-	return null
-
-#undef REMOVE_INTERNALS

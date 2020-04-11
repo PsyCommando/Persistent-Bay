@@ -1,6 +1,6 @@
 /obj/structure/table
 	name = "table frame"
-	icon = 'icons/obj/structures/tables.dmi'
+	icon = 'icons/obj/tables.dmi'
 	icon_state = "frame"
 	desc = "It's a table, for putting things on. Or standing on, if you really want to."
 	density = 1
@@ -8,10 +8,10 @@
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
 	layer = TABLE_LAYER
 	throwpass = 1
+	mob_offset = 12
 	var/flipped = 0
-	mass = 10
-	max_health = 60
-	damthreshold_brute 	= 2
+	var/maxhealth = 10
+	var/health = 10
 
 	// For racks.
 	var/can_reinforce = 1
@@ -34,16 +34,16 @@
 	..()
 
 /obj/structure/table/proc/update_material()
-	var/old_maxhealth = max_health
+	var/old_maxhealth = maxhealth
 	if(!material)
-		max_health = 10
+		maxhealth = 10
 	else
-		max_health = material.integrity / 2
+		maxhealth = material.integrity / 2
 
 		if(reinforced)
-			max_health += reinforced.integrity / 2
+			maxhealth += reinforced.integrity / 2
 
-	health += max_health - old_maxhealth
+	health += maxhealth - old_maxhealth
 
 /obj/structure/table/take_damage(amount)
 	// If the table is made of a brittle material, and is *not* reinforced with a non-brittle material, damage is multiplied by TABLE_BRITTLE_MATERIAL_MULTIPLIER
@@ -53,10 +53,14 @@
 				amount *= TABLE_BRITTLE_MATERIAL_MULTIPLIER
 		else
 			amount *= TABLE_BRITTLE_MATERIAL_MULTIPLIER
-	return ..()
+	health -= amount
+	if(health <= 0)
+		visible_message("<span class='warning'>\The [src] breaks down!</span>")
+		return break_to_parts() // if we break and form shards, return them to the caller to do !FUN! things with
 
 /obj/structure/table/Initialize()
 	. = ..()
+
 	// One table per turf.
 	for(var/obj/structure/table/T in loc)
 		if(T != src)
@@ -83,8 +87,8 @@
 
 /obj/structure/table/examine(mob/user)
 	. = ..()
-	if(health < max_health)
-		switch(health / max_health)
+	if(health < maxhealth)
+		switch(health / maxhealth)
 			if(0.0 to 0.5)
 				to_chat(user, "<span class='warning'>It looks severely damaged!</span>")
 			if(0.25 to 0.5)
@@ -134,8 +138,8 @@
 		dismantle(W, user)
 		return 1
 
-	if(health < max_health && isWelder(W))
-		var/obj/item/weapon/tool/weldingtool/F = W
+	if(health < maxhealth && isWelder(W))
+		var/obj/item/weapon/weldingtool/F = W
 		if(F.welding)
 			to_chat(user, "<span class='notice'>You begin reparing damage to \the [src].</span>")
 			playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
@@ -143,7 +147,7 @@
 				return
 			user.visible_message("<span class='notice'>\The [user] repairs some damage to \the [src].</span>",
 			                              "<span class='notice'>You repair some damage to \the [src].</span>")
-			health = max(health+(max_health/5), max_health) // 20% repair per application
+			health = max(health+(maxhealth/5), maxhealth) // 20% repair per application
 			return 1
 
 	if(!material && can_plate && istype(W, /obj/item/stack/material))
@@ -154,7 +158,10 @@
 			update_desc()
 			update_material()
 		return 1
-
+	if(istype(W, /obj/item/weapon/hand)) //playing cards
+		var/obj/item/weapon/hand/H = W
+		if(H.cards && H.cards.len == 1)
+			usr.visible_message("\The [user] plays \the [H.cards[1].name].")
 	return ..()
 
 /obj/structure/table/MouseDrop_T(obj/item/stack/material/what)
@@ -243,12 +250,13 @@
 	material = common_material_remove(user, material, 20, "plating", "bolts", 'sound/items/Ratchet.ogg')
 
 /obj/structure/table/dismantle(obj/item/weapon/wrench/W, mob/user)
+	reset_mobs_offset()
 	if(manipulating) return
 	manipulating = 1
 	user.visible_message("<span class='notice'>\The [user] begins dismantling \the [src].</span>",
 	                              "<span class='notice'>You begin dismantling \the [src].</span>")
 	playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-	if(!do_after(user, 2 SECONDS, src))
+	if(!do_after(user, 20, src))
 		manipulating = 0
 		return
 	user.visible_message("<span class='notice'>\The [user] dismantles \the [src].</span>",
@@ -266,6 +274,7 @@
 // is to avoid filling the list with nulls, as place_shard won't place shards of certain materials (holo-wood, holo-steel)
 
 /obj/structure/table/proc/break_to_parts(full_return = 0)
+	reset_mobs_offset()
 	var/list/shards = list()
 	var/obj/item/weapon/material/shard/S = null
 	if(reinforced)
@@ -292,7 +301,8 @@
 	return shards
 
 /obj/structure/table/on_update_icon()
-	if(flipped != 1)
+	if(!flipped)
+		mob_offset = initial(mob_offset)
 		icon_state = "blank"
 		overlays.Cut()
 
@@ -324,6 +334,7 @@
 				I = image(icon, "carpet_[connections[i]]", dir = 1<<(i-1))
 				overlays += I
 	else
+		mob_offset = 0
 		overlays.Cut()
 		var/type = 0
 		var/tabledirs = 0
@@ -431,30 +442,10 @@
 */
 
 /proc/dirs_to_corner_states(list/dirs)
-	if(!istype(dirs)) 
-		crash_with("\"dirs_to_corner_states\" got something else than a list as parameter! This is bad, and should never happen!!")
-		return
+	if(!istype(dirs)) return
 
 	var/list/ret = list(NORTHWEST, SOUTHEAST, NORTHEAST, SOUTHWEST)
-	for(var/i = 1 to ret.len)
-		var/dir = ret[i]
-		. = CORNER_NONE
-		if(dir in dirs)
-			. |= CORNER_DIAGONAL
-		if(turn(dir,45) in dirs)
-			. |= CORNER_COUNTERCLOCKWISE
-		if(turn(dir,-45) in dirs)
-			. |= CORNER_CLOCKWISE
-		ret[i] = "[.]"
 
-	return ret
-
-/proc/dirs_to_wall_corner_states(list/dirs)
-	if(!istype(dirs)) 
-		crash_with("\"dirs_to_wall_corner_states\" got something else than a list as parameter! This is bad, and should never happen!!")
-		return
-
-	var/list/ret = list(NORTHWEST, SOUTHEAST, NORTHEAST, SOUTHWEST)
 	for(var/i = 1 to ret.len)
 		var/dir = ret[i]
 		. = CORNER_NONE

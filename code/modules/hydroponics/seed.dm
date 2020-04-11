@@ -2,12 +2,6 @@
 	var/genetype    // Label used when applying trait.
 	var/list/values // Values to copy into the target seed datum.
 
-/datum/plantgene/New()
-	. = ..()
-	ADD_SAVED_VAR(genetype)
-	ADD_SAVED_VAR(values)
-	ADD_SKIP_EMPTY(values)
-
 /datum/seed
 	//Tracking.
 	var/uid                        // Unique identifier.
@@ -30,6 +24,7 @@
 	var/splat_type = /obj/effect/decal/cleanable/fruit_smudge // Graffiti decal.
 	var/has_mob_product
 	var/force_layer
+	var/req_CO2_moles    = 1.0// Moles of CO2 required for photosynthesis.
 
 /datum/seed/New()
 
@@ -68,30 +63,11 @@
 	set_trait(TRAIT_IDEAL_HEAT,           293)          // Preferred temperature in Kelvin.
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.25)         // Plant eats this much per tick.
 	set_trait(TRAIT_PLANT_COLOUR,         "#46b543")    // Colour of the plant icon.
+	set_trait(TRAIT_PHOTOSYNTHESIS,       1)            // If it turns CO2 into oxygen
 
 	update_growth_stages()
 
 	uid = sequential_id(/datum/seed/)
-
-	ADD_SAVED_VAR(name)
-	ADD_SAVED_VAR(seed_name)
-	ADD_SAVED_VAR(seed_noun)
-	ADD_SAVED_VAR(display_name)
-	ADD_SAVED_VAR(roundstart)
-	ADD_SAVED_VAR(mysterious)
-	ADD_SAVED_VAR(scanned)
-	ADD_SAVED_VAR(can_self_harvest)
-	ADD_SAVED_VAR(growth_stages)
-	ADD_SAVED_VAR(traits)
-	ADD_SAVED_VAR(mutants)
-	ADD_SAVED_VAR(chems)
-	ADD_SAVED_VAR(consume_gasses)
-	ADD_SAVED_VAR(exude_gasses)
-	ADD_SAVED_VAR(kitchen_tag)
-	ADD_SAVED_VAR(trash_type)
-	ADD_SAVED_VAR(splat_type)
-	ADD_SAVED_VAR(has_mob_product)
-	ADD_SAVED_VAR(force_layer)
 
 /datum/seed/proc/get_trait(var/trait)
 	return traits["[trait]"]
@@ -104,6 +80,9 @@
 	if(!isnull(ubound))  nval = min(nval,ubound)
 	if(!isnull(lbound))  nval = max(nval,lbound)
 	traits["[trait]"] =  nval
+
+	if(trait == TRAIT_PLANT_ICON)
+		update_growth_stages()
 
 /datum/seed/proc/create_spores(var/turf/T)
 	if(!T)
@@ -165,15 +144,15 @@
 		damage = max(1, round(5*get_trait(TRAIT_POTENCY)/100, 1))
 		has_edge = prob(get_trait(TRAIT_POTENCY)/5)
 
-	var/dtype = has_edge? DAM_CUT : DAM_PIERCE
-	target.apply_damage(damage, dtype, target_limb, used_weapon = "Thorns")
+	var/damage_flags = DAM_SHARP|(has_edge? DAM_EDGE : 0)
+	target.apply_damage(damage, BRUTE, target_limb, damage_flags, used_weapon = "Thorns")
 
 // Adds reagents to a target.
 /datum/seed/proc/do_sting(var/mob/living/carbon/human/target, var/obj/item/fruit)
 	if(!get_trait(TRAIT_STINGS))
 		return
 
-	if(chems && chems.len && target.reagents)
+	if(chems && chems.len && target.reagents && length(target.organs))
 
 		var/obj/item/organ/external/affecting = pick(target.organs)
 
@@ -190,6 +169,22 @@
 				target.reagents.add_reagent(rid,injecting)
 		else
 			to_chat(target, "<span class='danger'>Sharp spines scrape against your armour!</span>")
+
+/datum/seed/proc/do_photosynthesis(var/turf/current_turf, var/datum/gas_mixture/environment, var/light_supplied)
+	// Photosynthesis - *very* simplified process.
+	// For now, only light-dependent reactions are available (no Calvin cycle).
+	// It's active only for those plants which doesn't consume nor exude gasses.
+	if(!get_trait(TRAIT_PHOTOSYNTHESIS))
+		return
+	if(!(environment) || !(environment.gas))
+		return
+	if(LAZYLEN(exude_gasses) || LAZYLEN(consume_gasses ))
+		return
+	if(!(light_supplied) || !(get_trait(TRAIT_REQUIRES_WATER)))
+		return
+	if(environment.get_gas(GAS_CO2) >= req_CO2_moles)
+		environment.adjust_gas(GAS_CO2, -req_CO2_moles, 1)
+		environment.adjust_gas(GAS_OXYGEN, req_CO2_moles, 1)
 
 //Splatter a turf.
 /datum/seed/proc/splatter(var/turf/T,var/obj/item/thrown)
@@ -340,6 +335,16 @@
 		if(abs(light_supplied - get_trait(TRAIT_IDEAL_LIGHT)) > get_trait(TRAIT_LIGHT_TOLERANCE))
 			health_change += rand(1,3) * HYDRO_SPEED_MULTIPLIER
 
+	for(var/obj/effect/effect/smoke/chem/smoke in range(1, current_turf))
+		if(smoke.reagents.has_reagent(/datum/reagent/toxin/plantbgone))
+			return 100
+
+	// Pressure and temperature are needed as much as water and light.
+	// If any of the previous environment checks has failed
+	// the photosynthesis cannot be triggered.
+	if(health_change == 0)
+		do_photosynthesis(current_turf, environment, light_supplied)
+
 	return health_change
 
 /datum/seed/proc/apply_special_effect(var/mob/living/target,var/obj/item/thrown)
@@ -442,12 +447,12 @@
 
 	if(prob(5))
 		consume_gasses = list()
-		var/gas = pick(GAS_OXYGEN,GAS_NITROGEN,GAS_PHORON,GAS_CO2,GAS_WATER_VAPOR,GAS_HYDROGEN,GAS_METHANE,GAS_NITRIC_OXIDE,GAS_CHLORINE)
+		var/gas = pick(GAS_OXYGEN,GAS_NITROGEN,GAS_PHORON,GAS_CO2)
 		consume_gasses[gas] = rand(3,9)
 
 	if(prob(5))
 		exude_gasses = list()
-		var/gas = pick(GAS_OXYGEN,GAS_NITROGEN,GAS_PHORON,GAS_CO2,GAS_WATER_VAPOR,GAS_HYDROGEN,GAS_METHANE,GAS_NITRIC_OXIDE,GAS_CHLORINE)
+		var/gas = pick(GAS_OXYGEN,GAS_NITROGEN,GAS_PHORON,GAS_CO2)
 		exude_gasses[gas] = rand(3,9)
 
 	chems = list()
@@ -772,7 +777,7 @@
 			//Handle spawning in living, mobile products (like dionaea).
 			if(istype(product,/mob/living))
 				product.visible_message("<span class='notice'>The pod disgorges [product]!</span>")
-				//handle_living_product(product) //diona proc
+				handle_living_product(product)
 				if(istype(product,/mob/living/simple_animal/mushroom)) // Gross.
 					var/mob/living/simple_animal/mushroom/mush = product
 					mush.seed = src

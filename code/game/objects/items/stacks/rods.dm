@@ -1,9 +1,6 @@
-#define DUCTTAPE_NEEDED_SPLINT 8
-
 /obj/item/stack/material/rods
 	name = "rod"
 	desc = "Some rods. Can be used for building, or something."
-	icon = 'icons/obj/materials.dmi'
 	singular_name = "rod"
 	plural_name = "rods"
 	icon_state = "rod"
@@ -38,12 +35,13 @@
 
 /obj/item/stack/material/rods/Initialize()
 	. = ..()
+	update_icon()
 	throwforce = round(0.25*material.get_edge_damage())
 	force = round(0.5*material.get_blunt_damage())
 
 /obj/item/stack/material/rods/attackby(obj/item/W as obj, mob/user as mob)
 	if(isWelder(W))
-		var/obj/item/weapon/tool/weldingtool/WT = W
+		var/obj/item/weapon/weldingtool/WT = W
 
 		if(!can_use(2))
 			to_chat(user, "<span class='warning'>You need at least two rods to do this.</span>")
@@ -63,13 +61,6 @@
 		return
 
 	if (istype(W, /obj/item/weapon/tape_roll))
-		if(!can_use(1))
-			user.visible_message("<span class='warning'>You need at least a [singular_name] to make a splint!</span>")
-			return
-		var/obj/item/weapon/tape_roll/thetape = W
-		if(!thetape.use_tape(DUCTTAPE_NEEDED_SPLINT))
-			user.visible_message("<span class='warning'>You need at least [DUCTTAPE_NEEDED_SPLINT] strips of tape to make a splint!</span>")
-			return
 		var/obj/item/stack/medical/splint/ghetto/new_splint = new(user.loc)
 		new_splint.dropInto(loc)
 		new_splint.add_fingerprint(user)

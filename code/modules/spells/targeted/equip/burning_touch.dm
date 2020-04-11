@@ -19,7 +19,7 @@
 	icon = 'icons/mob/screen1.dmi'
 	icon_state = "grabbed+1"
 	force = 10
-	damtype = DAM_BURN
+	damtype = BURN
 	simulated = 0
 	var/burn_power = 0
 	var/burn_timer
@@ -46,7 +46,7 @@
 		hand = user.get_organ(BP_L_HAND)
 	else
 		hand = user.get_organ(BP_R_HAND)
-	hand.take_damage(2 * burn_power, DAM_BURN)
+	hand.take_external_damage(burn=2 * burn_power)
 	if(burn_power > 5)
 		user.fire_stacks += 15
 		user.IgniteMob()

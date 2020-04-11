@@ -41,8 +41,6 @@ var/intercom_range_display_status = 0
 	set category = "Mapping"
 	set name = "-None of these are for ingame use!!"
 
-	..()
-
 /client/proc/camera_view()
 	set category = "Mapping"
 	set name = "Camera Range Display"
@@ -61,6 +59,8 @@ var/intercom_range_display_status = 0
 		for(var/obj/machinery/camera/C in cameranet.cameras)
 			new/obj/effect/debugging/camera_range(C.loc)
 	SSstatistics.add_field_details("admin_verb","mCRD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
+
 
 /client/proc/sec_camera_report()
 	set category = "Mapping"
@@ -88,14 +88,14 @@ var/intercom_range_display_status = 0
 			if(!(locate(/obj/structure/grille,T)))
 				var/window_check = 0
 				for(var/obj/structure/window/W in T)
-					if (W.dir == turn(C1.dir,180) || W.dir in list(5,6,9,10) )
+					if (W.dir == turn(C1.dir,180) || (W.dir in list(NORTHEAST,SOUTHEAST,SOUTHWEST,NORTHWEST)) )
 						window_check = 1
 						break
 				if(!window_check)
 					output += "<li><font color='red'>Camera not connected to wall at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Network: [C1.network]</color></li>"
 
 	output += "</ul>"
-	usr << browse(output,"window=airreport;size=1000x500")
+	show_browser(usr, output,"window=airreport;size=1000x500")
 	SSstatistics.add_field_details("admin_verb","mCRP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/intercom_view()
@@ -129,7 +129,6 @@ var/list/debug_verbs = list (
 		,/client/proc/count_objects_on_z_level
 		,/client/proc/count_objects_all
 		,/client/proc/cmd_assume_direct_control
-		,/client/proc/jump_to_dead_group
 		,/client/proc/startSinglo
 		,/client/proc/ticklag
 		,/client/proc/cmd_admin_grantfullaccess
@@ -149,6 +148,7 @@ var/list/debug_verbs = list (
 		,/client/proc/atmos_toggle_debug
 		,/client/proc/spawn_tanktransferbomb
 		,/client/proc/find_leaky_pipes
+		,/client/proc/analyze_openturf
 	)
 
 
@@ -328,7 +328,7 @@ var/list/debug_verbs = list (
 	SSstatistics.add_field_details("admin_verb","mOBJ") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /proc/get_zas_image(var/turf/T, var/icon_state)
-	return image_repository.atom_image(T, 'icons/misc/debug_group.dmi', icon_state, plane = ABOVE_TURF_PLANE, layer = ABOVE_TILE_LAYER)
+	return image_repository.atom_image(T, 'icons/misc/debug_group.dmi', icon_state, plane = DEFAULT_PLANE, layer = ABOVE_TILE_LAYER)
 
 //Special for Cakey
 /client/proc/find_leaky_pipes()

@@ -7,18 +7,15 @@
 #define MATERIAL_DIAMOND                 "diamond"
 #define MATERIAL_PHORON                  "phoron"
 #define MATERIAL_URANIUM                 "uranium"
-#define MATERIAL_COTTON                  "cotton"
 #define MATERIAL_CRYSTAL                 "crystal"
 #define MATERIAL_SANDSTONE               "sandstone"
-#define MATERIAL_LEATHER                 "leather"
+#define MATERIAL_CONCRETE                "concrete"
 #define MATERIAL_IRON                    "iron"
 #define MATERIAL_PLATINUM                "platinum"
 #define MATERIAL_BRONZE                  "bronze"
-#define MATERIAL_REINFORCED_GLASS        "rglass"
 #define MATERIAL_PHORON_GLASS            "phglass"
 #define MATERIAL_REINFORCED_PHORON_GLASS "rphglass"
 #define MATERIAL_MARBLE                  "marble"
-#define MATERIAL_RESIN                   "resin"
 #define MATERIAL_CULT                    "cult"
 #define MATERIAL_REINFORCED_CULT         "cult2"
 #define MATERIAL_VOX                     "voxalloy"
@@ -28,7 +25,6 @@
 #define MATERIAL_OSMIUM                  "osmium"
 #define MATERIAL_HYDROGEN                "hydrogen"
 #define MATERIAL_WASTE                   "waste"
-#define MATERIAL_SLAG                    "slag" //Waste product of smelting
 #define MATERIAL_ELEVATORIUM             "elevatorium"
 #define MATERIAL_ALIENALLOY              "aliumium"
 #define MATERIAL_SAND                    "sand"
@@ -36,53 +32,22 @@
 #define MATERIAL_DEUTERIUM               "deuterium"
 #define MATERIAL_TRITIUM                 "tritium"
 #define MATERIAL_SUPERMATTER             "supermatter"
+#define MATERIAL_PITCHBLENDE             "pitchblende"
+#define MATERIAL_HEMATITE                "hematite"
 #define MATERIAL_QUARTZ                  "quartz"
 #define MATERIAL_PYRITE                  "pyrite"
 #define MATERIAL_SPODUMENE               "spodumene"
 #define MATERIAL_CINNABAR                "cinnabar"
 #define MATERIAL_PHOSPHORITE             "phosphorite"
 #define MATERIAL_ROCK_SALT               "rock salt"
+#define MATERIAL_POTASH                  "potash"
+#define MATERIAL_BAUXITE                 "bauxite"
 #define MATERIAL_COPPER                  "copper"
 #define MATERIAL_CARDBOARD               "cardboard"
 #define MATERIAL_CLOTH                   "cloth"
 #define MATERIAL_CARPET                  "carpet"
 #define MATERIAL_ALUMINIUM               "aluminium"
 #define MATERIAL_NULLGLASS               "nullglass"
-#define MATERIAL_TUNGSTEN                "tungsten"
-#define MATERIAL_TIN                     "tin"
-#define MATERIAL_ZINC                    "zinc"
-#define MATERIAL_BRASS                   "brass"
-#define MATERIAL_LEAD                    "lead"
-#define MATERIAL_SULFUR                  "sulfur"
-#define MATERIAL_BSPACE_CRYSTAL          "bluespace crystal"
-#define MATERIAL_FIBERGLASS              "fiberglass"
-#define MATERIAL_GRAPHENE                "graphene"
-#define MATERIAL_BORON                   "boron"
-#define MATERIAL_BEESWAX                 "beeswax"
-#define MATERIAL_PINK_GOO                "pink goo"
-
-//ORES
-#define MATERIAL_TETRAHEDRITE            "tetrahedrite"
-#define MATERIAL_BOHMEITE                "bohmeite"
-#define MATERIAL_FREIBERGITE             "freibergite"
-#define MATERIAL_ILMENITE                "ilmenite"
-#define MATERIAL_GALENA                  "galena"
-#define MATERIAL_CASSITERITE             "cassiterite"
-#define MATERIAL_SPHALERITE              "sphalerite"
-#define MATERIAL_POTASH                  "potash"
-#define MATERIAL_BAUXITE                 "bauxite"
-#define MATERIAL_PITCHBLENDE             "pitchblende"
-#define MATERIAL_HEMATITE                "hematite"
-
-//ICES
-#define MATERIAL_ICES_WATER              "water ice"
-#define MATERIAL_ICES_NITROGEN           "nitrogen ice"
-#define MATERIAL_ICES_AMONIA             "amonia ice"
-#define MATERIAL_ICES_HYDROGEN           "hydrogen ice"
-#define MATERIAL_ICES_SULFUR_DIOXIDE     "sulfur dioxide ice"
-#define MATERIAL_ICES_CARBON_DIOXIDE     "carbon dioxide ice"
-#define MATERIAL_ICES_METHANE            "methane ice"
-#define MATERIAL_ICES_ACETONE            "acetone ice"
 
 //woods
 #define MATERIAL_WOOD                    "wood"
@@ -91,12 +56,43 @@
 #define MATERIAL_EBONY                   "ebony"
 #define MATERIAL_WALNUT                  "walnut"
 #define MATERIAL_BAMBOO                  "bamboo"
+#define MATERIAL_YEW                     "yew"
 
+// skins and bones
+#define MATERIAL_SKIN_GENERIC            "skin"
+#define MATERIAL_SKIN_LIZARD             "lizardskin"
+#define MATERIAL_SKIN_CHITIN             "chitin"
+#define MATERIAL_SKIN_FUR                "brown fur"
+#define MATERIAL_SKIN_FUR_GRAY           "gray fur"
+#define MATERIAL_SKIN_FUR_WHITE          "white fur"
+#define MATERIAL_SKIN_GOATHIDE           "goathide"
+#define MATERIAL_SKIN_COWHIDE            "cowhide"
+#define MATERIAL_SKIN_SHARK              "sharkskin"
+#define MATERIAL_SKIN_FISH               "fishskin"
+#define MATERIAL_SKIN_FUR_ORANGE         "orange fur"
+#define MATERIAL_SKIN_FUR_BLACK          "black fur"
+#define MATERIAL_SKIN_FUR_HEAVY          "heavy fur"
+#define MATERIAL_SKIN_FISH_PURPLE        "purple fishskin"
+#define MATERIAL_SKIN_FEATHERS           "white feathers"
+#define MATERIAL_SKIN_FEATHERS_PURPLE    "purple feathers"
+#define MATERIAL_SKIN_FEATHERS_BLUE      "blue feathers"
+#define MATERIAL_SKIN_FEATHERS_GREEN     "green feathers"
+#define MATERIAL_SKIN_FEATHERS_BROWN     "brown feathers"
+#define MATERIAL_SKIN_FEATHERS_RED       "red feathers"
+#define MATERIAL_SKIN_FEATHERS_BLACK     "black feathers"
 
-#define DEFAULT_TABLE_MATERIAL MATERIAL_PLASTIC
-#define DEFAULT_WALL_MATERIAL  MATERIAL_STEEL
+#define MATERIAL_BONE_GENERIC            "bone"
+#define MATERIAL_BONE_CARTILAGE          "cartilage"
+#define MATERIAL_BONE_FISH               "fishbone"
+
+#define MATERIAL_LEATHER_GENERIC         "leather"
+#define MATERIAL_LEATHER_LIZARD          "scaled hide"
+#define MATERIAL_LEATHER_FUR             "furred hide"
+#define MATERIAL_LEATHER_CHITIN          "treated chitin"
+
+// defaults
+#define DEFAULT_WALL_MATERIAL      MATERIAL_STEEL
 #define DEFAULT_FURNITURE_MATERIAL MATERIAL_ALUMINIUM
-#define SHEET_MATERIAL_AMOUNT 4000
 
 #define MATERIAL_ALTERATION_NONE 0
 #define MATERIAL_ALTERATION_NAME 1
@@ -116,11 +112,24 @@
 
 #define TABLE_BRITTLE_MATERIAL_MULTIPLIER 4 // Amount table damage is multiplied by if it is made of a brittle material (e.g. glass)
 
+//Weight thresholds
+#define MATERIAL_HEAVY 		24
+#define MATERIAL_LIGHT    	18
+
+//Construction difficulty
+#define MATERIAL_EASY_DIY 		0
+#define MATERIAL_NORMAL_DIY    	1
+#define MATERIAL_HARD_DIY    	2
+#define MATERIAL_VERY_HARD_DIY 	3
+
 //Stack flags
 #define USE_MATERIAL_COLOR 				0x1
 #define USE_MATERIAL_SINGULAR_NAME    	0x2
 #define USE_MATERIAL_PLURAL_NAME    	0x4
 
-//Material dust defines
-#define DUST_MATERIAL_AMOUNT 100 //Each pile of dust is 100 units of matter
-
+//Arbitrary hardness thresholds
+#define  MATERIAL_SOFT   10
+#define  MATERIAL_FLEXIBLE  20
+#define  MATERIAL_RIGID  40
+#define  MATERIAL_HARD  60
+#define  MATERIAL_VERY_HARD  80

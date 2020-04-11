@@ -74,11 +74,11 @@
 	return L
 
 /obj/item/weapon/storage/proc/show_to(mob/user as mob)
-	if(istype(storage_ui))
+	if(storage_ui)
 		storage_ui.show_to(user)
 
 /obj/item/weapon/storage/proc/hide_from(mob/user as mob)
-	if(istype(storage_ui))
+	if(storage_ui)
 		storage_ui.hide_from(user)
 
 /obj/item/weapon/storage/proc/open(mob/user as mob)
@@ -106,11 +106,11 @@
 
 /obj/item/weapon/storage/proc/close(mob/user as mob)
 	hide_from(user)
-	if(istype(storage_ui))
+	if(storage_ui)
 		storage_ui.after_close(user)
 
 /obj/item/weapon/storage/proc/close_all()
-	if(istype(storage_ui))
+	if(storage_ui)
 		storage_ui.close_all()
 
 /obj/item/weapon/storage/proc/storage_space_used()
@@ -123,7 +123,7 @@
 /obj/item/weapon/storage/proc/can_be_inserted(obj/item/W, mob/user, stop_messages = 0)
 	if(!istype(W)) return //Not an item
 
-	if(user && user.isEquipped(W) && !user.canUnEquip(W))
+	if(user && !user.canUnEquip(W))
 		return 0
 
 	if(src.loc == W)
@@ -146,6 +146,10 @@
 			if(!stop_messages && !istype(W, /obj/item/weapon/hand_labeler))
 				to_chat(user, "<span class='notice'>\The [src] has no more space specifically for \the [W].</span>")
 			return 0
+
+	//If attempting to lable the storage item, silently fail to allow it
+	if(istype(W, /obj/item/weapon/hand_labeler) && user.a_intent != I_HELP)
+		return FALSE
 
 	// Don't allow insertion of unsafed compressed matter implants
 	// Since they are sucking something up now, their afterattack will delete the storage
@@ -223,7 +227,7 @@
 	if(!istype(W)) return 0
 	new_location = new_location || get_turf(src)
 
-	if(istype(storage_ui))
+	if(storage_ui)
 		storage_ui.on_pre_remove(usr, W)
 
 	if(ismob(loc))
@@ -244,9 +248,13 @@
 	return 1
 
 // Only do ui functions for now; the obj is responsible for anything else.
-/obj/item/weapon/storage/proc/on_item_deletion(obj/item/W)
-	if(istype(storage_ui))
+/obj/item/weapon/storage/proc/on_item_pre_deletion(obj/item/W)
+	if(storage_ui)
 		storage_ui.on_pre_remove(null, W) // Supposed to be able to handle null user.
+
+// Only do ui functions for now; the obj is responsible for anything else.
+/obj/item/weapon/storage/proc/on_item_post_deletion(obj/item/W)
+	if(storage_ui)
 		update_ui_after_item_removal()
 	queue_icon_update()
 
@@ -257,38 +265,16 @@
 
 //This proc is called when you want to place an item into the storage item.
 /obj/item/weapon/storage/attackby(obj/item/W as obj, mob/user as mob)
-	..()
+	. = ..()
+	if (.) //if the item was used as a crafting component, just return
+		return
 
 	if(isrobot(user) && (W == user.get_active_hand()))
 		return //Robots can't store their modules.
 
-	if(istype(W, /obj/item/device/lightreplacer))
-		var/obj/item/device/lightreplacer/LP = W
-		var/amt_inserted = 0
-		var/turf/T = get_turf(user)
-		for(var/obj/item/weapon/light/L in src.contents)
-			if(L.status == 0)
-				if(LP.uses < LP.max_uses)
-					LP.AddUses(1)
-					amt_inserted++
-					remove_from_storage(L, T)
-					qdel(L)
-		if(amt_inserted)
-			to_chat(user, "You inserted [amt_inserted] light\s into \the [LP.name]. You have [LP.uses] light\s remaining.")
-			return
-
 	if(!can_be_inserted(W, user))
 		return
 
-	if(istype(W, /obj/item/weapon/tray))
-		var/obj/item/weapon/tray/T = W
-		if(T.calc_carry() > 0)
-			if(prob(85))
-				to_chat(user, "<span class='warning'>The tray won't fit in [src].</span>")
-				return
-			else
-				if(user.unEquip(W))
-					to_chat(user, "<span class='warning'>God damnit!</span>")
 	W.add_fingerprint(user)
 	return handle_item_insertion(W)
 
@@ -308,8 +294,7 @@
 		src.open(user)
 	else
 		..()
-		if(istype(storage_ui))
-			storage_ui.on_hand_attack(user)
+		storage_ui.on_hand_attack(user)
 	src.add_fingerprint(user)
 	return
 
@@ -369,9 +354,11 @@
 		verbs -= /obj/item/weapon/storage/verb/toggle_gathering_mode
 
 	if(isnull(max_storage_space) && !isnull(storage_slots))
-		max_storage_space = storage_slots*base_storage_cost(max_w_class)
+		max_storage_space = storage_slots*BASE_STORAGE_COST(max_w_class)
 
+	storage_ui = new storage_ui(src)
 	prepare_ui()
+
 	if(!map_storage_loaded && startswith)
 		for(var/item_path in startswith)
 			var/list/data = startswith[item_path]
@@ -384,10 +371,7 @@
 			else
 				for(var/i in 1 to (isnull(data)? 1 : data))
 					new item_path(src)
-	queue_icon_update()
-
-/obj/item/weapon/storage/after_load()
-	. = ..()
+		update_icon()
 
 /obj/item/weapon/storage/emp_act(severity)
 	if(!istype(src.loc, /mob/living))
@@ -451,4 +435,4 @@
 
 /obj/item/proc/get_storage_cost()
 	//If you want to prevent stuff above a certain w_class from being stored, use max_w_class
-	return base_storage_cost(w_class)
+	return BASE_STORAGE_COST(w_class)

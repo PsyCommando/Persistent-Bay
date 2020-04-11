@@ -13,8 +13,10 @@
 	var/datum/pipe_network/network2
 	var/datum/pipe_network/network3
 
-/obj/machinery/atmospherics/trinary/New()
-	..()
+	pipe_class = PIPE_CLASS_TRINARY
+	connect_dir_type = SOUTH | NORTH | WEST
+
+/obj/machinery/atmospherics/trinary/Initialize()
 	air1 = new
 	air2 = new
 	air3 = new
@@ -22,23 +24,8 @@
 	air1.volume = 200
 	air2.volume = 200
 	air3.volume = 200
+	. = ..()
 
-	ADD_SAVED_VAR(air1)
-	ADD_SAVED_VAR(air2)
-	ADD_SAVED_VAR(air3)
-
-/obj/machinery/atmospherics/trinary/setup_initialize_directions()
-	..()
-	switch(dir)
-		if(NORTH)
-			initialize_directions = EAST|NORTH|SOUTH
-		if(SOUTH)
-			initialize_directions = SOUTH|WEST|NORTH
-		if(EAST)
-			initialize_directions = EAST|WEST|SOUTH
-		if(WEST)
-			initialize_directions = WEST|NORTH|EAST
-	
 // Housekeeping and pipe network stuff below
 /obj/machinery/atmospherics/trinary/network_expand(datum/pipe_network/new_network, obj/machinery/atmospherics/pipe/reference)
 	if(reference == node1)
@@ -58,8 +45,6 @@
 	return null
 
 /obj/machinery/atmospherics/trinary/Destroy()
-	loc = null
-
 	if(node1)
 		node1.disconnect(src)
 		qdel(network1)
@@ -73,6 +58,7 @@
 	node1 = null
 	node2 = null
 	node3 = null
+
 	return ..()
 
 /obj/machinery/atmospherics/trinary/atmos_init()
@@ -100,7 +86,7 @@
 				node3 = target
 				break
 
-	queue_icon_update()
+	update_icon()
 	update_underlays()
 
 /obj/machinery/atmospherics/trinary/build_network()
@@ -118,7 +104,6 @@
 		network3 = new /datum/pipe_network()
 		network3.normal_members += src
 		network3.build_network(node3, src)
-
 
 /obj/machinery/atmospherics/trinary/return_network(obj/machinery/atmospherics/reference)
 	build_network()
@@ -170,12 +155,5 @@
 		node3 = null
 
 	update_underlays()
+
 	return null
-
-obj/machinery/atmospherics/trinary/atmos_scan()
-	var/list/results = list()
-	results += air1
-	results += air2
-	results += air3
-
-	return results

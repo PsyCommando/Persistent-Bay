@@ -1,5 +1,5 @@
 /obj/item/weapon/gun/energy/taser
-	name = "Mk30 NL taser gun"
+	name = "electrolaser"
 	desc = "The NT Mk30 NL is a small, low capacity gun used for non-lethal takedowns. Produced by NT, it's actually a licensed version of a W-T design. It can switch between high and low intensity stun shots."
 	icon = 'icons/obj/guns/taser.dmi'
 	icon_state = "taser"
@@ -12,10 +12,9 @@
 		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun),
 		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock),
 		)
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/taser/carbine
-	name = "Mk44 NL taser carbine"
+	name = "electrolaser carbine"
 	desc = "The NT Mk44 NL is a high capacity gun used for non-lethal takedowns. It can switch between high and low intensity stun shots."
 	icon = 'icons/obj/guns/taser_carbine.dmi'
 	icon_state = "tasercarbine"
@@ -33,24 +32,21 @@
 		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun/heavy),
 		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock/heavy),
 		)
-	load_method = ENERGY_LOAD_HOTSWAP_CELL
 
 /obj/item/weapon/gun/energy/taser/mounted
-	name = "mounted taser gun"
+	name = "mounted electrolaser"
 	self_recharge = 1
 	use_external_power = 1
 	has_safety = FALSE
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/taser/mounted/cyborg
-	name = "taser gun"
+	name = "electrolaser"
 	max_shots = 6
 	recharge_time = 10 //Time it takes for shots to recharge (in ticks)
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 
 /obj/item/weapon/gun/energy/stunrevolver
-	name = "X6 Zeus stun revolver"
+	name = "stun revolver"
 	desc = "An A&M X6 Zeus. Designed by al-Maliki & Mosley, but produced under the wing of the Free Trade Union. Industry spies have been trying to get a hold of the blueprints for half a decade."
 	icon = 'icons/obj/guns/stunrevolver.dmi'
 	icon_state = "stunrevolver"
@@ -59,11 +55,10 @@
 	projectile_type = /obj/item/projectile/energy/electrode
 	max_shots = 6
 	combustion = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/stunrevolver/rifle
-	name = "X10 Thor stun rifle"
-	desc = "An A&M X10 Thor. A vastly oversized variant of the A&M X6 Zeus. Fires overcharged electrodes to take down hostile armored targets without harming them too much."
+	name = "stun rifle"
+	desc = "An A&M X10 Thor. A vastly oversized variant of the A&M X6 Zeus. Fires overcharged electrodes to obliterate pain receptors without harming them too much."
 	icon = 'icons/obj/guns/stunrifle.dmi'
 	icon_state = "stunrifle"
 	item_state = "stunrifle"
@@ -76,7 +71,6 @@
 	accuracy = 1
 	projectile_type = /obj/item/projectile/energy/electrode/stunshot
 	wielded_item_state = "stunrifle-wielded"
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/crossbow
 	name = "mini energy-crossbow"
@@ -85,7 +79,7 @@
 	icon_state = "crossbow"
 	w_class = ITEM_SIZE_NORMAL
 	item_state = "crossbow"
-	origin_tech = list(TECH_COMBAT = 2, TECH_MAGNET = 2, TECH_ILLEGAL = 5)
+	origin_tech = list(TECH_COMBAT = 2, TECH_MAGNET = 2, TECH_ESOTERIC = 5)
 	matter = list(MATERIAL_STEEL = 2000)
 	slot_flags = SLOT_BELT
 	silenced = 1
@@ -95,7 +89,6 @@
 	self_recharge = 1
 	charge_meter = 0
 	combustion = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
 
 /obj/item/weapon/gun/energy/crossbow/ninja
 	name = "energy dart thrower"
@@ -116,7 +109,7 @@
 	projectile_type = /obj/item/projectile/energy/bolt/large
 
 /obj/item/weapon/gun/energy/plasmastun
-	name = "MA21 Selkie plasma pulse projector"
+	name = "plasma pulse projector"
 	desc = "The Mars Military Industries MA21 Selkie is a weapon that uses a laser pulse to ionise the local atmosphere, creating a disorienting pulse of plasma and deafening shockwave as the wave expands."
 	icon = 'icons/obj/guns/plasma_stun.dmi'
 	icon_state = "plasma_stun"
@@ -126,4 +119,15 @@
 	max_shots = 4
 	projectile_type = /obj/item/projectile/energy/plasmastun
 	combustion = 0
-	load_method = ENERGY_LOAD_FIXED_CELL
+
+/obj/item/weapon/gun/energy/confuseray
+	name = "disorientator"
+	desc = "The W-T Mk. 4 Disorientator is a small, low capacity, and short-ranged energy projector intended for personal defense with minimal risk of permanent damage or cross-fire."
+	icon = 'icons/obj/guns/confuseray.dmi'
+	icon_state = "confuseray"
+	safety_icon = "safety"
+	origin_tech = list(TECH_COMBAT = 2, TECH_MATERIAL = 2, TECH_POWER = 2)
+	w_class = ITEM_SIZE_SMALL
+	max_shots = 4
+	projectile_type = /obj/item/projectile/beam/confuseray
+	combustion = 0

@@ -5,23 +5,23 @@
 		<p>Downloading attachment...</p>
 		<div class="item">
 		<div class="itemLabel">
-			File name: 
+			File name:
 		</div>
 		<div class="itemContent">
 			{{:data.down_filename}}&nbsp
 		</div>
 		<div class="itemLabel">
-			Progress: 
+			Progress:
 		</div>
 		<div class="itemContent">
 			{{:helper.displayBar(data.down_progress, 0, data.down_size)}} {{:data.down_progress}} / {{:data.down_size}} GQ
 		</div>
 		<div class="itemLabel">
-			Download rate: 
+			Download rate:
 		</div>
 		<div class="itemContent">
 			{{:data.down_speed}} GQ/s&nbsp
-		</div>		
+		</div>
 	</div>
 	{{:helper.link('Cancel Download', null, {'canceldownload' : 1})}}
 {{else data.current_account}}
@@ -36,13 +36,13 @@
 		<table>
 		<tr><td>Address book:
 		{{for data.accounts}}
-			<tr class="candystripe"><td>{{:helper.link(value.login, null, {'set_recipient' : value.login})}}
+			<tr class="candystripe"><td>{{:value.name}}<td>{{:value.job}}<td>{{:helper.link(value.login, null, {'set_recipient' : value.login})}}
 		{{/for}}
 		</table>
 	{{else data.new_message}}
 		<div class="item">
 			<div class="itemLabel">
-				{{:helper.link('', 'pencil', {'edit_title' : 1})}} Title: 
+				{{:helper.link('', 'pencil', {'edit_title' : 1})}} Title:
 			</div>
 			<div class="itemContent">
 				<div class="statusDisplayComm" style="width:100%;min-height:1.7em;padding-bottom: 0;">
@@ -52,7 +52,7 @@
 		</div>
 		<div class="item">
 			<div class="itemLabel">
-				{{:helper.link('', 'plusthick', {'edit_recipient' : 1})}} Recipient:
+				{{:helper.link('', 'plusthick', {'addressbook' : 1})}} Recipient:
 			</div>
 			<div class="itemContent">
 				<div class="statusDisplayComm" style="width:100%;min-height:1.7em;padding-bottom: 0;">
@@ -92,7 +92,7 @@
 	{{else data.cur_title}}
 		<div class="item">
 			<div class="itemLabel">
-				Title: 
+				Title:
 			</div>
 			<div class="itemContent">
 				{{:data.cur_title}}&nbsp
@@ -130,12 +130,12 @@
 				{{:helper.link('Reply', null, {'reply' : data.cur_uid})}}
 				{{:helper.link('Delete', null, {'delete' : data.cur_uid})}}
 				{{:helper.link('Close', null, {'cancel' : data.cur_uid})}}
-				{{:helper.link('Save to Disk', null, {'cancel' : data.cur_uid})}}
+				{{:helper.link('Save to Disk', null, {'save' : data.cur_uid})}}
 				{{if data.cur_hasattachment}}
 					{{:helper.link('Save Attachment', null, {'downloadattachment' : 1})}}
 				{{/if}}
 			</div>
-		</div>		
+		</div>
 	{{else}}
 		{{:helper.link('Inbox', 'mail-closed', {'set_folder' : 'Inbox'}, data.folder == 'Inbox' ? 'selected' : null)}}
 		{{:helper.link('Sent', 'arrowreturnthick-1-w', {'set_folder' : 'Sent'}, data.folder == 'Sent' ? 'selected' : null)}}
@@ -156,9 +156,9 @@
 						<td>{{:value.title}}&nbsp</td>
 						<td>{{:value.timestamp}}&nbsp</td>
 						<td>
-							{{:helper.link('', 'trash', {'delete' : value.ref})}}
-							{{:helper.link('', 'arrowreturnthick-1-w', {'reply' :  value.ref})}}
-							{{:helper.link('', 'search', {'view' :  value.ref})}}
+							{{:helper.link('', 'trash', {'delete' : value.uid})}}
+							{{:helper.link('', 'arrowreturnthick-1-w', {'reply' :  value.uid})}}
+							{{:helper.link('', 'search', {'view' :  value.uid})}}
 						</td>
 					</tr>
 				{{/for}}
@@ -168,8 +168,27 @@
 		{{/if}}
 	{{/if}}
 {{else}}
-	<b>ERROR SCREEN.</b>
+	<b>Welcome to NTNet Email System. Please log in.</b>
 	<div class="item">
-		Something has gone wrong and your email account is not loading. Contact an administrator.
+		<div class="itemLabel">
+			Email address:
+		</div>
+		<div class="itemContent">
+			{{:data.stored_login}}&nbsp
+		</div>
+		<div class="itemLabel">
+			Password:
+		</div>
+		<div class="itemContent">
+			{{:data.stored_password}}&nbsp
+		</div>
+		<div class="itemLabel">
+			Options:
+		</div>
+		<div class="itemContent">
+			{{:helper.link('Enter Login', null, {'edit_login' : 1})}}
+			{{:helper.link('Enter Password', null, {'edit_password' : 1})}}
+			{{:helper.link('Log In', null, {'login' : 1})}}
+		</div>
 	</div>
 {{/if}}

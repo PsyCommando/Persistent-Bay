@@ -17,16 +17,14 @@ GLOBAL_DATUM_INIT(density_set_event, /decl/observ/density_set, new)
 /*******************
 * Density Handling *
 *******************/
-/atom/proc/set_density(new_density)
+/atom/set_density(new_density)
 	var/old_density = density
-	if(density != new_density)
-		density = !!new_density
+	UNLINT(. = ..())
 	if(density != old_density)
 		GLOB.density_set_event.raise_event(src, old_density, density)
 
-//Moved this directly in the turf's ChangeTurf definition instead of overriding here and having things complain about it. 
-// /turf/ChangeTurf()
-// 	var/old_density = density
-// 	. = ..()
-// 	if(density != old_density)
-// 		GLOB.density_set_event.raise_event(src, old_density, density)
+/turf/ChangeTurf()
+	var/old_density = opacity
+	UNLINT(. = ..())
+	if(density != old_density)
+		GLOB.density_set_event.raise_event(src, old_density, density)

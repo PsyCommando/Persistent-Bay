@@ -7,10 +7,7 @@
 /datum/computer/file/embedded_program/New(var/obj/machinery/embedded_controller/M)
 	master = M
 	if (istype(M, /obj/machinery/embedded_controller/radio))
-		var/obj/machinery/embedded_controller/radio/R = M
-		var/datum/computer/file/embedded_program/P = locate(R.id_tag)
-		if(istype(P))
-			error("Duplicate program: '[R.id_tag]'")
+		var/obj/machinery/embedded_controller/R = M
 		id_tag = R.id_tag
 	..()
 

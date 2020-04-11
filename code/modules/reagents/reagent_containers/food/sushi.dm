@@ -6,12 +6,10 @@
 	bitesize = 1
 	var/fish_type = "fish"
 
-/obj/item/weapon/reagent_containers/food/snacks/sushi/New(newloc, obj/item/weapon/reagent_containers/food/snacks/rice, obj/item/weapon/reagent_containers/food/snacks/topping)
-	. = ..()
-	ADD_SAVED_VAR(fish_type)
+/obj/item/weapon/reagent_containers/food/snacks/sushi/New(var/newloc, var/obj/item/weapon/reagent_containers/food/snacks/rice, var/obj/item/weapon/reagent_containers/food/snacks/topping)
 
-/obj/item/weapon/reagent_containers/food/snacks/sushi/Initialize(var/mapload, var/obj/item/weapon/reagent_containers/food/snacks/rice, var/obj/item/weapon/reagent_containers/food/snacks/topping)
-	. = ..()
+	..(newloc)
+
 	if(istype(topping))
 		for(var/taste_thing in topping.nutriment_desc)
 			if(!nutriment_desc[taste_thing]) nutriment_desc[taste_thing] = 0
@@ -42,7 +40,7 @@
 			var/mob/M = rice.loc
 			if(istype(M)) M.drop_from_inventory(rice)
 			qdel(rice)
-	queue_icon_update()
+	update_icon()
 
 /obj/item/weapon/reagent_containers/food/snacks/sushi/on_update_icon()
 	name = "[fish_type] sushi"
@@ -64,13 +62,8 @@
 /obj/item/weapon/reagent_containers/food/snacks/sashimi/New(var/newloc, var/_fish_type)
 	..(newloc)
 	if(_fish_type) fish_type = _fish_type
-	ADD_SAVED_VAR(fish_type)
-	ADD_SAVED_VAR(slices)
-
-/obj/item/weapon/reagent_containers/food/snacks/sashimi/Initialize()
-	. = ..()
 	name = "[fish_type] sashimi"
-	queue_icon_update()
+	update_icon()
 
 /obj/item/weapon/reagent_containers/food/snacks/sashimi/on_update_icon()
 	icon_state = "sashimi_base"

@@ -31,7 +31,7 @@
 /obj/item/weapon/gun
 	name = "gun"
 	desc = "Its a gun. It's pretty terrible, though."
-	icon = 'icons/obj/weapons/guns/gui.dmi'
+	icon = 'icons/obj/guns/gui.dmi'
 	item_icons = list(
 		slot_l_hand_str = 'icons/mob/onmob/items/lefthand_guns.dmi',
 		slot_r_hand_str = 'icons/mob/onmob/items/righthand_guns.dmi',
@@ -91,12 +91,6 @@
 	var/has_safety = TRUE
 	var/safety_icon 	   //overlay to apply to gun based on safety state, if any
 
-/obj/item/weapon/gun/New()
-	..()
-	ADD_SAVED_VAR(sel_mode)
-	ADD_SAVED_VAR(safety_state)
-
-
 /obj/item/weapon/gun/Initialize()
 	. = ..()
 	for(var/i in 1 to firemodes.len)
@@ -104,7 +98,7 @@
 
 	if(isnull(scoped_accuracy))
 		scoped_accuracy = accuracy
-	
+
 	if(scope_zoom)
 		verbs += /obj/item/weapon/gun/proc/scope
 
@@ -145,7 +139,7 @@
 			toggle_safety()
 			return 1
 	if(MUTATION_HULK in M.mutations)
-		to_chat(M, SPAN_DANGER("Your fingers are much too large for the trigger guard!"))
+		to_chat(M, "<span class='danger'>Your fingers are much too large for the trigger guard!</span>")
 		return 0
 	if((MUTATION_CLUMSY in M.mutations) && prob(40)) //Clumsy handling
 		var/obj/P = consume_next_projectile()
@@ -153,8 +147,8 @@
 			if(process_projectile(P, user, user, pick(BP_L_FOOT, BP_R_FOOT)))
 				handle_post_fire(user, user)
 				user.visible_message(
-					SPAN_DANGER("\The [user] shoots \himself in the foot with \the [src]!"),
-					SPAN_DANGER("You shoot yourself in the foot with \the [src]!")
+					"<span class='danger'>\The [user] shoots \himself in the foot with \the [src]!</span>",
+					"<span class='danger'>You shoot yourself in the foot with \the [src]!</span>"
 					)
 				M.unequip_item()
 		else
@@ -176,14 +170,16 @@
 		PreFire(A,user,params) //They're using the new gun system, locate what they're aiming at.
 		return
 
-	if(user && user.a_intent == I_HELP) //regardless of what happens, refuse to shoot if help intent is on
-		to_chat(user, SPAN_WARNING("You refrain from firing \the [src] as your intent is set to help."))
-	else
-		Fire(A,user,params) //Otherwise, fire normally.
+	Fire(A,user,params) //Otherwise, fire normally.
 
 /obj/item/weapon/gun/attack(atom/A, mob/living/user, def_zone)
 	if (A == user && user.zone_sel.selecting == BP_MOUTH && !mouthshoot)
 		handle_suicide(user)
+	else if(user.a_intent != I_HURT && user.aiming && user.aiming.active) //if aim mode, don't pistol whip
+		if (user.aiming.aiming_at != A)
+			PreFire(A, user)
+		else
+			Fire(A, user, pointblank=1)
 	else if(user.a_intent == I_HURT) //point blank shooting
 		Fire(A, user, pointblank=1)
 	else
@@ -212,7 +208,7 @@
 
 	if(world.time < next_fire_time)
 		if (world.time % 3) //to prevent spam
-			to_chat(user, SPAN_WARNING("[src] is not ready to fire again!"))
+			to_chat(user, "<span class='warning'>[src] is not ready to fire again!</span>")
 		return
 
 	last_safety_check = world.time
@@ -236,7 +232,7 @@
 		if(pointblank)
 			process_point_blank(projectile, user, target)
 
-		if(process_projectile(projectile, user, target, user.zone_sel.selecting, clickparams))
+		if(process_projectile(projectile, user, target, user.zone_sel?.selecting, clickparams))
 			handle_post_fire(user, target, pointblank, reflex)
 			update_icon()
 
@@ -268,7 +264,7 @@
 //called if there was no projectile to shoot
 /obj/item/weapon/gun/proc/handle_click_empty(mob/user)
 	if (user)
-		user.visible_message("*click click*", SPAN_DANGER("*click*"))
+		user.visible_message("*click click*", "<span class='danger'>*click*</span>")
 	else
 		src.visible_message("*click click*")
 	playsound(src.loc, 'sound/weapons/empty.ogg', 100, 1)
@@ -321,6 +317,13 @@
 		if(curloc)
 			curloc.hotspot_expose(700, 5)
 
+	if(istype(user,/mob/living/carbon/human) && user.is_cloaked()) //shooting will disable a rig cloaking device
+		var/mob/living/carbon/human/H = user
+		if(istype(H.back,/obj/item/weapon/rig))
+			var/obj/item/weapon/rig/R = H.back
+			for(var/obj/item/rig_module/stealth_field/S in R.installed_modules)
+				S.deactivate()
+
 	update_icon()
 
 
@@ -339,7 +342,7 @@
 			max_mult = 1.2
 		for(var/obj/item/grab/G in L.grabbed_by)
 			max_mult = max(max_mult, G.point_blank_mult())
-	P.force *= max_mult
+	P.damage *= max_mult
 
 /obj/item/weapon/gun/proc/process_accuracy(obj/projectile, mob/living/user, atom/target, var/burst, var/held_twohanded)
 	var/obj/item/projectile/P = projectile
@@ -357,8 +360,8 @@
 
 	stood_still = max(0,round((world.time - stood_still)/10) - 1)
 	if(stood_still)
-		acc_mod += min(max(2, accuracy), stood_still)
-	else 
+		acc_mod += min(max(3, accuracy), stood_still)
+	else
 		acc_mod -= w_class - ITEM_SIZE_NORMAL
 		acc_mod -= bulk
 
@@ -425,31 +428,31 @@
 	var/mob/living/carbon/human/M = user
 
 	mouthshoot = 1
-	M.visible_message(SPAN_DANGER("[user] sticks their gun in their mouth, ready to pull the trigger..."))
+	M.visible_message("<span class='danger'>[user] sticks their gun in their mouth, ready to pull the trigger...</span>")
 	if(!do_after(user, 40, progress=0))
-		M.visible_message(SPAN_DANGER("[user] decided life was worth living"))
+		M.visible_message("<span class='notice'>[user] decided life was worth living</span>")
 		mouthshoot = 0
 		return
 	var/obj/item/projectile/in_chamber = consume_next_projectile()
 	if (istype(in_chamber))
-		user.visible_message(SPAN_WARNING("[user] pulls the trigger."))
+		user.visible_message("<span class = 'warning'>[user] pulls the trigger.</span>")
 		var/shot_sound = in_chamber.fire_sound? in_chamber.fire_sound : fire_sound
 		if(silenced)
 			playsound(user, shot_sound, 10, 1)
 		else
 			playsound(user, shot_sound, 50, 1)
 		if(istype(in_chamber, /obj/item/projectile/beam/lastertag))
-			user.show_message(SPAN_WARNING("You feel rather silly, trying to commit suicide with a toy."))
+			user.show_message("<span class = 'warning'>You feel rather silly, trying to commit suicide with a toy.</span>")
 			mouthshoot = 0
 			return
 
 		in_chamber.on_hit(M)
-		if (IsDamageTypePhysical(in_chamber.damtype))
+		if (in_chamber.damage_type != PAIN)
 			log_and_message_admins("[key_name(user)] commited suicide using \a [src]")
-			user.apply_damage(in_chamber.force*2.5, in_chamber.damtype, BP_HEAD, 0, used_weapon = "Point blank shot in the mouth with \a [in_chamber]")
+			user.apply_damage(in_chamber.damage*2.5, in_chamber.damage_type, BP_HEAD, in_chamber.damage_flags(), used_weapon = "Point blank shot in the mouth with \a [in_chamber]")
 			user.death()
 		else
-			to_chat(user, SPAN_NOTICE("Ow..."))
+			to_chat(user, "<span class = 'notice'>Ow...</span>")
 			user.apply_effect(110,PAIN,0)
 		qdel(in_chamber)
 		mouthshoot = 0
@@ -497,7 +500,8 @@
 		if(firemodes.len > 1)
 			var/datum/firemode/current_mode = firemodes[sel_mode]
 			to_chat(user, "The fire selector is set to [current_mode.name].")
-	to_chat(user, "The safety is [safety() ? "on" : "off"].")
+	if(has_safety)
+		to_chat(user, "The safety is [safety() ? "on" : "off"].")
 	last_safety_check = world.time
 
 /obj/item/weapon/gun/proc/switch_firemodes()
@@ -544,8 +548,8 @@
 /obj/item/weapon/gun/CtrlClick(var/mob/user)
 	if(loc == user)
 		toggle_safety(user)
-	else
-		..()
+		return TRUE
+	. = ..()
 
 /obj/item/weapon/gun/proc/safety()
 	return has_safety && safety_state
@@ -571,35 +575,12 @@
 /obj/item/weapon/gun/proc/can_autofire()
 	return (can_autofire && world.time >= next_fire_time)
 
-/client/MouseDrag(src_object, over_object, src_location, over_location, src_control, over_control, params)
-	. = ..()
-	if(over_object)
-		var/mob/living/M = mob
-		if(istype(M) && !M.incapacitated())
-			var/obj/item/weapon/gun/gun = mob.get_active_hand()
-			if(istype(gun) && gun.can_autofire())
-				M.set_dir(get_dir(M, over_object))
-				gun.Fire(get_turf(over_object), mob, params, (get_dist(over_object, mob) <= 1), FALSE)
-
-/obj/item/weapon/gun/proc/check_accidents(mob/living/user)
+/obj/item/weapon/gun/proc/check_accidents(mob/living/user, message = "[user] fumbles with the [src] and it goes off!",skill_path = SKILL_WEAPONS, fail_chance = 20, no_more_fail = SKILL_EXPERT, factor = 2)
 	if(istype(user))
-		if(!safety() && user.skill_fail_prob(SKILL_WEAPONS, 20, SKILL_EXPERT, 2) && special_check(user))
-			to_chat(user, "<span class='warning'>[src] fires on its own!</span>")
+		if(!safety() && user.skill_fail_prob(skill_path, fail_chance, no_more_fail, factor) && special_check(user))
+			user.visible_message(SPAN_WARNING(message))
 			var/list/targets = list(user)
-			targets += trange(2, src)
-			afterattack(pick(targets), user)
-
-/obj/item/weapon/gun/verb/rename_gun()
-	set name = "Name Gun"
-	set category = "Object"
-	set desc = "Click to rename your gun."
-
-	var/mob/M = usr
-	if(!M.mind)	return 0
-
-	var/input = sanitizeSafe(input("What do you want to name the gun?", ,""), MAX_NAME_LEN)
-
-	if(src && input && !M.stat && in_range(M,src))
-		name = input
-		to_chat(M, "You name the gun [input]. Say hello to your new friend.")
-		return 1
+			targets += trange(2, get_turf(src))
+			var/picked = pick(targets)
+			afterattack(picked, user)
+			return 1

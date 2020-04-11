@@ -39,6 +39,8 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 
 	var/initializations_finished_with_no_players_logged_in	//I wonder what this could be?
 
+	var/initializing = FALSE
+
 	// The type of the last subsystem to be process()'d.
 	var/datum/controller/subsystem/processing/last_type_processed
 
@@ -88,9 +90,12 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 	sortTim(subsystems, /proc/cmp_subsystem_init)
 	reverseRange(subsystems)
 	for(var/datum/controller/subsystem/ss in subsystems)
-		report_progress("Shutting down [ss.name] subsystem...")
-		ss.Shutdown()
-	report_progress("Shutdown complete")
+		if (ss.flags & SS_NEEDS_SHUTDOWN)
+			var/time = REALTIMEOFDAY
+			report_progress("Shutting down [ss] subsystem...")
+			ss.Shutdown()
+			report_progress("[ss] shutdown in [(REALTIMEOFDAY - time)/10]s.")
+	report_progress("Shutdown complete.")
 
 // Returns 1 if we created a new mc, 0 if we couldn't due to a recent restart,
 //	-1 if we encountered a runtime trying to recreate it
@@ -169,6 +174,8 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 
 	report_progress("Initializing subsystems...")
 
+	initializing = TRUE
+
 	// Sort subsystems by init_order, so they initialize in the correct order.
 	sortTim(subsystems, /proc/cmp_subsystem_init)
 
@@ -178,7 +185,7 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 	for (var/datum/controller/subsystem/SS in subsystems)
 		if (SS.flags & SS_NO_INIT)
 			continue
-		SS.Initialize(REALTIMEOFDAY)
+		SS.DoInitialize(REALTIMEOFDAY)
 		CHECK_TICK
 	current_ticklimit = TICK_LIMIT_RUNNING
 	var/time = (REALTIMEOFDAY - start_timeofday) / 10
@@ -187,7 +194,10 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 	report_progress(msg)
 	log_world(msg)
 
-	SetRunLevel(RUNLEVEL_SETUP)
+	initializing = FALSE
+
+	if (!current_runlevel)
+		SetRunLevel(RUNLEVEL_LOBBY)
 
 	// Sort subsystems by display setting for easy access.
 	sortTim(subsystems, /proc/cmp_subsystem_display)
@@ -204,29 +214,12 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 	// Loop.
 	Master.StartProcessing(0)
 
-	SSjobs.reset_occupations()
-	SSjobs.divide_occupations() // Apparently important for new antagonist system to register specific job antags properly.
-
-	GLOB.using_map.setup_economy()
-	Master.SetRunLevel(RUNLEVEL_GAME)
-
-	for(var/mob/new_player/player in GLOB.player_list)
-		if(player.panel)
-			player.panel.close()
-		player.new_player_panel()
-		if(player && player.ready && player.mind)
-			player.loadCharacter()
-		else
-			message_admins("skipping player [player], [player.ready], [player.mind]")
-
-	callHook("roundstart")
-
 /datum/controller/master/proc/SetRunLevel(new_runlevel)
 	var/old_runlevel = current_runlevel
 	if(isnull(old_runlevel))
 		old_runlevel = "NULL"
 
-	current_runlevel = new_runlevel
+	current_runlevel = log(2, new_runlevel) + 1
 	report_progress("MC: Runlevel changed from [old_runlevel] to [current_runlevel]")
 	if(current_runlevel < 1)
 		CRASH("Attempted to set invalid runlevel: [new_runlevel]")
@@ -237,25 +230,18 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 	if(delay)
 		sleep(delay)
 	report_progress("Master starting processing")
-	var/rtn = 0
-	//try
-	rtn = Loop()
+	var/rtn = Loop()
 	if (rtn > 0 || processing < 0)
 		return //this was suppose to happen.
-	// catch(var/exception/e)
-	// 	log_error(" /datum/controller/master/proc/StartProcessing(): '[e]'([e.file]:[e.line])")
 	//loop ended, restart the mc
-	log_game("MC crashed or runtimed (returned [rtn]), restarting")
-	message_admins("MC crashed or runtimed (returned [rtn]), restarting")
-	var/rtn2 = -1
-	try
-		rtn2 = Recreate_MC()
-	catch(var/exception/ex)
-		log_error(" /datum/controller/master/proc/StartProcessing(): '[ex]'([ex.file]:[ex.line])")
+	log_game("MC crashed or runtimed, restarting")
+	message_admins("MC crashed or runtimed, restarting")
+	var/rtn2 = Recreate_MC()
 	if (rtn2 <= 0)
 		log_game("Failed to recreate MC (Error code: [rtn2]), it's up to the failsafe now")
 		message_admins("Failed to recreate MC (Error code: [rtn2]), it's up to the failsafe now")
 		Failsafe.defcon = 2
+
 // Main loop.
 /datum/controller/master/proc/Loop()
 	. = -1
@@ -419,6 +405,8 @@ GLOBAL_REAL(Master, /datum/controller/master) = new
 		if (SS.can_fire <= 0)
 			continue
 		if (SS.next_fire > world.time)
+			continue
+		if(SS.suspended)
 			continue
 		SS_flags = SS.flags
 		if (SS_flags & SS_NO_FIRE)

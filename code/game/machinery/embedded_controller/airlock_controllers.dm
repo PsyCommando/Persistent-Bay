@@ -1,8 +1,7 @@
 //base type for controllers of two-door systems
 /obj/machinery/embedded_controller/radio/airlock
 	// Setup parameters only
-	radio_filter_in = RADIO_AIRLOCK
-	radio_filter_out = RADIO_AIRLOCK
+	radio_filter = RADIO_AIRLOCK
 	program = /datum/computer/file/embedded_program/airlock
 	var/tag_exterior_door
 	var/tag_interior_door
@@ -16,19 +15,6 @@
 	var/tag_air_alarm
 	var/list/dummy_terminals = list()
 	var/cycle_to_external_air = 0
-
-/obj/machinery/embedded_controller/radio/airlock/New()
-	..()
-	program = new/datum/computer/file/embedded_program/airlock(src)
-
-
-/obj/machinery/embedded_controller/radio/airlock/Initialize()
-	. = ..()
-	return INITIALIZE_HINT_LATELOAD
-
-/obj/machinery/embedded_controller/radio/airlock/LateInitialize(mapload, ...)
-	. = ..()
-	program.receive_user_command(list("cycle_int")) //Cycle them doors
 
 /obj/machinery/embedded_controller/radio/airlock/Destroy()
 	for(var/thing in dummy_terminals)
@@ -47,7 +33,7 @@
 /obj/machinery/embedded_controller/radio/airlock/advanced_airlock_controller
 	name = "Advanced Airlock Controller"
 
-/obj/machinery/embedded_controller/radio/airlock/advanced_airlock_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/nano_ui/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
+/obj/machinery/embedded_controller/radio/airlock/advanced_airlock_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/nanoui/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
 	var/data[0]
 
 	data = list(
@@ -71,7 +57,7 @@
 	name = "Airlock Controller"
 	tag_secure = 1
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/nano_ui/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/nanoui/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
 	var/data[0]
 
 	data = list(
@@ -91,22 +77,10 @@
 //Access controller for door control - used in virology and the like
 /obj/machinery/embedded_controller/radio/airlock/access_controller
 	icon = 'icons/obj/airlock_machines.dmi'
-	icon_state = "access_control_standby"
-
 	name = "Access Controller"
 	tag_secure = 1
 
-
-/obj/machinery/embedded_controller/radio/airlock/access_controller/on_update_icon()
-	if(on && program)
-		if(program.memory["processing"])
-			icon_state = "access_control_process"
-		else
-			icon_state = "access_control_standby"
-	else
-		icon_state = "access_control_off"
-
-/obj/machinery/embedded_controller/radio/airlock/access_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/nano_ui/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
+/obj/machinery/embedded_controller/radio/airlock/access_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/nanoui/master_ui = null, var/datum/topic_state/state = GLOB.default_state)
 	var/data[0]
 
 	data = list(

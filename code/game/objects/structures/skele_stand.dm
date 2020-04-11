@@ -4,8 +4,6 @@
 	icon = 'icons/obj/surgery.dmi'
 	icon_state = "hangskele"
 	desc = "It's an anatomical model of a human skeletal system made of plaster."
-	mass = 10
-	max_health = 30
 	var/list/swag = list()
 	var/cooldown
 
@@ -38,7 +36,7 @@
 	rattle_bones(null, thing)
 
 /obj/structure/skele_stand/examine(mob/user)
-	..()
+	. = ..()
 	if(swag.len)
 		var/list/swagnames = list()
 		for(var/slot in swag)

@@ -1,32 +1,17 @@
 /obj/structure/grille
 	name = "grille"
 	desc = "A flimsy lattice of metal rods, with screws to secure it to the floor."
-	icon = 'icons/obj/structures/grille.dmi'
+	icon = 'icons/obj/grille.dmi'
 	icon_state = "grille"
 	color = COLOR_STEEL
 	density = 1
 	anchored = 1
-	obj_flags = OBJ_FLAG_CONDUCTIBLE | OBJ_FLAG_DAMAGEABLE
+	obj_flags = OBJ_FLAG_CONDUCTIBLE
 	layer = BELOW_OBJ_LAYER
 	explosion_resistance = 1
-	max_health = 50
-	min_health = -10
-	broken_threshold = 0
-	armor = list(
-		DAM_BLUNT  	= 5,
-		DAM_PIERCE 	= 10,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 2,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
+	rad_resistance_modifier = 0.1
 	var/init_material = MATERIAL_STEEL
+	var/health = 10
 	var/destroyed = 0
 
 	blend_objects = list(/obj/machinery/door, /turf/simulated/wall) // Objects which to blend with
@@ -35,16 +20,11 @@
 /obj/structure/grille/get_material()
 	return material
 
-/obj/structure/grille/New()
-	..()
-	ADD_SAVED_VAR(init_material)
-
 /obj/structure/grille/Initialize(mapload, var/new_material)
 	. = ..()
-	if(!map_storage_loaded)
-		if(!new_material)
-			new_material = init_material
-		material = SSmaterials.get_material_by_name(new_material)
+	if(!new_material)
+		new_material = init_material
+	material = SSmaterials.get_material_by_name(new_material)
 	if(!istype(material))
 		..()
 		return INITIALIZE_HINT_QDEL
@@ -52,9 +32,7 @@
 	name = "[material.display_name] grille"
 	desc = "A lattice of [material.display_name] rods, with screws to secure it to the floor."
 	color =  material.icon_colour
-	max_health = max(1, round(material.integrity/15))
-	if(!map_storage_loaded)
-		health = max_health
+	health = max(1, round(material.integrity/15))
 	update_connections(1)
 	update_icon()
 
@@ -136,24 +114,25 @@
 
 	//20% chance that the grille provides a bit more cover than usual. Support structure for example might take up 20% of the grille's area.
 	//If they click on the grille itself then we assume they are aiming at the grille itself and the extra cover behaviour is always used.
-	if(IsDamageTypeBrute(Proj.damtype))
-		//bullets
-		if(Proj.original == src || prob(20))
-			Proj.force *= between(0, Proj.force/60, 0.5)
-			if(prob(max((damage-10)/25, 0))*100)
+	switch(Proj.damage_type)
+		if(BRUTE)
+			//bullets
+			if(Proj.original == src || prob(20))
+				Proj.damage *= between(0, Proj.damage/60, 0.5)
+				if(prob(max((damage-10)/25, 0))*100)
+					passthrough = 1
+			else
+				Proj.damage *= between(0, Proj.damage/60, 1)
 				passthrough = 1
-		else
-			Proj.force *= between(0, Proj.force/60, 1)
-			passthrough = 1
-	else if(IsDamageTypeBurn(Proj.damtype))
-		//beams and other projectiles are either blocked completely by grilles or stop half the damage.
-		if(!(Proj.original == src || prob(20)))
-			Proj.force *= 0.5
-			passthrough = 1
+		if(BURN)
+			//beams and other projectiles are either blocked completely by grilles or stop half the damage.
+			if(!(Proj.original == src || prob(20)))
+				Proj.damage *= 0.5
+				passthrough = 1
 
 	if(passthrough)
 		. = PROJECTILE_CONTINUE
-		damage = between(0, (damage - Proj.force)*(IsDamageTypeBrute(Proj.damtype)? 0.4 : 1), 10) //if the bullet passes through then the grille avoids most of the damage
+		damage = between(0, (damage - Proj.damage)*(Proj.damage_type == BRUTE? 0.4 : 1), 10) //if the bullet passes through then the grille avoids most of the damage
 
 	take_damage(damage*0.2)
 
@@ -195,20 +174,28 @@
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		user.do_attack_animation(src)
 		playsound(loc, 'sound/effects/grillehit.ogg', 80, 1)
-	else
-		return ..()
-	return..()
+		switch(W.damtype)
+			if("fire")
+				take_damage(W.force)
+			if("brute")
+				take_damage(W.force * 0.1)
+	..()
 
-/obj/structure/grille/broken()
-	if(!destroyed)
-		set_density(0)
-		destroyed = 1
-		visible_message("<span class='notice'>\The [src] falls to pieces!</span>")
-		update_icon()
+/obj/structure/grille/proc/healthcheck()
+	if(health <= 0)
+		if(!destroyed)
+			set_density(0)
+			destroyed = 1
+			visible_message("<span class='notice'>\The [src] falls to pieces!</span>")
+			update_icon()
+			new /obj/item/stack/material/rods(get_turf(src), 1, material.name)
 
-/obj/structure/grille/make_debris()
-	if(material)
-		new /obj/item/stack/material/rods(get_turf(src), 1, material.name)
+		else
+			if(health <= -6)
+				new /obj/item/stack/material/rods(get_turf(src), 1, material.name)
+				qdel(src)
+				return
+	return
 
 // shock user with probability prb (if all connections & power are working)
 // returns 1 if shocked, 0 otherwise
@@ -220,7 +207,7 @@
 		return 0
 	if(!prob(prb))
 		return 0
-	if(!in_range(src, user))//To prevent TK and mech users from getting shocked
+	if(!in_range(src, user))//To prevent TK and exosuit users from getting shocked
 		return 0
 	var/turf/T = get_turf(src)
 	var/obj/structure/cable/C = T.get_cable_node()
@@ -243,13 +230,17 @@
 			take_damage(1)
 	..()
 
+/obj/structure/grille/take_damage(damage)
+	health -= damage
+	healthcheck()
+
 // Used in mapping to avoid
-/obj/structure/grille/damaged
+/obj/structure/grille/broken
 	destroyed = 1
 	icon_state = "broken"
 	density = 0
 
-/obj/structure/grille/damaged/Initialize()
+/obj/structure/grille/broken/Initialize()
 	. = ..()
 	take_damage(rand(1, 5)) //In the destroyed but not utterly threshold.
 

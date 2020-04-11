@@ -30,19 +30,11 @@
 
 /obj/item/organ/internal/posibrain/New(var/mob/living/carbon/H)
 	..()
-	ADD_SAVED_VAR(brainmob)
-	ADD_SAVED_VAR(shackle)
-
-	ADD_SKIP_EMPTY(brainmob)
-
-/obj/item/organ/internal/posibrain/Initialize(var/mapload, var/mob/living/carbon/H)
-	. = ..()
-	if(!mapload)
-		if(!brainmob && H)
-			init(H)
-		robotize()
-		unshackle()
-	queue_icon_update()
+	if(!brainmob && H)
+		init(H)
+	robotize()
+	unshackle()
+	update_icon()
 
 /obj/item/organ/internal/posibrain/proc/init(var/mob/living/carbon/H)
 	brainmob = new(src)
@@ -51,7 +43,7 @@
 		brainmob.SetName(H.real_name)
 		brainmob.real_name = H.real_name
 		brainmob.dna = H.dna.Clone()
-		brainmob.add_language("Encoded Audio Language")
+		brainmob.add_language(LANGUAGE_EAL)
 
 /obj/item/organ/internal/posibrain/Destroy()
 	QDEL_NULL(brainmob)
@@ -90,8 +82,7 @@
 	return
 
 /obj/item/organ/internal/posibrain/examine(mob/user)
-	if(!..(user))
-		return
+	. = ..()
 
 	var/msg = "<span class='info'>*---------*</span>\nThis is \icon[src] \a <EM>[src]</EM>!\n[desc]\n"
 
@@ -150,7 +141,7 @@
 
 	overlays.Cut()
 	if(shackle)
-		overlays |= image(icon, "posibrain-shackles")
+		overlays |= image('icons/obj/assemblies.dmi', "posibrain-shackles")
 
 /obj/item/organ/internal/posibrain/proc/transfer_identity(var/mob/living/carbon/H)
 	if(H && H.mind)

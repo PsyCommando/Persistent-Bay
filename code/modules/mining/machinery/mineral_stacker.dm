@@ -4,19 +4,8 @@
 	console = /obj/machinery/computer/mining
 	input_turf =  EAST
 	output_turf = WEST
-	circuit_type = /obj/item/weapon/circuitboard/mining_stacker
 	var/stack_amt = 50
-	var/list/stacks
-
-/obj/machinery/mineral/stacking_machine/New()
-	..()
-	ADD_SAVED_VAR(stack_amt)
-	ADD_SAVED_VAR(stacks)
-
-/obj/machinery/mineral/stacking_machine/Initialize()
-	. = ..()
-	if(!stacks)
-		stacks = list()
+	var/list/stacks = list()
 
 /obj/machinery/mineral/stacking_machine/Process()
 	if(input_turf)
@@ -42,33 +31,25 @@
 /obj/machinery/mineral/stacking_machine/get_console_data()
 	. = ..()
 	. += "<h1>Sheet Stacking</h1>"
-	. += "Stacking: [stack_amt] <A href='?src=\ref[src];change_stack=1'>\[change\]</a>"
+	. += "Stacking: [stack_amt] <a href='?src=\ref[src];change_stack=1'>\[change\]</a>"
 	var/line = ""
 	for(var/stacktype in stacks)
 		if(stacks[stacktype] > 0)
-			line += "<tr><td>[capitalize(stacktype)]</td><td>[stacks[stacktype]]</td><td><A href='?src=\ref[src];release_stack=[stacktype]'>Release.</a></td></tr>"
+			line += "<tr><td>[capitalize(stacktype)]</td><td>[stacks[stacktype]]</td><td><A href='?src=\ref[src];release_stack=[stacktype]'>Release</a></td></tr>"
 	. += "<table>[line]</table>"
 
 /obj/machinery/mineral/stacking_machine/Topic(href, href_list)
 	if((. = ..()))
 		return
 	if(href_list["change_stack"])
-		. = set_stack_amount(input("What would you like to set the stack amount to?") as null|anything in list(1,5,10,20,50))
+		var/choice = input("What would you like to set the stack amount to?") as null|anything in list(1,5,10,20,30,50,60)
+		if(!choice) return
+		stack_amt = choice
+		. = TRUE
 	else if(href_list["release_stack"] && stacks[href_list["release_stack"]] > 0)
-		. = release_stack(href_list["release_stack"])
+		var/material/stackmat = SSmaterials.get_material_by_name(href_list["release_stack"])
+		stackmat.place_sheet(output_turf, stacks[href_list["release_stack"]])
+		stacks[href_list["release_stack"]] = 0
+		. = TRUE
 	if(. && console)
 		console.updateUsrDialog()
-
-/obj/machinery/mineral/stacking_machine/proc/set_stack_amount(var/samount)
-	if(!samount)
-		return FALSE
-	stack_amt = samount
-	return TRUE
-
-/obj/machinery/mineral/stacking_machine/proc/release_stack(var/stackmatname)
-	if(stackmatname && stacks[stackmatname] > 0)
-		var/material/stackmat = SSmaterials.get_material_by_name(stackmatname)
-		stackmat.place_sheet(output_turf, stacks[stackmatname])
-		stacks[stackmatname] = 0
-		return TRUE
-	return FALSE

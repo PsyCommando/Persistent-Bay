@@ -6,4 +6,3 @@
 	can_buckle = 1
 	buckle_dir = SOUTH
 	buckle_lying = 1
-	max_health = 50

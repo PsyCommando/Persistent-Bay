@@ -6,10 +6,11 @@
 	name = "ladder"
 	desc = "A ladder. You can climb it up and down."
 	icon_state = "ladder01"
-	icon = 'icons/obj/structures/ladders.dmi'
+	icon = 'icons/obj/structures.dmi'
 	density = 0
 	opacity = 0
 	anchored = 1
+	obj_flags = OBJ_FLAG_NOFALL
 
 	var/allowed_directions = DOWN
 	var/obj/structure/ladder/target_up
@@ -17,27 +18,23 @@
 
 	var/const/climb_time = 2 SECONDS
 	var/static/list/climbsounds = list('sound/effects/ladder.ogg','sound/effects/ladder2.ogg','sound/effects/ladder3.ogg','sound/effects/ladder4.ogg')
-	var/dnr = 0
-
-/obj/structure/ladder/New()
-	. = ..()
-	ADD_SAVED_VAR(allowed_directions)
-
-/obj/structure/ladder/proc/link_ladders()
-	// the upper will connect to the lower
-	for(var/obj/structure/ladder/L in GetBelow(src))
-		log_debug("Tring to link [src]([x][y][z]) down with [L]([L.x],[L.y],[L.z])")
-		log_debug("Linked!")
-		target_down = L
-		allowed_directions |= DOWN
-		L.target_up = src
-		L.allowed_directions |= UP
-		return
 
 /obj/structure/ladder/Initialize()
 	. = ..()
-	link_ladders()
-	queue_icon_update()
+	// the upper will connect to the lower
+	if(allowed_directions & DOWN) //we only want to do the top one, as it will initialize the ones before it.
+		for(var/obj/structure/ladder/L in GetBelow(src))
+			if(L.allowed_directions & UP)
+				target_down = L
+				L.target_up = src
+				var/turf/T = get_turf(src)
+				T.ReplaceWithLattice()
+				return
+	update_icon()
+
+
+	set_extension(src, /datum/extension/turf_hand)
+
 
 /obj/structure/ladder/Destroy()
 	if(target_down)
@@ -50,6 +47,31 @@
 
 /obj/structure/ladder/attackby(obj/item/I, mob/user)
 	climb(user, I)
+
+/turf/hitby(atom/movable/AM)
+	if(isobj(AM))
+		var/obj/structure/ladder/L = locate() in contents
+		if(L)
+			L.hitby(AM)
+			return
+	..()
+
+/obj/structure/ladder/hitby(obj/item/I)
+	var/area/room = get_area(src)
+	if(!room.has_gravity())
+		return
+	var/atom/blocker
+	var/turf/landing = get_turf(target_down)
+	for(var/atom/A in landing)
+		if(!A.CanPass(I, I.loc, 1.5, 0))
+			blocker = A
+			break
+	if(blocker)
+		visible_message(SPAN_WARNING("\The [I] fails to go down \the [src], blocked by the [blocker]!"))
+	else
+		visible_message(SPAN_WARNING("\The [I] goes down \the [src]!"))
+		I.forceMove(landing)
+		landing.visible_message(SPAN_WARNING("\The [I] falls from the top of \the [target_down]!"))
 
 /obj/structure/ladder/attack_hand(var/mob/M)
 	climb(M)
@@ -68,7 +90,7 @@
 /obj/structure/ladder/proc/instant_climb(var/mob/M)
 	var/atom/target_ladder = getTargetLadder(M)
 	if(target_ladder)
-		M.forceMove(get_turf(target_ladder))
+		M.dropInto(target_ladder.loc)
 
 /obj/structure/ladder/proc/climb(mob/M, obj/item/I = null)
 	if(!M.may_climb_ladders(src))
@@ -102,7 +124,7 @@
 	instant_climb(M)
 
 /obj/structure/ladder/proc/getTargetLadder(var/mob/M)
-	if((!target_up && !target_down) || (target_up && !istype(target_up.loc, /turf) || (target_down && !istype(target_down.loc,/turf))))
+	if((!target_up && !target_down) || (target_up && !istype(target_up.loc, /turf/simulated/open) || (target_down && !istype(target_down.loc, /turf))))
 		to_chat(M, "<span class='notice'>\The [src] is incomplete and can't be climbed.</span>")
 		return
 	if(target_down && target_up)
@@ -184,21 +206,10 @@
 	name = "stairs"
 	desc = "Stairs leading to another deck.  Not too useful if the gravity goes out."
 	icon = 'icons/obj/stairs.dmi'
-	density = FALSE
-	opacity = TRUE
-	anchored = TRUE
-	plane = ABOVE_TURF_PLANE
+	density = 0
+	opacity = 0
+	anchored = 1
 	layer = RUNE_LAYER
-	var/tmp/was_already_saved = FALSE //In order to fix multi-tiles objects we gotta make sure only the base turf of the object saves it
-
-/obj/structure/stairs/should_save(datum/saver)
-	. = ..()
-	if(!.)
-		return FALSE
-	var/turf/T = saver
-	if(istype(saver))
-		return T == get_turf(src) //only save if we're on the "base" turf on which the stairs rest on
-	return FALSE
 
 /obj/structure/stairs/Initialize(var/mapload)
 	for(var/turf/turf in locs)
@@ -244,23 +255,26 @@
 /obj/structure/stairs/north
 	dir = NORTH
 	bound_height = 64
-	bound_width = 32
 	bound_y = -32
 	pixel_y = -32
 
 /obj/structure/stairs/south
 	dir = SOUTH
 	bound_height = 64
-	bound_width = 32
 
 /obj/structure/stairs/east
 	dir = EAST
 	bound_width = 64
-	bound_height = 32
 	bound_x = -32
 	pixel_x = -32
 
 /obj/structure/stairs/west
 	dir = WEST
 	bound_width = 64
+
+/obj/structure/stairs/short
 	bound_height = 32
+	bound_width = 32
+
+/obj/structure/stairs/short/west
+	dir = WEST

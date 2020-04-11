@@ -1,11 +1,10 @@
 /mob/living/simple_animal/lizard
 	name = "lizard"
 	desc = "A cute tiny lizard."
-	icon = 'icons/mob/critter.dmi'
+	icon = 'icons/mob/simple_animal/critter.dmi'
 	icon_state = "lizard"
 	icon_living = "lizard"
 	icon_dead = "lizard-dead"
-	icon_gib = "lizard-gib"
 	speak_emote = list("hisses")
 	health = 5
 	maxHealth = 5
@@ -17,15 +16,10 @@
 	response_harm   = "stomps on"
 	mob_size = MOB_MINISCULE
 	possession_candidate = 1
-	can_escape = 1
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
-	meat_amount = 1
+	can_escape = TRUE
 	pass_flags = PASS_FLAG_TABLE
-	density = 0
-	minbodytemp = T0C - 50	//Below -50 Degrees Celcius
-	maxbodytemp = T0C + 50	//Above 50 Degrees Celcius
-	can_pull_size = ITEM_SIZE_TINY
-	can_pull_mobs = MOB_PULL_NONE
-//	holder_type =/obj/item/weapon/holder/lizard
-	hide_type = /obj/item/stack/animalhide/lizard
-	hide_amount = 1 
+
+	meat_amount = 1
+	bone_amount = 1
+	skin_amount = 1
+	skin_material = MATERIAL_SKIN_LIZARD

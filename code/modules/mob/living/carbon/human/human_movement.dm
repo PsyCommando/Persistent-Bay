@@ -1,19 +1,20 @@
+/mob/living/carbon/human
+	move_intents = list(/decl/move_intent/walk)
+
 /mob/living/carbon/human/movement_delay()
 	var/tally = ..()
 
-	if(species.slowdown)
-		tally += species.slowdown
+	var/obj/item/organ/external/H = get_organ(BP_GROIN) // gets species slowdown, which can be reset by robotize()
+	if(istype(H))
+		tally += H.slowdown
 
 	tally += species.handle_movement_delay_special(src)
 
-	if (istype(loc, /turf/space))
+	var/area/a = get_area(src)
+	if(a && !a.has_gravity())
 		if(skill_check(SKILL_EVA, SKILL_PROF))
 			tally -= 2
 		tally -= 1
-
-	var/obj/item/organ/internal/stomach/stomach = internal_organs_by_name[BP_STOMACH]
-	if(embedded_flag || (stomach && stomach.contents.len))
-		handle_embedded_and_stomach_objects() //Moving with objects stuck in you can cause bad times.
 
 	if(CE_SPEEDBOOST in chem_effects)
 		tally -= chem_effects[CE_SPEEDBOOST]
@@ -35,7 +36,7 @@
 		var/total_item_slowdown = -1
 		for(var/slot = slot_first to slot_last)
 			var/obj/item/I = get_equipped_item(slot)
-			if(I)
+			if(istype(I))
 				var/item_slowdown = 0
 				item_slowdown += I.slowdown_general
 				item_slowdown += I.slowdown_per_slot[slot]
@@ -44,17 +45,18 @@
 				if(item_slowdown >= 0)
 					var/size_mod = size_strength_mod()
 					if(size_mod + 1 > 0)
-						item_slowdown = item_slowdown / (species.strength + size_mod + 1)
+						item_slowdown = item_slowdown / (size_mod + 1)
 					else
-						item_slowdown = item_slowdown - species.strength - size_mod
+						item_slowdown = item_slowdown - size_mod
 				total_item_slowdown += max(item_slowdown, 0)
-		tally += round(total_item_slowdown)
+		tally += total_item_slowdown
 
 		for(var/organ_name in list(BP_L_LEG, BP_R_LEG, BP_L_FOOT, BP_R_FOOT))
 			var/obj/item/organ/external/E = get_organ(organ_name)
 			tally += E ? E.movement_delay(4) : 4
 
-	if(shock_stage >= 10) tally += 3
+	if(shock_stage >= 10 || get_stamina() <= 0)
+		tally += 3
 
 	if(is_asystole()) tally += 10  //heart attacks are kinda distracting
 
@@ -62,20 +64,14 @@
 
 	if(MUTATION_FAT in src.mutations)
 		tally += 1.5
-	if (bodytemperature < 283.222)
-		tally += (283.222 - bodytemperature) / 10 * 1.75
+	if (bodytemperature < species.cold_discomfort_level)
+		tally += (species.cold_discomfort_level - bodytemperature) / 10 * 1.75
 
 	tally += max(2 * stance_damage, 0) //damaged/missing feet or legs is slow
 
 	if(mRun in mutations)
 		tally = 0
 
-	
-	var/fullness = get_fullness()
-	if(fullness < 150)
-		tally += 2
-	else if(fullness < 250)
-		tally += 1
 	return (tally+config.human_delay)
 
 /mob/living/carbon/human/size_strength_mod()
@@ -96,15 +92,16 @@
 	// End 'eugh'
 
 	//Do we have a working jetpack?
-	var/obj/item/weapon/tank/jetpack/thrust = has_item_equipped(/obj/item/weapon/tank/jetpack)
-	//If no regular jetpack, check for a rigsuit
-	if(!istype(thrust))
-		var/obj/item/weapon/rig/rig = has_item_equipped(/obj/item/weapon/rig)
-		if(rig)
+	var/obj/item/weapon/tank/jetpack/thrust
+	if(back)
+		if(istype(back,/obj/item/weapon/tank/jetpack))
+			thrust = back
+		else if(istype(back,/obj/item/weapon/rig))
+			var/obj/item/weapon/rig/rig = back
 			for(var/obj/item/rig_module/maneuvering_jets/module in rig.installed_modules)
 				thrust = module.jets
 				break
-	//If we got a form of jetpack handle it here
+
 	if(thrust && thrust.on)
 		if(prob(skill_fail_chance(SKILL_EVA, 10, SKILL_ADEPT)))
 			to_chat(src, "<span class='warning'>You fumble with [thrust] controls!</span>")
@@ -114,10 +111,6 @@
 		if(((!check_drift) || (check_drift && thrust.stabilization_on)) && (!lying) && (thrust.allow_thrust(0.01, src)))
 			inertia_dir = 0
 			return 1
-
-	//If no working jetpack then use the other checks
-	. = ..()
-
 
 /mob/living/carbon/human/slip_chance(var/prob_slip = 5)
 	if(!..())
@@ -145,11 +138,13 @@
 		handle_leg_damage()
 
 /mob/living/carbon/human/proc/handle_exertion()
-	if(isSynthetic())
+	if(isSynthetic() || (species.species_flags & (SPECIES_FLAG_IS_PLANT|SPECIES_FLAG_NO_PAIN)))
 		return
+	
 	var/lac_chance =  10 * encumbrance()
 	if(lac_chance && prob(skill_fail_chance(SKILL_HAULING, lac_chance)))
 		make_reagent(1, /datum/reagent/lactate)
+		adjust_hydration(-DEFAULT_THIRST_FACTOR)
 		switch(rand(1,20))
 			if(1)
 				visible_message("<span class='notice'>\The [src] is sweating heavily!</span>", "<span class='notice'>You are sweating heavily!</span>")
@@ -170,3 +165,6 @@
 				crutches--
 			else
 				E.add_pain(10)
+
+/mob/living/carbon/human/can_sprint()
+	return (stamina > 0)

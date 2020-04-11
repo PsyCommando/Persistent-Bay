@@ -1,6 +1,5 @@
 /obj/machinery/portable_atmospherics/hydroponics/Process()
-	if(!connected_faction)
-		return
+
 	// Handle nearby smoke if any.
 	for(var/obj/effect/effect/smoke/chem/smoke in view(1, src))
 		if(smoke.reagents.total_volume)
@@ -36,13 +35,13 @@
 	// If there is no seed data (and hence nothing planted),
 	// or the plant is dead, process nothing further.
 	if(!seed || dead)
-		if(mechanical)
+		if(mechanical) 
 			update_icon() //Harvesting would fail to set alert icons properly.
 		return
 
 	// Advance plant age.
 	var/cur_stage = get_overlay_stage()
-	if(prob(30))
+	if(prob(30)) 
 		age += 1 * HYDRO_SPEED_MULTIPLIER
 		if(get_overlay_stage() != cur_stage)
 			needs_icon_update |= 1
@@ -57,7 +56,7 @@
 		if(prob(min(mutation_level,100)))
 			mutate((rand(100) < 15) ? 2 : 1)
 			mutation_level = 0
-	
+
 	// Maintain tray nutrient and water levels.
 	if(seed.get_trait(TRAIT_REQUIRES_NUTRIENTS) && seed.get_trait(TRAIT_NUTRIENT_CONSUMPTION) > 0 && nutrilevel > 0 && prob(25))
 		nutrilevel -= max(0,seed.get_trait(TRAIT_NUTRIENT_CONSUMPTION) * HYDRO_SPEED_MULTIPLIER)

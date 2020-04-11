@@ -12,35 +12,6 @@
 	desc = "That looks like it doesn't open easily."
 	icon = 'icons/obj/doors/rapid_pdoor.dmi'
 	icon_state = null
-	closed_layer = ABOVE_WINDOW_LAYER
-	dir = NORTH
-	explosion_resistance = 25
-	max_health = 2000
-	armor = list(
-		DAM_BLUNT  	= MaxArmorValue,
-		DAM_PIERCE 	= MaxArmorValue,
-		DAM_CUT 	= MaxArmorValue,
-		DAM_BULLET 	= MaxArmorValue,
-		DAM_ENERGY 	= MaxArmorValue,
-		DAM_BURN 	= MaxArmorValue,
-		DAM_BOMB 	= MaxArmorValue,
-		DAM_EMP 	= MaxArmorValue,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
-
-	//Most blast doors are infrequently toggled and sometimes used with regular doors anyways,
-	//turning this off prevents awkward zone geometry in places like medbay lobby, for example.
-	block_air_zones = 0
-
-	//Radio stuff
-	id_tag 				= null
-	frequency 			= DOOR_FREQ
-	radio_filter_in 	= RADIO_BLAST_DOORS
-	radio_filter_out 	= RADIO_BLAST_DOORS
-	radio_check_id 		= TRUE
 
 	// Icon states for different shutter types. Simply change this instead of rewriting the update_icon proc.
 	var/icon_state_open = null
@@ -51,41 +22,49 @@
 	var/icon_state_open_broken = null
 	var/icon_state_closed_broken = null
 
-	var/open_sound = 'sound/machines/airlock_heavy.ogg'
-	var/close_sound = 'sound/machines/AirlockClose_heavy.ogg'
+	var/open_sound = 'sound/machines/blastdoor_open.ogg'
+	var/close_sound = 'sound/machines/blastdoor_close.ogg'
+
+	closed_layer = ABOVE_WINDOW_LAYER
+	dir = 1
+	explosion_resistance = 25
+
+	//Most blast doors are infrequently toggled and sometimes used with regular doors anyways,
+	//turning this off prevents awkward zone geometry in places like medbay lobby, for example.
+	block_air_zones = 0
 
 	var/begins_closed = TRUE
-	var/_wifi_id
-	var/datum/wifi/receiver/button/door/wifi_receiver
 	var/material/implicit_material
 	autoset_access = FALSE // Uses different system with buttons.
+	pry_mod = 1.35
 
-/obj/machinery/door/blast/New()
-	..()
+	uncreated_component_parts = list(
+		/obj/item/weapon/stock_parts/radio/receiver,
+		/obj/item/weapon/stock_parts/power/apc
+	)
+	// To be fleshed out and moved to parent door, but staying minimal for now.
+	public_methods = list(
+		/decl/public_access/public_method/open_door,
+		/decl/public_access/public_method/close_door_delayed,
+		/decl/public_access/public_method/toggle_door
+	)
+	stock_part_presets = list(/decl/stock_part_preset/radio/receiver/blast_door = 1)
 
 /obj/machinery/door/blast/Initialize()
 	. = ..()
-	if(_wifi_id)
-		wifi_receiver = new(_wifi_id, src)
 
-	if(!map_storage_loaded)
-		if(!begins_closed)
-			icon_state = icon_state_open
-			set_density(0)
-			set_opacity(0)
-			layer = open_layer
+	if(!begins_closed)
+		icon_state = icon_state_open
+		set_density(0)
+		set_opacity(0)
+		layer = open_layer
 
-		implicit_material = SSmaterials.get_material_by_name(MATERIAL_PLASTEEL)
-	queue_icon_update()
+	implicit_material = SSmaterials.get_material_by_name(MATERIAL_PLASTEEL)
 
 /obj/machinery/door/blast/examine(mob/user)
 	. = ..()
-	if(. && (stat & BROKEN))
+	if((stat & BROKEN))
 		to_chat(user, "It's broken.")
-
-/obj/machinery/door/airlock/Destroy()
-	QDEL_NULL(wifi_receiver)
-	return ..()
 
 // Proc: Bumped()
 // Parameters: 1 (AM - Atom that tried to walk through this object)
@@ -101,12 +80,12 @@
 // Description: Updates icon of this object. Uses icon state variables.
 /obj/machinery/door/blast/on_update_icon()
 	if(density)
-		if(isbroken())
+		if(stat & BROKEN)
 			icon_state = icon_state_closed_broken
 		else
 			icon_state = icon_state_closed
 	else
-		if(isbroken())
+		if(stat & BROKEN)
 			icon_state = icon_state_open_broken
 		else
 			icon_state = icon_state_open
@@ -154,9 +133,6 @@
 
 /obj/machinery/door/blast/get_material()
 	return implicit_material
-	
-/obj/machinery/door/Bumped(atom/AM)
-	return
 
 // Proc: attackby()
 // Parameters: 2 (C - Item this object was clicked with, user - Mob which clicked this object)
@@ -165,36 +141,42 @@
 /obj/machinery/door/blast/attackby(obj/item/weapon/C as obj, mob/user as mob)
 	add_fingerprint(user, 0, C)
 	if(isCrowbar(C) || (istype(C, /obj/item/weapon/material/twohanded/fireaxe) && C:wielded == 1))
-		if(inoperable() && !( operating ))
-			force_toggle()
+		if(((stat & NOPOWER) || (stat & BROKEN)) && !( operating ))
+			to_chat(user, "<span class='notice'>You begin prying at \the [src]...</span>")
+			if(do_after(user, 2 SECONDS, src))
+				force_toggle()
+			else
+				to_chat(user, "<span class='warning'>You must remain still while working on \the [src].</span>")
 		else
-			to_chat(usr, SPAN_NOTICE("[src]'s motors resist your effort."))
+			to_chat(user, "<span class='notice'>[src]'s motors resist your effort.</span>")
 		return
 	if(istype(C, /obj/item/stack/material) && C.get_material_name() == MATERIAL_PLASTEEL)
-		var/amt = Ceiling((max_health - health)/150)
+		var/amt = Ceiling((maxhealth - health)/150)
 		if(!amt)
-			to_chat(user, SPAN_NOTICE("\The [src] is already fully repaired."))
+			to_chat(user, "<span class='notice'>\The [src] is already fully functional.</span>")
 			return
 		var/obj/item/stack/P = C
 		if(!P.can_use(amt))
-			to_chat(user, SPAN_WARNING("You don't have enough sheets to repair this! You need at least [amt] sheets."))
+			to_chat(user, "<span class='warning'>You don't have enough sheets to repair this! You need at least [amt] sheets.</span>")
 			return
-		to_chat(user, SPAN_NOTICE("You begin repairing [src]..."))
+		to_chat(user, "<span class='notice'>You begin repairing \the [src]...</span>")
 		if(do_after(user, 5 SECONDS, src))
 			if(P.use(amt))
-				to_chat(user, SPAN_NOTICE("You have repaired \the [src]"))
+				to_chat(user, "<span class='notice'>You have repaired \the [src].</span>")
 				repair()
 			else
-				to_chat(user, SPAN_WARNING("You don't have enough sheets to repair this! You need at least [amt] sheets."))
-	if(ismob(C))
-		return ..()
+				to_chat(user, "<span class='warning'>You don't have enough sheets to repair this! You need at least [amt] sheets.</span>")
+		else
+			to_chat(user, "<span class='warning'>You must remain still while working on \the [src].</span>")
+	check_force(C, user)
+
 
 
 // Proc: open()
 // Parameters: None
 // Description: Opens the door. Does necessary checks. Automatically closes if autoclose is true
 /obj/machinery/door/blast/open()
-	if (src.operating || inoperable())
+	if (operating || (stat & BROKEN || stat & NOPOWER))
 		return
 	force_open()
 	if(autoclose)
@@ -206,32 +188,65 @@
 // Parameters: None
 // Description: Closes the door. Does necessary checks.
 /obj/machinery/door/blast/close()
-	if (src.operating || inoperable())
+	if (operating || (stat & BROKEN || stat & NOPOWER))
 		return
 	force_close()
 
+/obj/machinery/door/blast/toggle()
+	if (operating || (stat & BROKEN || stat & NOPOWER))
+		return
+	force_toggle()
 
 // Proc: repair()
 // Parameters: None
 // Description: Fully repairs the blast door.
 /obj/machinery/door/blast/proc/repair()
-	health = max_health
+	health = maxhealth
 	set_broken(FALSE)
 	queue_icon_update()
 
 /obj/machinery/door/blast/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
-	if(air_group) 
-		return 1
+	if(air_group) return 1
 	return ..()
 
-/obj/machinery/door/blast/OnSignal(datum/signal/signal)
-	. = ..()
-	switch (signal.data["command"])
-		if("toggle")
-			if(density)
-				open()
-			else
-				close()
+// Used with mass drivers to time the close.
+/obj/machinery/door/blast/proc/delayed_close()
+	set waitfor = FALSE
+	sleep(5 SECONDS)
+	close()
+
+/decl/public_access/public_method/close_door_delayed
+	name = "delayed close door"
+	desc = "Closes the door if possible, after a short delay."
+	call_proc = /obj/machinery/door/blast/proc/delayed_close
+
+/decl/stock_part_preset/radio/receiver/blast_door
+	frequency = BLAST_DOORS_FREQ
+	receive_and_call = list(
+		"open_door" = /decl/public_access/public_method/open_door,
+		"close_door_delayed" = /decl/public_access/public_method/close_door_delayed,
+		"toggle_door" = /decl/public_access/public_method/toggle_door
+	)
+
+/obj/machinery/button/blast_door
+	icon = 'icons/obj/stationobjs.dmi'
+	name = "remote blast door-control"
+	desc = "It controls blast doors, remotely."
+	icon_state = "blastctrl"
+	stock_part_presets = list(/decl/stock_part_preset/radio/basic_transmitter/blast_door_button = 1)
+
+/decl/stock_part_preset/radio/basic_transmitter/blast_door_button
+	transmit_on_change = list(
+		"toggle_door" = /decl/public_access/public_variable/button_active,
+	)
+	frequency = BLAST_DOORS_FREQ
+
+/obj/machinery/button/blast_door/on_update_icon()
+	if(operating)
+		icon_state = "blastctrl1"
+	else
+		icon_state = "blastctrl"
+
 // SUBTYPE: Regular
 // Your classical blast door, found almost everywhere.
 /obj/machinery/door/blast/regular
@@ -245,7 +260,8 @@
 	icon_state_open_broken = "blast_open_broken"
 	icon_state_closed_broken = "blast_closed_broken"
 
-	max_health = 2000
+	min_force = 30
+	maxhealth = 1000
 	block_air_zones = 1
 
 /obj/machinery/door/blast/regular/escape_pod
@@ -258,7 +274,6 @@
 
 /obj/machinery/door/blast/regular/open
 	begins_closed = FALSE
-	icon_state = "pdoor0"
 
 // SUBTYPE: Shutters
 // Nicer looking, and also weaker, shutters. Found in kitchen and similar areas.
@@ -277,22 +292,10 @@
 
 	open_sound = 'sound/machines/shutters_open.ogg'
 	close_sound = 'sound/machines/shutters_close.ogg'
-	max_health = 1200
-	armor = list(
-		DAM_BLUNT  	= 80,
-		DAM_PIERCE 	= 80,
-		DAM_CUT 	= 90,
-		DAM_BULLET 	= 50,
-		DAM_ENERGY 	= 50,
-		DAM_BURN 	= 90,
-		DAM_BOMB 	= 60,
-		DAM_EMP 	= 50,
-		DAM_BIO 	= MaxArmorValue,
-		DAM_RADS 	= MaxArmorValue,
-		DAM_STUN 	= MaxArmorValue,
-		DAM_PAIN	= MaxArmorValue,
-		DAM_CLONE   = MaxArmorValue)
+	min_force = 15
+	maxhealth = 500
+	explosion_resistance = 10
+	pry_mod = 0.55
 
 /obj/machinery/door/blast/shutters/open
 	begins_closed = FALSE
-	icon_state = "shutter0"

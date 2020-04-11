@@ -2,56 +2,6 @@
 #define TOPIC_REFRESH_UPDATE_PREVIEW (TOPIC_REFRESH|TOPIC_UPDATE_PREVIEW)
 
 var/const/CHARACTER_PREFERENCE_INPUT_TITLE = "Character Preference"
-// PERSISTENCE EDIT
-// This greatly improves the way inputs work, plus its really hard to understand/use, it fits right in with baycode
-proc
-	get_input(wait = 100 as num,mob/U,Message,Title,Default,Type,list/List)
-		var/prompts/input/Input = new
-		var/Option
-		if(wait) spawn(wait) if(!Option) del Input
-		Option = Input.option(U,Message,Title,Default,Type,List)
-		return Option
-	get_alert(wait = 100 as num,mob/U,Message,Title,Button1,Button2,Button3)
-		var/prompts/alert/Alert = new
-		var/Option
-		if(wait) spawn(wait) if(!Option) del Alert
-		Option = Alert.option(U,Message,Title,Button1,Button2,Button3)
-		return Option
-prompts
-	input
-		proc/option(mob/U,Message="",Title="",Default="",Type,list/List)
-			switch(Type)
-				if("text") return input(U,Message,Title,Default) as text
-				if("text|null") return input(U,Message,Title,Default) as text|null
-				if("password") return input(U,Message,Title,Default) as password
-				if("password|null") return input(U,Message,Title,Default) as password|null
-				if("command_text") return input(U,Message,Title,Default) as command_text
-				if("command_text|null") return input(U,Message,Title,Default) as command_text|null
-				if("icon") return input(U,Message,Title,Default) as icon
-				if("icon|null") return input(U,Message,Title,Default) as icon|null
-				if("sound") return input(U,Message,Title,Default) as sound
-				if("sound|null") return input(U,Message,Title,Default) as sound|null
-				if("num") return input(U,Message,Title,Default) as num
-				if("num|null") return input(U,Message,Title,Default) as num|null
-				if("message") return input(U,Message,Title,Default) as message
-				if("message|null") return input(U,Message,Title,Default) as message|null
-				if("mob") return input(U,Message,Title,Default) as mob in List
-				if("obj") return input(U,Message,Title,Default) as obj in List
-				if("turf") return input(U,Message,Title,Default) as turf in List
-				if("area") return input(U,Message,Title,Default) as area in List
-				if("color") return input(U,Message , Title, Default) as color|null
-				else return input(U,Message,Title,Default) in List
-	alert
-		proc/option(mob/U,Message,Title,Button1="Ok",Button2,Button3)
-			return alert(U,Message,Title,Button1,Button2,Button3)
-//to use them
-
-// PERSISTENCE EDIT ENDS HERE
-
-/datum/category_group/player_setup_category/welcome_preferences
-	name = "Welcome"
-	sort_order = 0
-	category_item_type = /datum/category_item/player_setup_item/welcome
 
 /datum/category_group/player_setup_category/physical_preferences
 	name = "Physical"
@@ -67,37 +17,36 @@ prompts
 	. = ""
 	for(var/datum/category_item/player_setup_item/PI in items)
 		. += "[PI.content(user)]<br>"
-/**
-/datum/category_group/player_setup_category/skill_preferences
-	name = "Skills"
+
+/datum/category_group/player_setup_category/occupation_preferences
+	name = "Occupation"
 	sort_order = 3
-	category_item_type = /datum/category_item/player_setup_item/skills
-**/
-///datum/category_group/player_setup_category/appearance_preferences
-//	name = "Roles"
-//	sort_order = 4
-//	category_item_type = /datum/category_item/player_setup_item/antagonism
+	category_item_type = /datum/category_item/player_setup_item/occupation
 
-// /datum/category_group/player_setup_category/relations_preferences
-// 	name = "Relations"
-// 	sort_order = 5
-// 	category_item_type = /datum/category_item/player_setup_item/relations
+/datum/category_group/player_setup_category/appearance_preferences
+	name = "Roles"
+	sort_order = 4
+	category_item_type = /datum/category_item/player_setup_item/antagonism
 
-// /datum/category_group/player_setup_category/loadout_preferences
-// 	name = "Loadout"
-// 	sort_order = 6
-// 	category_item_type = /datum/category_item/player_setup_item/loadout
+/datum/category_group/player_setup_category/relations_preferences
+	name = "Matchmaking"
+	sort_order = 5
+	category_item_type = /datum/category_item/player_setup_item/relations
 
-//Gotta stay enabled or prefs won't save..
+/datum/category_group/player_setup_category/loadout_preferences
+	name = "Loadout"
+	sort_order = 6
+	category_item_type = /datum/category_item/player_setup_item/loadout
+
 /datum/category_group/player_setup_category/global_preferences
-	name = "Game Settings"
+	name = "Global"
 	sort_order = 7
 	category_item_type = /datum/category_item/player_setup_item/player_global
 
-///datum/category_group/player_setup_category/law_pref
-//	name = "Laws"
-//	sort_order = 8
-//	category_item_type = /datum/category_item/player_setup_item/law_pref
+/datum/category_group/player_setup_category/law_pref
+	name = "Laws"
+	sort_order = 8
+	category_item_type = /datum/category_item/player_setup_item/law_pref
 
 
 /****************************
@@ -133,16 +82,11 @@ prompts
 /datum/category_collection/player_setup_collection/proc/load_preferences(var/savefile/S)
 	for(var/datum/category_group/player_setup_category/PS in categories)
 		PS.load_preferences(S)
-	from_file(S["bonus_slots"],preferences.bonus_slots)
-	from_file(S["bonus_notes"],preferences.bonus_notes)
+
 /datum/category_collection/player_setup_collection/proc/save_preferences(var/savefile/S)
-	testing("player_setup_collection/save_preferences() : Attempting to save prefs (S = [S] )")
 	for(var/datum/category_group/player_setup_category/PS in categories)
-		testing("player_setup_collection/save_preferences() : Saving category [PS]..")
 		PS.save_preferences(S)
-	to_file(S["bonus_slots"],preferences.bonus_slots)
-	to_file(S["bonus_notes"],preferences.bonus_notes)
-	
+
 /datum/category_collection/player_setup_collection/proc/update_setup(var/savefile/preferences, var/savefile/character)
 	for(var/datum/category_group/player_setup_category/PS in categories)
 		. = PS.update_setup(preferences, character) || .
@@ -151,7 +95,7 @@ prompts
 	var/dat = ""
 	for(var/datum/category_group/player_setup_category/PS in categories)
 		if(PS == selected_category)
-			dat += "<b>[PS.name] </b>"	// TODO: Check how to properly mark a href/button selected in a classic browser window
+			dat += "[PS.name] "	// TODO: Check how to properly mark a href/button selected in a classic browser window
 		else
 			dat += "<a href='?src=\ref[src];category=\ref[PS]'>[PS.name]</a> "
 	return dat
@@ -169,7 +113,7 @@ prompts
 
 	if(href_list["category"])
 		var/category = locate(href_list["category"])
-		if(category && category in categories)
+		if(category && (category in categories))
 			selected_category = category
 		. = 1
 
@@ -207,12 +151,9 @@ prompts
 		PI.load_preferences(S)
 
 /datum/category_group/player_setup_category/proc/save_preferences(var/savefile/S)
-	testing("player_setup_category/save_preferences() : Attempting to save prefs (S = [S] )")
 	for(var/datum/category_item/player_setup_item/PI in items)
-		testing("player_setup_category/save_preferences() : Sanitizing [PI]")
 		PI.sanitize_preferences()
 	for(var/datum/category_item/player_setup_item/PI in items)
-		testing("player_setup_category/save_preferences() : Saving [PI]")
 		PI.save_preferences(S)
 
 /datum/category_group/player_setup_category/proc/update_setup(var/savefile/preferences, var/savefile/character)
@@ -297,6 +238,9 @@ prompts
 		return 1
 	var/mob/pref_mob = preference_mob()
 	if(!pref_mob || !pref_mob.client)
+		return 1
+	// If the usr isn't trying to alter their own mob then they must instead be an admin
+	if(usr != pref_mob && !check_rights(R_ADMIN, 0, usr))
 		return 1
 
 	. = OnTopic(href, href_list, usr)

@@ -2,20 +2,6 @@
 #define MODKIT_SUIT 2
 #define MODKIT_FULL 3
 
-/obj/item/device/modkit/unathi
-	name = "hardsuit modification kit (unathi)"
-	target_species = SPECIES_UNATHI
-
-/obj/item/device/modkit/vox
-	name = "hardsuit modification kit (vox)"
-	target_species = SPECIES_VOX
-
-/obj/item/device/modkit/resomi
-	name = "hardsuit modification kit (resomi)"
-	target_species = SPECIES_RESOMI
-
-
-
 /obj/item/device/modkit
 	name = "hardsuit modification kit"
 	desc = "A kit containing all the needed tools and parts to modify a hardsuit for another user."
@@ -37,7 +23,6 @@
 
 	if(!parts)
 		to_chat(user, "<span class='warning'>This kit has no parts for this modification left.</span>")
-		user.drop_from_inventory(src)
 		qdel(src)
 		return
 
@@ -73,7 +58,6 @@
 		parts &= ~MODKIT_SUIT
 
 	if(!parts)
-		user.drop_from_inventory(src)
 		qdel(src)
 
 /obj/item/device/modkit/examine(mob/user)

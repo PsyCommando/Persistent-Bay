@@ -6,7 +6,12 @@
 	if(!(. = ..()))
 		return
 	var/obj/O = get_targeted_organ()
-	visible_message("<span class='warning'>[assailant] has grabbed [affecting]'s [O.name]!</span>")
+	if(affecting != assailant)
+		visible_message("<span class='warning'>[assailant] has grabbed [affecting]'s [O.name]!</span>")
+	else
+		var/datum/gender/T = gender_datums[assailant.get_gender()]
+		visible_message("<span class='notice'>[assailant] has grabbed [T.his] [O.name]!</span>")
+
 	if(!(affecting.a_intent == I_HELP))
 		upgrade(TRUE)
 
@@ -168,20 +173,18 @@
 	var/damage = 20
 	var/obj/item/clothing/hat = attacker.head
 	var/damage_flags = 0
-	var/hatdamtype = 0
 	if(istype(hat))
 		damage += hat.force * 3
-		hatdamtype = hat.damtype
 		damage_flags = hat.damage_flags()
 
-	if(ISDAMTYPE(hatdamtype, DAM_PIERCE))
+	if(damage_flags & DAM_SHARP)
 		attacker.visible_message("<span class='danger'>[attacker] gores [target][istype(hat)? " with \the [hat]" : ""]!</span>")
 	else
 		attacker.visible_message("<span class='danger'>[attacker] thrusts \his head into [target]'s skull!</span>")
 
-	var/armor = target.get_blocked_ratio(BP_HEAD, hatdamtype)
-	target.apply_damage(damage, hatdamtype, BP_HEAD, damage_flags, used_weapon = hat)
-	attacker.apply_damage(10, DAM_BLUNT, BP_HEAD, used_weapon = "headbutt")
+	var/armor = target.get_blocked_ratio(BP_HEAD, BRUTE, damage = 10)
+	target.apply_damage(damage, BRUTE, BP_HEAD, damage_flags)
+	attacker.apply_damage(10, BRUTE, BP_HEAD)
 
 	if(armor < 0.5 && target.headcheck(BP_HEAD) && prob(damage))
 		target.apply_effect(20, PARALYZE)
@@ -197,11 +200,11 @@
 	if(G.special_target_functional)
 		switch(G.target_zone)
 			if(BP_MOUTH)
-				if(G.affecting.silent < 3)
-					G.affecting.silent = 3
+				if(G.affecting.silent < 2)
+					G.affecting.silent = 2
 			if(BP_EYES)
-				if(G.affecting.eye_blind < 3)
-					G.affecting.eye_blind = 3
+				if(G.affecting.eye_blind < 2)
+					G.affecting.eye_blind = 2
 
 // Handles when they change targeted areas and something is supposed to happen.
 /datum/grab/normal/special_target_change(var/obj/item/grab/G, old_zone, new_zone)
@@ -241,7 +244,7 @@
 	if(user.a_intent != I_HURT)
 		return 0 // Not trying to hurt them.
 
-	if(!W.sharpness || !W.force || !ISDAMTYPE(W.damtype, DAM_CUT))
+	if(!W.edge || !W.force || W.damtype != BRUTE)
 		return 0 //unsuitable weapon
 	user.visible_message("<span class='danger'>\The [user] begins to slit [affecting]'s throat with \the [W]!</span>")
 
@@ -255,10 +258,10 @@
 	var/damage_flags = W.damage_flags()
 	//presumably, if they are wearing a helmet that stops pressure effects, then it probably covers the throat as well
 	var/obj/item/clothing/head/helmet = affecting.get_equipped_item(slot_head)
-	if(istype(helmet) && (helmet.body_parts_covered & HEAD) && (helmet.item_flags & ITEM_FLAG_STOPPRESSUREDAMAGE))
+	if(istype(helmet) && (helmet.body_parts_covered & HEAD) && (helmet.item_flags & ITEM_FLAG_AIRTIGHT) && !isnull(helmet.max_pressure_protection))
 		var/datum/extension/armor/armor_datum = get_extension(helmet, /datum/extension/armor)
 		if(armor_datum)
-			damage_mod -= armor_datum.get_blocked(DAM_BLUNT, damage_flags)
+			damage_mod -= armor_datum.get_blocked(BRUTE, damage_flags, W.armor_penetration, W.force*1.5)
 
 	var/total_damage = 0
 	for(var/i in 1 to 3)
@@ -266,11 +269,12 @@
 		affecting.apply_damage(damage, W.damtype, BP_HEAD, damage_flags, armor_pen = 100, used_weapon=W)
 		total_damage += damage
 
+
 	if(total_damage)
 		user.visible_message("<span class='danger'>\The [user] slit [affecting]'s throat open with \the [W]!</span>")
-		var/obj/item/weapon/weap = W
-		if(weap && weap.sound_attack)
-			playsound(affecting.loc, weap.sound_attack, 50, 1, -1)
+
+		if(W.hitsound)
+			playsound(affecting.loc, W.hitsound, 50, 1, -1)
 
 	G.last_action = world.time
 
@@ -286,11 +290,11 @@
 	if(user.a_intent != I_HURT)
 		return 0 // Not trying to hurt them.
 
-	if(!W.sharpness || !W.force || ISDAMTYPE(W.damtype, DAM_BLUNT))
+	if(!W.edge || !W.force || W.damtype != BRUTE)
 		return 0 //unsuitable weapon
 
 	var/obj/item/organ/external/O = G.get_targeted_organ()
-	if(!O || O.is_stump() || !O.has_tendon() || (O.status & ORGAN_TENDON_CUT))
+	if(!O || O.is_stump() || !(O.limb_flags & ORGAN_FLAG_HAS_TENDON) || (O.status & ORGAN_TENDON_CUT))
 		return FALSE
 
 	user.visible_message(SPAN_DANGER("\The [user] begins to cut \the [affecting]'s [O.tendon_name] with \the [W]!"))
@@ -303,10 +307,8 @@
 	if(!O || O.is_stump() || !O.sever_tendon())
 		return 0
 
-	var/obj/item/weapon/thweweapon = W
 	user.visible_message(SPAN_DANGER("\The [user] cut \the [affecting]'s [O.tendon_name] with \the [W]!"))
-	if(thweweapon && thweweapon.sound_attack) 
-		playsound(affecting.loc, thweweapon.sound_attack, 50, 1, -1)
+	if(W.hitsound) playsound(affecting.loc, W.hitsound, 50, 1, -1)
 	G.last_action = world.time
 	admin_attack_log(user, affecting, "hamstrung their victim", "was hamstrung", "hamstrung")
 	return 1

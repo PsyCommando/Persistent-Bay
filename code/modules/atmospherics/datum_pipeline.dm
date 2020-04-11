@@ -11,7 +11,6 @@
 	var/maximum_pressure = 0
 
 /datum/pipeline/New()
-	..()
 	START_PROCESSING(SSprocessing, src)
 
 /datum/pipeline/Destroy()
@@ -23,9 +22,9 @@
 		QDEL_NULL(air)
 	for(var/obj/machinery/atmospherics/pipe/P in members)
 		P.parent = null
-	LAZYCLEARLIST(leaks)
-	LAZYCLEARLIST(members)
-	LAZYCLEARLIST(edges)
+	leaks.Cut()
+	members.Cut()
+	edges.Cut()
 	. = ..()
 
 /datum/pipeline/Process()//This use to be called called from the pipe networks
@@ -129,7 +128,6 @@
 	return network
 
 /datum/pipeline/proc/mingle_with_turf(turf/simulated/target, mingle_volume)
-	if(!target) return
 	var/datum/gas_mixture/air_sample = air.remove_ratio(mingle_volume/air.volume)
 	air_sample.volume = mingle_volume
 
@@ -219,8 +217,6 @@
 
 //surface must be the surface area in m^2
 /datum/pipeline/proc/radiate_heat_to_space(surface, thermal_conductivity)
-	if(isnull(air))
-		return FALSE
 	var/gas_density = air.total_moles/air.volume
 	thermal_conductivity *= min(gas_density / ( RADIATOR_OPTIMUM_PRESSURE/(R_IDEAL_GAS_EQUATION*GAS_CRITICAL_TEMPERATURE) ), 1) //mult by density ratio
 
@@ -229,7 +225,6 @@
 	air.add_thermal_energy(heat_gain)
 	if(network)
 		network.update = 1
-	return TRUE
 
 //Returns the amount of heat gained while in space due to thermal radiation (usually a negative value)
 //surface - the surface area in m^2

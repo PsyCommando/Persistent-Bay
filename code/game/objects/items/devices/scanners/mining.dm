@@ -1,11 +1,7 @@
-#define  ORE_SURFACE    "surface minerals"
-#define  ORE_PRECIOUS   "precious metals"
-#define  ORE_NUCLEAR    "nuclear fuel"
-#define  ORE_EXOTIC     "exotic matter"
-#define  GAS_BREATHABLE "breathable gases"
-#define  GAS_FUEL       "gaseous fuels"
-#define  GAS_EXOTIC     "exotic gases"
-#define  GAS_MISC       "misc gases"
+#define  ORE_SURFACE  "surface minerals"
+#define  ORE_PRECIOUS  "precious metals"
+#define  ORE_NUCLEAR  "nuclear fuel"
+#define  ORE_EXOTIC  "exotic matter"
 /turf/simulated/var/surveyed
 
 /obj/item/device/scanner/mining
@@ -14,12 +10,13 @@
 	icon_state = "ore"
 	origin_tech = list(TECH_MAGNET = 1, TECH_ENGINEERING = 1)
 	use_delay = 50
-	matter = list(MATERIAL_STEEL = 150)
-	scan_sound = 'sound/effects/ping.ogg'
+	printout_color = "#fff7f0"
 	var/survey_data = 0
 
+	scan_sound = 'sound/effects/ping.ogg'
+
 /obj/item/device/scanner/mining/examine(mob/user)
-	..()
+	. = ..()
 	to_chat(user,"A tiny indicator on the [src] shows it holds [survey_data] good explorer points.")
 
 /obj/item/device/scanner/mining/is_valid_scan_target(turf/simulated/T)
@@ -70,7 +67,7 @@
 	var/data
 
 /obj/item/weapon/disk/survey/examine(mob/user)
-	..()
+	. = ..()
 	to_chat(user,"A tiny indicator on the [src] shows it holds [data] good explorer points.")
 
 /obj/item/weapon/disk/survey/Value()
@@ -88,17 +85,11 @@
 		ORE_NUCLEAR = 0,
 		ORE_EXOTIC = 0
 		)
-	var/list/gases = list(
-		GAS_BREATHABLE = 0,
-		GAS_FUEL = 0,
-		GAS_EXOTIC = 0,
-		GAS_MISC = 0
-		)
 	var/new_data = 0
 
 	for(var/turf/simulated/T in range(2, target))
 
-		if(!T.has_resources && !T.has_gas_resources)
+		if(!T.has_resources)
 			continue
 
 		for(var/metal in T.resources)
@@ -123,27 +114,6 @@
 			if(!T.surveyed)
 				new_data += data_value * T.resources[metal]
 
-		for(var/gas in T.gas_resources)
-			var/gas_type
-			var/data_value = 1
-
-			switch(gas)
-				if(GAS_OXYGEN, GAS_NITROGEN, GAS_N2O, GAS_CO2)
-					gas_type = GAS_BREATHABLE
-				if(GAS_HYDROGEN, GAS_DEUTERIUM, GAS_TRITIUM, GAS_HELIUM)
-					gas_type = GAS_FUEL
-					data_value = 2
-				if(GAS_PHORON)
-					gas_type = GAS_EXOTIC
-					data_value = 4
-				else
-					gas_type = GAS_MISC
-
-			if(gas_type) gases[gas_type] += T.gas_resources[gas]
-
-			if(!T.surveyed)
-				new_data += data_value * T.gas_resources[gas]
-
 		T.surveyed = 1
 
 	var/list/scandata = list("Mineral scan at ([target.x],[target.y])")
@@ -156,15 +126,6 @@
 			if(76 to INFINITY) result = "huge quantities"
 
 		scandata += "- [result] of [ore_type]."
-	for(var/gas_type in gases)
-		var/result = "no sign"
-
-		switch(gases[gas_type])
-			if(1 to 25) result = "trace amounts"
-			if(26 to 75) result = "significant amounts"
-			if(76 to INFINITY) result = "huge quantities"
-		
-		scandata += "- [result] of [gas_type]."
 	
 	return list(jointext(scandata, "<br>"), new_data)
 
@@ -172,6 +133,3 @@
 #undef  ORE_PRECIOUS
 #undef  ORE_NUCLEAR
 #undef  ORE_EXOTIC
-#undef  GAS_BREATHABLE
-#undef  GAS_FUEL
-#undef  GAS_EXOTIC

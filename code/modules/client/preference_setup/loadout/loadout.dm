@@ -2,7 +2,7 @@ var/list/loadout_categories = list()
 var/list/gear_datums = list()
 
 /datum/preferences
-	var/list/gear_list = list() //Custom/fluff item loadouts.
+	var/list/gear_list //Custom/fluff item loadouts.
 	var/gear_slot = 1  //The current gear save slot
 
 /datum/preferences/proc/Gear()
@@ -74,13 +74,14 @@ var/list/gear_datums = list()
 		. += gear_name
 
 /datum/category_item/player_setup_item/loadout/proc/skill_check(var/list/jobs, var/list/skills_required)
-	. = TRUE
-	for(var/R in skills_required)
-		if(pref.skills[R] + pref.get_min_skill(R) < skills_required[R])
-			. = FALSE
-			break
-	if(.)
-		return
+	for(var/datum/job/J in jobs)
+		. = TRUE
+		for(var/R in skills_required)
+			if(pref.get_total_skill_value(J, R) < skills_required[R])
+				. = FALSE
+				break
+		if(.)
+			return
 
 /datum/category_item/player_setup_item/loadout/sanitize_character()
 	pref.gear_slot = sanitize_integer(pref.gear_slot, 1, config.loadout_slots, initial(pref.gear_slot))
@@ -165,10 +166,10 @@ var/list/gear_datums = list()
 	. += "<tr><td colspan=3><b><center>[LC.category]</center></b></td></tr>"
 	. += "<tr><td colspan=3><hr></td></tr>"
 	var/jobs = list()
-	// for(var/job_title in (pref.job_medium|pref.job_low|pref.job_high))
-	// 	var/datum/job/J = SSjobs.get_by_title(job_title)
-	// 	if(J)
-	// 		dd_insertObjectList(jobs, J)
+	for(var/job_title in (pref.job_medium|pref.job_low|pref.job_high))
+		var/datum/job/J = SSjobs.get_by_title(job_title)
+		if(J)
+			dd_insertObjectList(jobs, J)
 	for(var/gear_name in LC.gear)
 		if(!(gear_name in valid_gear_choices()))
 			continue
@@ -194,25 +195,25 @@ var/list/gear_datums = list()
 			allowed = good_job || !bad_job
 			entry += "[english_list(jobchecks)]</i>"
 
-		// if(allowed && G.allowed_branches)
-		// 	var/list/branches = list()
-		// 	for(var/datum/job/J in jobs)
-		// 		if(pref.branches[J.title])
-		// 			branches |= pref.branches[J.title]
-		// 	if(length(branches))
-		// 		var/list/branch_checks = list()
-		// 		var/good_branch = 0
-		// 		entry += "<br><i>"
-		// 		for(var/branch in branches)
-		// 			var/datum/mil_branch/player_branch = mil_branches.get_branch(branch)
-		// 			if(player_branch.type in G.allowed_branches)
-		// 				branch_checks += "<font color=55cc55>[player_branch.name]</font>"
-		// 				good_branch = 1
-		// 			else
-		// 				branch_checks += "<font color=cc5555>[player_branch.name]</font>"
-		// 		allowed = good_branch
+		if(allowed && G.allowed_branches)
+			var/list/branches = list()
+			for(var/datum/job/J in jobs)
+				if(pref.branches[J.title])
+					branches |= pref.branches[J.title]
+			if(length(branches))
+				var/list/branch_checks = list()
+				var/good_branch = 0
+				entry += "<br><i>"
+				for(var/branch in branches)
+					var/datum/mil_branch/player_branch = mil_branches.get_branch(branch)
+					if(player_branch.type in G.allowed_branches)
+						branch_checks += "<font color=55cc55>[player_branch.name]</font>"
+						good_branch = 1
+					else
+						branch_checks += "<font color=cc5555>[player_branch.name]</font>"
+				allowed = good_branch
 
-		// 		entry += "[english_list(branch_checks)]</i>"
+				entry += "[english_list(branch_checks)]</i>"
 
 		if(allowed && G.allowed_skills)
 			var/list/skills_required = list()//make it into instances? instead of path

@@ -3,9 +3,7 @@
 datum/preferences
 	//doohickeys for savefiles
 	var/path
-	var/char_save_path
 	var/default_slot = 1				//Holder so it doesn't default to slot 1, rather the last one used
-	var/chosen_slot = 0
 	var/savefile_version = 0
 
 	//non-preference stuff
@@ -17,9 +15,6 @@ datum/preferences
 	//game-preferences
 	var/lastchangelog = ""				//Saved changlog filesize to detect if there was a change
 
-	//character preferences
-	var/species_preview                 //Used for the species selection window.
-
 		//Mob preview
 	var/icon/preview_icon = null
 
@@ -30,38 +25,19 @@ datum/preferences
 	var/savefile/loaded_character
 	var/datum/category_collection/player_setup_collection/player_setup
 	var/datum/browser/panel
-	// Persistent Edit, Adding the character list..
-	var/list/character_list = list()
-	var/list/icon_list = list()
-
-	var/bonus_slots = 0
-	var/bonus_notes = ""
-	var/datum/browser/prefspanel
-
-	var/rules_agree = 0
-	var/guide_agree = 0
 
 /datum/preferences/New(client/C)
 	if(istype(C))
 		client = C
 		client_ckey = C.ckey
-		SScharacter_setup.preferences_datums += src
+		SScharacter_setup.preferences_datums[C.ckey] = src
 		if(SScharacter_setup.initialized)
-			testing("preferences/New(): Created and directly setup preferences for [client_ckey]")
 			setup()
 		else
-			testing("preferences/New(): Created and queued preference setup for [client_ckey]")
 			SScharacter_setup.prefs_awaiting_setup += src
 	..()
 
-/datum/preferences/Destroy()
-	if(LAZYLEN(SScharacter_setup.prefs_awaiting_setup))
-		testing("preferences/Destroy(): was called for [client_ckey]")
-		SScharacter_setup.prefs_awaiting_setup -= src
-	. = ..()
-
 /datum/preferences/proc/setup()
-	testing("preferences/setup(): was called for [client_ckey]")
 	if(!length(GLOB.skills))
 		decls_repository.get_decl(/decl/hierarchy/skill)
 	player_setup = new(src)
@@ -70,15 +46,13 @@ datum/preferences
 	b_type = RANDOM_BLOOD_TYPE
 
 	if(client && !IsGuestKey(client.key))
-		src.load_path_pref(client.key)
+		load_path(client.ckey)
 		load_preferences()
-	//	load_and_update_character()
+		load_and_update_character()
 	sanitize_preferences()
 	if(client && istype(client.mob, /mob/new_player))
 		var/mob/new_player/np = client.mob
 		np.new_player_panel(TRUE)
-	if(!length(GLOB.skills))
-		decls_repository.get_decl(/decl/hierarchy/skill)
 
 /datum/preferences/proc/load_and_update_character(var/slot)
 	load_character(slot)
@@ -99,29 +73,25 @@ datum/preferences
 
 	var/dat = "<html><body><center>"
 
-	// if(path)
-		// dat += "Slot - "
-		// dat += "<a href='?src=\ref[src];load=1'>Load slot</a> - "
-		// dat += "<a href='?src=\ref[src];save=1'>Save slot</a> - "
-		// dat += "<a href='?src=\ref[src];resetslot=1'>Reset slot</a> - "
-		// dat += "<a href='?src=\ref[src];reload=1'>Reload slot</a>"
+	if(path)
+		dat += "Slot - "
+		dat += "<a href='?src=\ref[src];load=1'>Load slot</a> - "
+		dat += "<a href='?src=\ref[src];save=1'>Save slot</a> - "
+		dat += "<a href='?src=\ref[src];resetslot=1'>Reset slot</a> - "
+		dat += "<a href='?src=\ref[src];reload=1'>Reload slot</a>"
 
-	//dat += "Finish Character - "
-	dat += "<a href='?src=\ref[src];save=1'>Finalize</a>"
-	// else
-	// 	dat += "Please create an account to save your preferences."
+	else
+		dat += "Please create an account to save your preferences."
 
 	dat += "<br>"
 	dat += player_setup.header()
 	dat += "<br><HR></center>"
 	dat += player_setup.content(user)
-	if(!preview_icon)
-		update_preview_icon()
-		return ShowChoices(user)
+
 	dat += "</html></body>"
-	panel =  new(user, "Create a new character","Create a new character", 1200, 800, src)
-	panel.set_content(dat)
-	panel.open()
+	var/datum/browser/popup = new(user, "Character Setup","Character Setup", 1200, 800, src)
+	popup.set_content(dat)
+	popup.open()
 
 /datum/preferences/proc/process_link(mob/user, list/href_list)
 
@@ -130,7 +100,7 @@ datum/preferences
 
 	if(href_list["preference"] == "open_whitelist_forum")
 		if(config.forumurl)
-			open_link(user, config.forumurl)
+			user << link(config.forumurl)
 		else
 			to_chat(user, "<span class='danger'>The forum URL is not set in the server configuration.</span>")
 			return
@@ -142,34 +112,8 @@ datum/preferences
 		return 1
 
 	if(href_list["save"])
-		if(!cultural_info)
-			log_error("Something went very wrong with cultural info!!!")
-			return
-		if(!real_name)
-			to_chat(usr, "You must select a valid character name")
-			return
-		if(!rules_agree)
-			to_chat(usr, "You must read the rules and verify that you have read them.")
-			return
-		if(!welcome_accept)
-			to_chat(usr, "You should read the welcome message and then certify you are ready to play persistence.")
-			return
-		if(!guide_agree)
-			to_chat(usr, "You must agree to play a reasonable character, stay in character and follow our guidelines.")
-			return
-		if(!cultural_info[TAG_CULTURE])
-			to_chat(usr, "You must select an early life for your character.")
-			return
-		if(!cultural_info[TAG_AMBITION])
-			to_chat(usr, "You must select an ambition for your character.")
-			return
-
-		save_character()
 		save_preferences()
-		close_browser(usr, "window=saves")
-		if(panel)
-			panel.close()
-		return 0
+		save_character()
 	else if(href_list["reload"])
 		load_preferences()
 		load_character()
@@ -182,84 +126,25 @@ datum/preferences
 		load_character(text2num(href_list["changeslot"]))
 		sanitize_preferences()
 		close_load_dialog(usr)
-	else if(href_list["pickslot"])
-		chosen_slot = text2num(href_list["pickslot"])
-		randomize_appearance_and_body_for()
-		real_name = null
-		preview_icon = null
-		faction = null
-		selected_under = null
-		sanitize_preferences()
-		client.prefs.ShowChoices(src)
-		close_load_dialog(usr)
 	else if(href_list["resetslot"])
 		if(real_name != input("This will reset the current slot. Enter the character's full name to confirm."))
 			return 0
 		load_character(SAVE_RESET)
 		sanitize_preferences()
-	else if(href_list["saveprefs"])
-		save_preferences()
-		prefspanel?.close()
 	else
 		return 0
 
 	ShowChoices(usr)
 	return 1
 
-/datum/preferences/proc/copy_import(mob/living/carbon/human/character, mob/living/carbon/human/character2)
-	character.set_species(character2.get_species())
-	character.fully_replace_character_name(character2.real_name)
-	character.gender = character2.gender
-	character.age = character2.age
-
-	character.b_type = character2.b_type
-//	character.b_type = b_type
-
-	character.r_eyes = character2.r_eyes
-	character.g_eyes = character2.g_eyes
-	character.b_eyes = character2.b_eyes
-
-	character.h_style = character2.h_style
-	character.r_hair = character2.r_hair
-	character.g_hair = character2.g_hair
-	character.b_hair = character2.b_hair
-
-	character.f_style = character2.f_style
-	character.r_facial = character2.r_facial
-	character.g_facial = character2.g_facial
-	character.b_facial = character2.b_facial
-
-	character.r_skin = character2.r_skin
-	character.g_skin = character2.g_skin
-	character.b_skin = character2.b_skin
-
-	character.s_tone = character2.s_tone
-	character.s_base = character2.s_base
-
-	character.h_style = character2.h_style
-	character.f_style = character2.f_style
-	character.species.handle_limbs_setup(character)
-
-	character.force_update_limbs()
-	character.update_mutations(0)
-	character.update_body(0)
-	character.update_underwear(0)
-	character.update_hair(0)
-	character.update_icons()
-
-	if(!character.isSynthetic())
-		character.nutrition = rand(140,360)
-
-
-
 /datum/preferences/proc/copy_to(mob/living/carbon/human/character, is_preview_copy = FALSE)
 	// Sanitizing rather than saving as someone might still be editing when copy_to occurs.
 	player_setup.sanitize_setup()
 	character.set_species(species)
 
-	// if(be_random_name)
-	// 	var/decl/cultural_info/culture = SSculture.get_culture(cultural_info[TAG_CULTURE])
-	// 	if(culture) real_name = culture.get_random_name(gender)
+	if(be_random_name)
+		var/decl/cultural_info/culture = SSculture.get_culture(cultural_info[TAG_CULTURE])
+		if(culture) real_name = culture.get_random_name(gender)
 
 	if(config.humans_need_surnames)
 		var/firstspace = findtext(real_name, " ")
@@ -273,9 +158,7 @@ datum/preferences
 
 	character.gender = gender
 	character.age = age
-
-	character.b_type = pick(valid_bloodtypes)
-//	character.b_type = b_type
+	character.b_type = b_type
 
 	character.r_eyes = r_eyes
 	character.g_eyes = g_eyes
@@ -340,7 +223,7 @@ datum/preferences
 	//For species that don't care about your silly prefs
 	character.species.handle_limbs_setup(character)
 	if(!is_preview_copy)
-		for(var/name in list(BP_HEART,BP_EYES,BP_BRAIN,BP_LUNGS,BP_LIVER,BP_KIDNEYS))
+		for(var/name in list(BP_HEART,BP_EYES,BP_BRAIN,BP_LUNGS,BP_LIVER,BP_KIDNEYS,BP_STOMACH))
 			var/status = organ_data[name]
 			if(!status)
 				continue
@@ -411,68 +294,28 @@ datum/preferences
 	character.med_record = med_record
 	character.sec_record = sec_record
 	character.gen_record = gen_record
-	//character.exploit_record = exploit_record
+	character.exploit_record = exploit_record
 
 	if(LAZYLEN(character.descriptors))
 		for(var/entry in body_descriptors)
 			character.descriptors[entry] = body_descriptors[entry]
-	character.personal_faction = faction
 
 	if(!character.isSynthetic())
-		character.nutrition = rand(140,360)
-
-
-/datum/preferences/proc/delete_character(var/slot)
-	if(!slot)
-		return
-	SScharacter_setup.delete_character(slot, client.ckey)
-	if(character_list && (character_list.len >= slot))
-		character_list[slot] = "nothing"
-
-/datum/preferences/proc/load_characters()
-/*	var/path_to = load_path(client.ckey, "")
-	character_list = list()
-	var/slots = config.character_slots
-	if(check_rights(R_ADMIN, 0, client))
-		slots += 2
-	slots += client.prefs.bonus_slots
-	var/list/loaded = list()
-	for(var/i=1, i<= slots, i++)
-		if(fexists("[path_to][i].sav"))
-			var/savefile/S =  new("[path_to][i].sav")
-			var/mob/M
-			from_file(S, M)
-			loaded |= M
-			if(M)
-				M.after_load()
-				for(var/datum/D in M.contents)
-					D.after_load()
-				for(var/mob/loaded_mob in SSmobs.mob_list)
-					if(loaded_mob in loaded) continue
-					if(!loaded_mob.perma_dead && loaded_mob.type != /mob/new_player && (loaded_mob.real_name == M.real_name) && (get_turf(loaded_mob)))
-						loaded_mob.save_slot = i
-				character_list += M
-				M.save_slot = i
-		else
-			character_list += "empty"
-	return 1
-	*/
+		character.set_nutrition(rand(140,360))
+		character.set_hydration(rand(140,360))
 
 /datum/preferences/proc/open_load_dialog(mob/user)
 	var/dat  = list()
 	dat += "<body>"
 	dat += "<tt><center>"
-	var/slots = config.character_slots
-	if(check_rights(R_ADMIN, 0, client))
-		slots += 2
-	slots += client.prefs.bonus_slots
+
 	var/savefile/S = new /savefile(path)
 	if(S)
 		dat += "<b>Select a character slot to load</b><hr>"
 		var/name
-		for(var/i=1, i<= slots, i++)
-			name = SScharacter_setup.peek_character_name(i, client.ckey)
-			from_file(S["name"], name)
+		for(var/i=1, i<= config.character_slots, i++)
+			S.cd = GLOB.using_map.character_load_path(S, i)
+			S["real_name"] >> name
 			if(!name)	name = "Character[i]"
 			if(i==default_slot)
 				name = "<b>[name]</b>"
@@ -484,45 +327,8 @@ datum/preferences
 	panel.set_content(jointext(dat,null))
 	panel.open()
 
-/datum/preferences/proc/slot_select(mob/user)
-	var/slots = config.character_slots
-	if(check_rights(R_ADMIN, 0, client))
-		slots += 2
-	slots += client.prefs.bonus_slots
-	// if(!character_list || (character_list.len < slots))
-	// 	load_characters()
-	var/dat  = list()
-	dat += "<body>"
-	dat += "<tt><center>"
-	dat += "<b>Select the character slot you want to save this character under.</b><hr>"
-	for(var/ind = 0, ind < slots, ind++)
-		var/name = SScharacter_setup.peek_character_name(ind, client.ckey)
-		if(!isnull(name))
-			dat += "<b>[name]</b><br>"
-		else
-			dat += "<a href='?src=\ref[src];pickslot=[ind]'>Open Slot [ind]</a><br>"
-	dat += "<hr>"
-	dat += "</center></tt>"
-	panel = new(user, "Character Slots", "Character Slots", 300, 390, src)
-	panel.set_content(jointext(dat,null))
-	panel.open()
-
-
 /datum/preferences/proc/close_load_dialog(mob/user)
 	if(panel)
 		panel.close()
 		panel = null
 	close_browser(user, "window=saves")
-
-
-/datum/preferences/proc/Slots()
-	var/slots = 2 + bonus_slots
-
-	if(check_rights(R_ADMIN, 0, client))
-		slots += 2
-
-	return slots
-
-/datum/preferences/proc/GetPlayerAltTitle(datum/job/job)
-	// return (job.title in player_alt_titles) ? player_alt_titles[job.title] : job.title
-	return (job)? job.title : ""

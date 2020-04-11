@@ -1,15 +1,9 @@
 /obj/structure/closet/secure_closet/captains
 	name = "captain's locker"
-	req_access = list(core_access_leader)
+	req_access = list(access_captain)
 	closet_appearance = /decl/closet_appearance/secure_closet/command
 
-/obj/structure/closet/secure_closet/empty/captains
-	name = "captain's locker"
-	closet_appearance = /decl/closet_appearance/secure_closet/command
-	req_access = list(core_access_leader)
-
-
-/obj/structure/closet/secure_closet/captains/filled/WillContain() //Add the contents to Supply Crate.
+/obj/structure/closet/secure_closet/captains/WillContain()
 	return list(
 		new/datum/atom_creator/weighted(list(/obj/item/weapon/storage/backpack/captain, /obj/item/weapon/storage/backpack/satchel/cap)),
 		new/datum/atom_creator/simple(/obj/item/weapon/storage/backpack/dufflebag/captain, 50),
@@ -30,34 +24,27 @@
 		/obj/item/clothing/under/captainformal,
 	)
 
-/obj/structure/closet/secure_closet/empty/hop
-	name = "head of personnel's locker"
-	req_access = list(core_access_command_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/command/hop
-
-
 /obj/structure/closet/secure_closet/hop
 	name = "head of personnel's locker"
-	req_access = list(core_access_command_programs)
 	closet_appearance = /decl/closet_appearance/secure_closet/command/hop
+	req_access = list(access_hop)
 
-/obj/structure/closet/secure_closet/hop/filled/WillContain()
+/obj/structure/closet/secure_closet/hop/WillContain()
 	return list(
 		/obj/item/clothing/glasses/sunglasses,
 		/obj/item/clothing/suit/armor/vest/nt,
 		/obj/item/clothing/head/helmet,
 		/obj/item/device/radio/headset/heads/hop,
 		/obj/item/weapon/storage/box/ids = 2,
-		/obj/item/weapon/gun/projectile/pistol/sec,
 		/obj/item/device/flash
 	)
 
 /obj/structure/closet/secure_closet/hop2
 	name = "head of personnel's attire"
-	req_access = list(core_access_command_programs)
+	req_access = list(access_hop)
 	closet_appearance = /decl/closet_appearance/secure_closet/command/hop
 
-/obj/structure/closet/secure_closet/hop2/filled/WillContain()
+/obj/structure/closet/secure_closet/hop2/WillContain()
 	return list(
 		/obj/item/clothing/under/rank/head_of_personnel,
 		/obj/item/clothing/under/dress/dress_hop,
@@ -74,18 +61,12 @@
 		/obj/item/clothing/head/caphat/hop
 	)
 
-/obj/structure/closet/secure_closet/empty/hos
-	name = "head of security's locker"
-	req_access = list(core_access_security_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/security/hos
-
-
 /obj/structure/closet/secure_closet/hos
 	name = "head of security's locker"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_hos)
 	closet_appearance = /decl/closet_appearance/secure_closet/security/hos
 
-/obj/structure/closet/secure_closet/hos/filled/WillContain()
+/obj/structure/closet/secure_closet/hos/WillContain()
 	return list(
 		new/datum/atom_creator/weighted(list(/obj/item/weapon/storage/backpack/security, /obj/item/weapon/storage/backpack/satchel/sec)),
 		/obj/item/clothing/head/HoS,
@@ -112,18 +93,12 @@
 		/obj/item/device/holowarrant
 	)
 
-/obj/structure/closet/secure_closet/empty/warden
-	name = "warden's locker"
-	req_access = list(core_access_security_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/security/warden
-
-
 /obj/structure/closet/secure_closet/warden
 	name = "warden's locker"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_armory)
 	closet_appearance = /decl/closet_appearance/secure_closet/security/warden
 
-/obj/structure/closet/secure_closet/warden/filled/WillContain()
+/obj/structure/closet/secure_closet/warden/WillContain()
 	return list(
 		new/datum/atom_creator/weighted(list(/obj/item/weapon/storage/backpack/security, /obj/item/weapon/storage/backpack/satchel/sec)),
 		new/datum/atom_creator/simple(/obj/item/weapon/storage/backpack/dufflebag/sec, 50),
@@ -148,18 +123,12 @@
 		/obj/item/device/holowarrant
 	)
 
-/obj/structure/closet/secure_closet/empty/security
-	name = "security officer's locker"
-	req_access = list(core_access_security_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/security
-
-
 /obj/structure/closet/secure_closet/security
 	name = "security officer's locker"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_brig)
 	closet_appearance = /decl/closet_appearance/secure_closet/security
 
-/obj/structure/closet/secure_closet/security/filled/WillContain()
+/obj/structure/closet/secure_closet/security/WillContain()
 	return list(
 		new/datum/atom_creator/weighted(list(/obj/item/weapon/storage/backpack/security, /obj/item/weapon/storage/backpack/satchel/sec)),
 		new/datum/atom_creator/simple(/obj/item/weapon/storage/backpack/dufflebag/sec, 50),
@@ -204,10 +173,10 @@
 
 /obj/structure/closet/secure_closet/detective
 	name = "detective's cabinet"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_forensics_lockers)
 	closet_appearance = /decl/closet_appearance/cabinet/secure
 
-/obj/structure/closet/secure_closet/detective/filled/WillContain()
+/obj/structure/closet/secure_closet/detective/WillContain()
 	return list(
 		/obj/item/clothing/under/det,
 		/obj/item/clothing/under/det/grey,
@@ -223,9 +192,8 @@
 		/obj/item/weapon/storage/box/evidence,
 		/obj/item/device/radio/headset/headset_sec,
 		/obj/item/clothing/suit/armor/vest/detective,
-		/obj/item/ammo_magazine/box/c45/flash,
 		/obj/item/taperoll/police,
-		/obj/item/weapon/gun/projectile/pistol/sec,
+		/obj/item/weapon/gun/projectile/pistol/sec/detective,
 		/obj/item/clothing/accessory/storage/holster/armpit,
 		/obj/item/weapon/reagent_containers/food/drinks/flask/detflask,
 		/obj/item/weapon/storage/briefcase/crimekit,
@@ -234,14 +202,14 @@
 
 /obj/structure/closet/secure_closet/injection
 	name = "lethal injections locker"
-	req_access = list(core_access_command_programs, core_access_security_programs)
+	req_access = list(access_captain)
 
 /obj/structure/closet/secure_closet/injection/WillContain()
 	return list(/obj/item/weapon/reagent_containers/syringe/ld50_syringe/choral = 2)
 
 /obj/structure/closet/secure_closet/brig
 	name = "brig locker"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_brig)
 	anchored = 1
 	var/id = null
 
@@ -253,9 +221,9 @@
 
 /obj/structure/closet/secure_closet/courtroom
 	name = "courtroom locker"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_lawyer)
 
-/obj/structure/closet/secure_closet/courtroom/filled/WillContain()
+/obj/structure/closet/secure_closet/courtroom/WillContain()
 	return list(
 		/obj/item/clothing/shoes/brown,
 		/obj/item/weapon/paper/Court = 3,
@@ -267,7 +235,7 @@
 
 /obj/structure/closet/secure_closet/wall
 	name = "wall locker"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_security)
 	closet_appearance = /decl/closet_appearance/wall
 
 	//too small to put a man in
@@ -275,9 +243,9 @@
 
 /obj/structure/closet/secure_closet/lawyer
 	name = "internal affairs secure closet"
-	req_access = list(core_access_security_programs)
+	req_access = list(access_lawyer)
 
-/obj/structure/closet/secure_closet/lawyer/filled/WillContain()
+/obj/structure/closet/secure_closet/lawyer/WillContain()
 	return list(
 		/obj/item/device/flash = 2,
 		/obj/item/device/camera = 2,

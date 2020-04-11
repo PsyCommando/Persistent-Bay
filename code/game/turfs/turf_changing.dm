@@ -1,6 +1,9 @@
 /turf/proc/ReplaceWithLattice(var/material)
-	src.ChangeTurf(get_base_turf_by_area(src))
-	new /obj/structure/lattice( locate(src.x, src.y, src.z), material )
+	var base_turf = get_base_turf_by_area(src);
+	if(type != base_turf)
+		src.ChangeTurf(get_base_turf_by_area(src))
+	if(!locate(/obj/structure/lattice) in src)
+		new /obj/structure/lattice(src, material)
 
 // Removes all signs of lattice on the pos of the turf -Donkieyo
 /turf/proc/RemoveLattice()
@@ -10,9 +13,8 @@
 // Called after turf replaces old one
 /turf/proc/post_change()
 	levelupdate()
-	var/turf/simulated/open/T = GetAbove(src)
-	if(istype(T))
-		T.update_icon()
+	if (above)
+		above.update_mimic()
 
 //Creates a new turf
 /turf/proc/ChangeTurf(var/turf/N, var/tell_universe = TRUE, var/force_lighting_update = FALSE, var/keep_air = FALSE)
@@ -33,14 +35,10 @@
 	var/old_lighting_overlay = lighting_overlay
 	var/old_corners = corners
 	var/old_ao_neighbors = ao_neighbors
-	var/old_type = type
-	var/old_resources = null
-	if(istype(src, /turf/simulated))
-		var/turf/simulated/T = src
-		old_resources = T.resources
 
 //	log_debug("Replacing [src.type] with [N]")
 
+	changing_turf = TRUE
 
 	if(connections) connections.erase_all()
 
@@ -53,15 +51,13 @@
 		var/turf/simulated/S = src
 		if(S.zone) S.zone.rebuild()
 
-	// Closest we can do as far as giving sane alerts to listeners. In particular, this calls Exited and moved events in a self-consistent way.
-	var/list/old_contents = list()
-	for(var/atom/movable/A in src)
-		old_contents += A
-		A.forceMove(null)
+	// Run the Destroy() chain.
+	qdel(src)
 
-	var/turf/simulated/W = new N( locate(src.x, src.y, src.z) )
-	for(var/atom/movable/A in old_contents)
-		A.forceMove(W)
+	var/turf/simulated/W = new N(src)
+
+	if (permit_ao)
+		regenerate_ao()
 
 	W.opaque_counter = opaque_counter
 
@@ -69,15 +65,8 @@
 		W.air = old_air
 
 	if(ispath(N, /turf/simulated))
-		var/turf/simulated/simu = W
-		simu.resources = old_resources
 		if(old_fire)
 			fire = old_fire
-		if (istype(W,/turf/simulated/floor) && old_type == /turf/simulated/floor/asteroid)
-			var/turf/simulated/floor/F = W
-			F.prior_floortype = old_type
-			F.prior_resources = old_resources
-
 		if (istype(W,/turf/simulated/floor))
 			W.RemoveLattice()
 	else if(old_fire)
@@ -118,8 +107,6 @@
 	src.icon = other.icon
 	src.overlays = other.overlays.Copy()
 	src.underlays = other.underlays.Copy()
-	if(other.saved_decals)
-		src.saved_decals = other.saved_decals.Copy()
 	if(other.decals)
 		src.decals = other.decals.Copy()
 		src.update_icon()
@@ -137,29 +124,13 @@
 		other.zone.remove(other)
 	return 1
 
-//I would name this copy_from() but we remove the other turf from their air zone for some reason
-/turf/simulated/floor/transport_properties_from(turf/simulated/floor/other)
-	if(!..())
-		return FALSE
-	if(istype(other))
-		set_flooring(other.flooring)
-	return TRUE
-
 /turf/simulated/wall/transport_properties_from(turf/simulated/wall/other)
 	if(!..())
 		return 0
-	integrity = other.integrity
 	paint_color = other.paint_color
-	material = other.material
-	reinf_material = other.reinf_material
-	girder_material = other.girder_material
-	girder_reinf_material = other.girder_reinf_material
-	state = other.state
-	can_open = other.can_open
-	blocks_air = other.blocks_air
 	return 1
 
 //No idea why resetting the base appearence from New() isn't enough, but without this it doesn't work
-/turf/simulated/wall/shuttle/corner/transport_properties_from(turf/simulated/other)
+/turf/simulated/shuttle/wall/corner/transport_properties_from(turf/simulated/other)
 	. = ..()
 	reset_base_appearance()

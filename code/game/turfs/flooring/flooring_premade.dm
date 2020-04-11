@@ -3,7 +3,7 @@
 	name = "plating"
 	icon = 'icons/turf/flooring/plating.dmi'
 	icon_state = "plating"
-	plane = PLATING_PLANE
+	layer = PLATING_LAYER
 
 /turf/simulated/floor/bluegrid
 	name = "mainframe floor"
@@ -74,23 +74,6 @@
 	icon = 'icons/turf/flooring/grass.dmi'
 	icon_state = "grass0"
 	initial_flooring = /decl/flooring/grass
-
-/turf/simulated/floor/concrete
-	name = "concrete tile"
-	icon = 'icons/turf/flooring/misc.dmi'
-	icon_state = "concrete"
-	initial_flooring = /decl/flooring/concrete
-/*
-/turf/simulated/floor/diona
-	name = "biomass"
-	icon = 'icons/turf/floors.dmi'
-	initial_flooring = /decl/flooring/diona
-*/
-/turf/simulated/floor/tiled
-	name = "steel floor"
-	icon = 'icons/turf/flooring/tiles.dmi'
-	icon_state = MATERIAL_STEEL
-	initial_flooring = /decl/flooring/tiling
 
 /turf/simulated/floor/carpet
 	name = "brown carpet"
@@ -270,17 +253,11 @@
 	name = "floor"
 	icon_state = "tile_full"
 	initial_flooring = /decl/flooring/tiling/new_tile
-/turf/simulated/floor/tiled/old_tile/gray
-	initial_flooring = /decl/flooring/tiling/new_tile/gray
-	color = COLOR_GRAY
 
 /turf/simulated/floor/tiled/old_cargo
 	name = "floor"
 	icon_state = "cargo_one_full"
-	initial_flooring = /decl/flooring/tiling/new_tile/old_cargo
-/turf/simulated/floor/tiled/old_cargo/gray
-	initial_flooring = /decl/flooring/tiling/new_tile/old_cargo/gray
-	color = COLOR_GRAY
+	initial_flooring = /decl/flooring/tiling/new_tile/cargo_one
 
 /turf/simulated/floor/tiled/kafel_full
 	name = "floor"
@@ -296,7 +273,7 @@
 	name = "floor"
 	icon_state = "techfloor_grid"
 	initial_flooring = /decl/flooring/tiling/tech/grid
-
+	
 /turf/simulated/floor/tiled/skrell
 	icon = 'icons/turf/skrellturf.dmi'
 	icon_state = "skrellblack"
@@ -335,7 +312,7 @@
 	temperature = TCMB
 
 /turf/simulated/floor/airless
-	name = "plating"
+	name = "airless plating"
 	initial_gas = null
 	temperature = TCMB
 
@@ -356,11 +333,6 @@
 
 /turf/simulated/floor/greengrid/nitrogen
 	initial_gas = list(GAS_NITROGEN = MOLES_N2STANDARD)
-
-/turf/simulated/floor/tiled/white/airless
-	name = "airless floor"
-	initial_gas = null
-	temperature = TCMB
 
 // Placeholders
 /turf/simulated/floor/airless/lava
@@ -430,22 +402,3 @@
 	icon = 'icons/turf/flooring/crystal.dmi'
 	icon_state = ""
 	initial_flooring = /decl/flooring/crystal
-
-/turf/simulated/floor/reinforced/rockvault
-	name = "vault floor"
-	icon = 'icons/turf/flooring/misc.dmi'
-	icon_state = "rockvault"
-	initial_flooring = /decl/flooring/rockvault
-
-/turf/simulated/floor/reinforced/sandstonevault
-	name = "sandstone vault floor"
-	icon = 'icons/turf/flooring/misc.dmi'
-	icon_state = "sandstonevault"
-	initial_flooring = /decl/flooring/sandstonevault
-
-
-/turf/simulated/floor/reinforced/elevatorshaft
-	name = "elevator shaft floor"
-	icon = 'icons/turf/flooring/misc.dmi'
-	icon_state = "elevatorshaft"
-	initial_flooring = /decl/flooring/elevatorshaft

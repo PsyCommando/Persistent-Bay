@@ -10,7 +10,10 @@
 	anchored = 1
 	use_power = POWER_USE_OFF
 	idle_power_usage = 5			//5 Watts for thermostat related circuitry
-	circuit_type = /obj/item/weapon/circuitboard/unary_atmos/heater
+	base_type = /obj/machinery/atmospherics/unary/heater
+	construct_state = /decl/machine_construction/default/panel_closed
+	uncreated_component_parts = null
+	stat_immune = 0
 
 	var/max_temperature = T20C + 680
 	var/internal_volume = 600	//L
@@ -20,15 +23,6 @@
 
 	var/set_temperature = T20C	//thermostat
 	var/heating = 0		//mainly for icon updates
-
-/obj/machinery/atmospherics/unary/heater/New()
-	..()
-	ADD_SAVED_VAR(set_temperature)
-	ADD_SAVED_VAR(power_setting)
-
-/obj/machinery/atmospherics/unary/heater/setup_initialize_directions()
-	..()
-	initialize_directions = dir
 
 /obj/machinery/atmospherics/unary/heater/atmos_init()
 	..()
@@ -50,7 +44,7 @@
 			node = null
 			break
 
-	queue_icon_update()
+	update_icon()
 
 
 /obj/machinery/atmospherics/unary/heater/on_update_icon()
@@ -69,7 +63,7 @@
 
 	if(stat & (NOPOWER|BROKEN) || !use_power)
 		heating = 0
-		queue_icon_update()
+		update_icon()
 		return
 
 	if(network && air_contents.total_moles && air_contents.temperature < set_temperature)
@@ -81,13 +75,11 @@
 	else
 		heating = 0
 
-	queue_icon_update()
+	update_icon()
 
-/obj/machinery/atmospherics/unary/heater/attack_ai(mob/user as mob)
+/obj/machinery/atmospherics/unary/heater/interface_interact(mob/user)
 	ui_interact(user)
-
-/obj/machinery/atmospherics/unary/heater/attack_hand(mob/user as mob)
-	ui_interact(user)
+	return TRUE
 
 /obj/machinery/atmospherics/unary/heater/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	// this is the data which will be sent to the ui
@@ -139,14 +131,8 @@
 //upgrading parts
 /obj/machinery/atmospherics/unary/heater/RefreshParts()
 	..()
-	var/cap_rating = 0
-	var/bin_rating = 0
-
-	for(var/obj/item/weapon/stock_parts/P in component_parts)
-		if(istype(P, /obj/item/weapon/stock_parts/capacitor))
-			cap_rating += P.rating
-		if(istype(P, /obj/item/weapon/stock_parts/matter_bin))
-			bin_rating += P.rating
+	var/cap_rating = Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/capacitor), 1, 20)
+	var/bin_rating = Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/matter_bin), 0, 10)
 
 	max_power_rating = initial(max_power_rating) * cap_rating / 2
 	max_temperature = max(initial(max_temperature) - T20C, 0) * ((bin_rating * 4 + cap_rating) / 5) + T20C
@@ -157,17 +143,7 @@
 	power_setting = new_power_setting
 	power_rating = max_power_rating * (power_setting/100)
 
-/obj/machinery/atmospherics/unary/heater/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		return
-	if(default_deconstruction_crowbar(user, O))
-		return
-	if(default_part_replacement(user, O))
-		return
-
-	..()
-
 /obj/machinery/atmospherics/unary/heater/examine(mob/user)
-	. = ..(user)
+	. = ..()
 	if(panel_open)
 		to_chat(user, "The maintenance hatch is open.")

@@ -17,15 +17,6 @@
 
 	New()
 		..()
-		ADD_SAVED_VAR(stage)
-		ADD_SAVED_VAR(state)
-		ADD_SAVED_VAR(path)
-		ADD_SAVED_VAR(detonator)
-		ADD_SAVED_VAR(beakers)
-		ADD_SAVED_VAR(affected_area)
-	
-	SetupReagents()
-		. = ..()
 		create_reagents(1000)
 
 	attack_self(mob/user as mob)
@@ -122,11 +113,6 @@
 				else
 					to_chat(user, "<span class='warning'>\The [W] is empty.</span>")
 
-	examine(mob/user)
-		. = ..(user)
-		if(detonator)
-			to_chat(user, "With attached [detonator.name]")
-
 	activate(mob/user as mob)
 		if(active) return
 
@@ -180,10 +166,10 @@
 			steam.attach(src)
 			steam.start()
 
-		/**	for(var/atom/A in view(affected_area, src.loc))
+			for(var/atom/A in view(affected_area, src.loc))
 				if( A == src ) continue
 				src.reagents.touch(A)
-		**/
+
 		if(istype(loc, /mob/living/carbon))		//drop dat grenade if it goes off in your hand
 			var/mob/living/carbon/C = loc
 			C.drop_from_inventory(src)
@@ -193,6 +179,10 @@
 		spawn(50)		   //To make sure all reagents can work
 			qdel(src)	   //correctly before deleting the grenade.
 
+/obj/item/weapon/grenade/chem_grenade/examine(mob/user)
+	. = ..()
+	if(detonator)
+		to_chat(user, "With attached [detonator.name]")
 
 /obj/item/weapon/grenade/chem_grenade/large
 	name = "large chem grenade"
@@ -209,11 +199,7 @@
 	stage = 2
 
 	New()
-		. = ..()
-		icon_state = initial(icon_state) +"_locked"
-
-	SetupReagents()
-		. = ..()
+		..()
 		var/obj/item/weapon/reagent_containers/glass/beaker/B1 = new(src)
 		var/obj/item/weapon/reagent_containers/glass/beaker/B2 = new(src)
 
@@ -225,6 +211,7 @@
 
 		beakers += B1
 		beakers += B2
+		icon_state = initial(icon_state) +"_locked"
 
 /obj/item/weapon/grenade/chem_grenade/incendiary
 	name = "incendiary grenade"
@@ -233,11 +220,7 @@
 	stage = 2
 
 	New()
-		. = ..()
-		icon_state = initial(icon_state) +"_locked"
-
-	SetupReagents()
-		. = ..()
+		..()
 		var/obj/item/weapon/reagent_containers/glass/beaker/B1 = new(src)
 		var/obj/item/weapon/reagent_containers/glass/beaker/B2 = new(src)
 
@@ -251,15 +234,15 @@
 
 		beakers += B1
 		beakers += B2
+		icon_state = initial(icon_state) +"_locked"
 
 /obj/item/weapon/grenade/chem_grenade/antiweed
 	name = "weedkiller grenade"
 	desc = "Used for purging large areas of invasive plant species. Contents under pressure. Do not directly inhale contents."
-	icon_state = "grenade"
 	path = 1
 	stage = 2
 
-	SetupReagents()
+	New()
 		..()
 		var/obj/item/weapon/reagent_containers/glass/beaker/B1 = new(src)
 		var/obj/item/weapon/reagent_containers/glass/beaker/B2 = new(src)
@@ -273,7 +256,7 @@
 
 		beakers += B1
 		beakers += B2
-
+		icon_state = "grenade"
 
 /obj/item/weapon/grenade/chem_grenade/cleaner
 	name = "cleaner grenade"
@@ -282,10 +265,6 @@
 	path = 1
 
 	New()
-		. = ..()
-		icon_state = initial(icon_state) +"_locked"
-
-	SetupReagents()
 		..()
 		var/obj/item/weapon/reagent_containers/glass/beaker/B1 = new(src)
 		var/obj/item/weapon/reagent_containers/glass/beaker/B2 = new(src)
@@ -298,6 +277,7 @@
 
 		beakers += B1
 		beakers += B2
+		icon_state = initial(icon_state) +"_locked"
 
 /obj/item/weapon/grenade/chem_grenade/teargas
 	name = "tear gas grenade"
@@ -306,10 +286,6 @@
 	path = 1
 
 	New()
-		. = ..()
-		icon_state = initial(icon_state) +"_locked"
-
-	SetupReagents()
 		..()
 		var/obj/item/weapon/reagent_containers/glass/beaker/large/B1 = new(src)
 		var/obj/item/weapon/reagent_containers/glass/beaker/large/B2 = new(src)
@@ -324,4 +300,27 @@
 
 		beakers += B1
 		beakers += B2
+		icon_state = initial(icon_state) +"_locked"
+
+/obj/item/weapon/grenade/chem_grenade/water
+	name = "water grenade"
+	desc = "A water grenade, generally used for firefighting."
+	icon_state = "waterg"
+	item_state = "waterg"
+	stage = 2
+	path = 1
+
+/obj/item/weapon/grenade/chem_grenade/water/Initialize()
+	. = ..()
+	var/obj/item/weapon/reagent_containers/glass/beaker/B1 = new(src)
+	var/obj/item/weapon/reagent_containers/glass/beaker/B2 = new(src)
+
+	B1.reagents.add_reagent(/datum/reagent/water, 40)
+	B2.reagents.add_reagent(/datum/reagent/water, 40)
+
+	detonator = new/obj/item/device/assembly_holder/timer_igniter(src)
+
+	beakers += B1
+	beakers += B2
+	icon_state = initial(icon_state) +"_locked"
 

@@ -11,21 +11,13 @@
 			) \
 		)
 
-
-/obj/structure/closet/secure_closet/empty/medical1
-	name = "medical equipment closet"
-	desc = "Filled with medical junk."
-	req_access = list(core_access_medical_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/medical
-
-
 /obj/structure/closet/secure_closet/medical1
 	name = "medical equipment closet"
 	desc = "Filled with medical junk."
 	closet_appearance = /decl/closet_appearance/secure_closet/medical
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_medical_equip)
 
-/obj/structure/closet/secure_closet/medical1/filled/WillContain() //Add the contents to Supply Crate.
+/obj/structure/closet/secure_closet/medical1/WillContain()
 	return list(
 		/obj/item/weapon/storage/box/autoinjectors,
 		/obj/item/weapon/storage/box/syringes,
@@ -41,26 +33,20 @@
 /obj/structure/closet/secure_closet/medical2
 	name = "anesthetics closet"
 	desc = "Used to knock people out."
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_surgery)
 
-/obj/structure/closet/secure_closet/medical2/filled/WillContain()
+/obj/structure/closet/secure_closet/medical2/WillContain()
 	return list(
 		/obj/item/weapon/tank/anesthetic = 3,
 		/obj/item/clothing/mask/breath/medical = 3
 	)
 
-/obj/structure/closet/secure_closet/empty/medical3
-	name = "medical doctor's locker"
-	req_access = list(core_access_medical_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/medical/alt
-
-
 /obj/structure/closet/secure_closet/medical3
 	name = "medical doctor's locker"
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_medical_equip)
 	closet_appearance = /decl/closet_appearance/secure_closet/medical/alt
 
-/obj/structure/closet/secure_closet/medical3/filled/WillContain()
+/obj/structure/closet/secure_closet/medical3/WillContain()
 	return list(
 		new/datum/atom_creator/weighted(list(/obj/item/weapon/storage/backpack/medic, /obj/item/weapon/storage/backpack/satchel/med)),
 		new/datum/atom_creator/simple(/obj/item/weapon/storage/backpack/dufflebag/med, 50),
@@ -83,9 +69,9 @@
 	name = "paramedic locker"
 	desc = "Supplies for a first responder."
 	closet_appearance = /decl/closet_appearance/secure_closet/medical
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_medical_equip)
 
-/obj/structure/closet/secure_closet/paramedic/filled/WillContain()
+/obj/structure/closet/secure_closet/paramedic/WillContain()
 	return list(
 	    /obj/item/weapon/storage/box/autoinjectors,
 	    /obj/item/weapon/storage/box/syringes,
@@ -102,24 +88,18 @@
 	    /obj/item/device/scanner/health,
 	    /obj/item/device/radio/off,
 	    /obj/random/medical,
-	    /obj/item/weapon/tool/crowbar,
+	    /obj/item/weapon/crowbar,
 	    /obj/item/weapon/extinguisher/mini,
 	    /obj/item/weapon/storage/box/freezer,
 	    /obj/item/clothing/accessory/storage/white_vest,
 	)
 
-/obj/structure/closet/secure_closet/empty/CMO
-	name = "chief medical officer's locker"
-	req_access = list(core_access_medical_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/cmo
-
-
 /obj/structure/closet/secure_closet/CMO
 	name = "chief medical officer's locker"
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_cmo)
 	closet_appearance = /decl/closet_appearance/secure_closet/cmo
 
-/obj/structure/closet/secure_closet/CMO/filled/WillContain()
+/obj/structure/closet/secure_closet/CMO/WillContain()
 	return list(
 		new/datum/atom_creator/weighted(list(/obj/item/weapon/storage/backpack/medic, /obj/item/weapon/storage/backpack/satchel/med)),
 		new/datum/atom_creator/simple(/obj/item/weapon/storage/backpack/dufflebag/med, 50),
@@ -141,9 +121,9 @@
 	name = "chemical closet"
 	desc = "Store dangerous chemicals in here."
 	closet_appearance = /decl/closet_appearance/secure_closet/medical
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_chemistry)
 
-/obj/structure/closet/secure_closet/chemical/filled/WillContain()
+/obj/structure/closet/secure_closet/chemical/WillContain()
 	return list(
 		/obj/item/weapon/storage/box/pillbottles = 2,
 		/obj/item/weapon/reagent_containers/glass/beaker/cryoxadone,
@@ -162,22 +142,16 @@
 
 /obj/structure/closet/secure_closet/counselor
 	name = "counselor's locker"
-	req_access = list(core_access_medical_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/chaplain
+	closet_appearance = /decl/closet_appearance/secure_closet/medical
+	req_access = list(access_psychiatrist)
 
-/obj/structure/closet/secure_closet/counselor/filled/WillContain()
+/obj/structure/closet/secure_closet/counselor/WillContain()
 	return list(
 		/obj/item/clothing/under/rank/psych,
 		/obj/item/clothing/under/rank/psych/turtleneck,
-		/obj/item/clothing/under/rank/chaplain,
-		/obj/item/clothing/shoes/black,
-		/obj/item/clothing/suit/chaplain_hoodie,
-		/obj/item/weapon/storage/candle_box = 2,
-		/obj/item/weapon/deck/tarot,
-		/obj/item/weapon/reagent_containers/food/drinks/bottle/holywater,
-		/obj/item/weapon/nullrod,
-		/obj/item/weapon/storage/bible,
-		/obj/item/clothing/suit/straight_jacket,
+		/obj/item/clothing/suit/storage/toggle/labcoat,
+		/obj/item/clothing/suit/storage/toggle/labcoat/foundation,
+		/obj/item/clothing/shoes/white,
 		/obj/item/weapon/reagent_containers/glass/bottle/stoxin,
 		/obj/item/weapon/reagent_containers/syringe,
 		/obj/item/weapon/storage/pill_bottle/citalopram,
@@ -191,18 +165,13 @@
 		/obj/item/weapon/storage/belt/general
 	)
 
-/obj/structure/closet/secure_closet/empty/virology
-	name = "virologist's locker"
-	req_access = list(core_access_medical_programs)
-	closet_appearance = /decl/closet_appearance/secure_closet/medical/virology
-
-
 /obj/structure/closet/secure_closet/virology
 	name = "virologist's locker"
 	closet_appearance = /decl/closet_appearance/secure_closet/medical/virology
-	req_access = list(core_access_medical_programs)
 
-/obj/structure/closet/secure_closet/virology/filled/WillContain()
+	req_access = list(access_virology)
+
+/obj/structure/closet/secure_closet/virology/WillContain()
 	return list(
 		/obj/item/weapon/storage/box/autoinjectors,
 		/obj/item/weapon/storage/box/syringes,
@@ -226,9 +195,9 @@
 	name = "Psychiatrist's locker"
 	desc = "Everything you need to keep the lunatics at bay."
 	closet_appearance = /decl/closet_appearance/secure_closet/medical/alt
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_psychiatrist)
 
-/obj/structure/closet/secure_closet/psychiatry/filled/WillContain()
+/obj/structure/closet/secure_closet/psychiatry/WillContain()
 	return list(
 		/obj/item/clothing/suit/straight_jacket,
 		/obj/item/weapon/reagent_containers/glass/bottle/stoxin,

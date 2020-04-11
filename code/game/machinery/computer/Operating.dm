@@ -2,11 +2,10 @@
 
 /obj/machinery/computer/operating
 	name = "patient monitoring console"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1.0
 	icon_keyboard = "med_key"
 	icon_screen = "crew"
-	circuit = /obj/item/weapon/circuitboard/operating
 	var/mob/living/carbon/human/victim = null
 	var/obj/machinery/optable/table = null
 
@@ -18,20 +17,12 @@
 			table.computer = src
 			break
 
-/obj/machinery/computer/operating/attack_ai(mob/user)
-	add_fingerprint(user)
-	if(inoperable())
-		return
+/obj/machinery/computer/operating/interface_interact(user)
 	interact(user)
-
-/obj/machinery/computer/operating/attack_hand(mob/user)
-	add_fingerprint(user)
-	if(inoperable())
-		return
-	interact(user)
+	return TRUE
 
 /obj/machinery/computer/operating/interact(mob/user)
-	if ( (get_dist(src, user) > 1 ) || inoperable() )
+	if ( (get_dist(src, user) > 1 ) || (stat & (BROKEN|NOPOWER)) )
 		if (!istype(user, /mob/living/silicon))
 			user.unset_machine()
 			close_browser(user, "window=op")
@@ -58,6 +49,5 @@
 	onclose(user, "op")
 
 /obj/machinery/computer/operating/Process()
-	if(inoperable())
-		return
-	src.updateDialog()
+	if(!inoperable())
+		updateDialog()

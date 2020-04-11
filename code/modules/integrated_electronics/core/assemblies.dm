@@ -29,7 +29,6 @@
 	var/components_per_page = 5
 	health = 30
 	pass_flags = 0
-	armor = list(DAM_BLUNT = 50, DAM_BULLET = 70, DAM_LASER = 70, DAM_ENERGY = 100, DAM_BOMB = 10, DAM_BIO = 100, DAM_RADS = 100, DAM_BURN = 0)
 	anchored = FALSE
 	var/detail_color = COLOR_ASSEMBLY_BLACK
 	var/list/color_whitelist = list( //This is just for checking that hacked colors aren't in the save data.
@@ -53,15 +52,28 @@
 
 /obj/item/device/electronic_assembly/examine(mob/user)
 	. = ..()
-	if(!.)
-		return
 	if(IC_FLAG_ANCHORABLE & circuit_flags)
 		to_chat(user, "<span class='notice'>The anchoring bolts [anchored ? "are" : "can be"] <b>wrenched</b> in place and the maintenance panel [opened ? "can be" : "is"] <b>screwed</b> in place.</span>")
 	else
 		to_chat(user, "<span class='notice'>The maintenance panel [opened ? "can be" : "is"] <b>screwed</b> in place.</span>")
+	if(health != initial(health))
+		if(health <= initial(health)/2)
+			to_chat(user,"<span class='warning'>It looks pretty beat up.</span>")
+		else
+			to_chat(user, "<span class='warning'>Its got a few dents in it.</span>")
 
 	if((isobserver(user) && ckeys_allowed_to_scan[user.ckey]) || check_rights(R_ADMIN, 0, user))
 		to_chat(user, "You can <a href='?src=\ref[src];ghostscan=1'>scan</a> this circuit.");
+
+
+/obj/item/device/electronic_assembly/proc/take_damage(var/amnt)
+	health = health - amnt
+	if(health <= 0)
+		visible_message("<span class='danger'>\The [src] falls to pieces!</span>")
+		qdel(src)
+	else if(health < initial(health)*0.15 && prob(5))
+		visible_message("<span class='danger'>\The [src] starts to break apart!</span>")
+
 
 /obj/item/device/electronic_assembly/proc/check_interactivity(mob/user)
 	return (!user.incapacitated() && CanUseTopic(user))
@@ -77,7 +89,7 @@
 	.=..()
 	if(istype(AM, /obj/machinery/door/airlock) ||  istype(AM, /obj/machinery/door/window))
 		var/obj/machinery/door/D = AM
-		if(D.check_access(GetAccess()))
+		if(D.check_access(src))
 			D.open()
 
 /obj/item/device/electronic_assembly/Initialize()
@@ -98,7 +110,7 @@
 		P.make_energy()
 
 	var/power_failure = FALSE
-	if(health < (get_max_health() / 2) && prob(5))
+	if(initial(health)/health < 0.5 && prob(5))
 		visible_message("<span class='warning'>\The [src] shudders and sparks</span>")
 		power_failure = TRUE
 	// Now spend it.
@@ -151,8 +163,6 @@
 
 
 /obj/item/device/electronic_assembly/proc/open_interact(mob/user)
-	. = ..()
-
 	var/total_part_size = return_total_size()
 	var/total_complexity = return_total_complexity()
 	var/list/HTML = list()
@@ -286,7 +296,7 @@
 	overlays += detail_overlay
 
 /obj/item/device/electronic_assembly/examine(mob/user)
-	..()
+	. = ..()
 	for(var/I in assembly_components)
 		var/obj/item/integrated_circuit/IC = I
 		IC.external_examine(user)
@@ -398,7 +408,7 @@
 
 
 /obj/item/device/electronic_assembly/attackby(obj/item/I, mob/living/user)
-	if(istype(I, /obj/item/weapon/tool/wrench))
+	if(istype(I, /obj/item/weapon/wrench))
 		if(istype(loc, /turf) && (IC_FLAG_ANCHORABLE & circuit_flags))
 			user.visible_message("\The [user] wrenches \the [src]'s anchoring bolts [anchored ? "back" : "into position"].")
 			playsound(get_turf(user), 'sound/items/Ratchet.ogg',50)
@@ -446,7 +456,18 @@
 		var/obj/item/device/integrated_electronics/detailer/D = I
 		detail_color = D.detail_color
 		update_icon()
-	else if(istype(I, /obj/item/weapon/tool/screwdriver))
+	else if(istype(I, /obj/item/weapon/screwdriver))
+		var/hatch_locked = FALSE
+		for(var/obj/item/integrated_circuit/manipulation/hatchlock/H in assembly_components)
+			// If there's more than one hatch lock, only one needs to be enabled for the assembly to be locked
+			if(H.lock_enabled)
+				hatch_locked = TRUE
+				break
+
+		if(hatch_locked)
+			to_chat(user, "<span class='notice'>The screws are covered by a locking mechanism!</span>")
+			return FALSE
+
 		playsound(src, 'sound/items/Screwdriver.ogg', 25)
 		opened = !opened
 		to_chat(user, "<span class='notice'>You [opened ? "open" : "close"] the maintenance hatch of [src].</span>")
@@ -467,6 +488,8 @@
 /obj/item/device/electronic_assembly/attack_self(mob/user)
 	interact(user)
 
+/obj/item/device/electronic_assembly/bullet_act(var/obj/item/projectile/P)
+	take_damage(P.damage)
 
 /obj/item/device/electronic_assembly/emp_act(severity)
 	. = ..()
@@ -491,11 +514,6 @@
 // Override in children for special behavior.
 /obj/item/device/electronic_assembly/proc/get_object()
 	return src
-
-/obj/item/device/electronic_assembly/attack_tk(mob/user)
-	if(anchored)
-		return
-	..()
 
 /obj/item/device/electronic_assembly/attack_hand(mob/user)
 	if(anchored)
@@ -546,7 +564,7 @@
 	w_class = ITEM_SIZE_NORMAL
 	max_components = IC_MAX_SIZE_BASE * 2
 	max_complexity = IC_COMPLEXITY_BASE * 2
-	max_health = 20
+	health = 20
 
 /obj/item/device/electronic_assembly/medium/default
 	name = "type-a electronic mechanism"
@@ -589,7 +607,7 @@
 	w_class = ITEM_SIZE_LARGE
 	max_components = IC_MAX_SIZE_BASE * 4
 	max_complexity = IC_COMPLEXITY_BASE * 4
-	max_health = 30
+	health = 30
 
 /obj/item/device/electronic_assembly/large/default
 	name = "type-a electronic machine"
@@ -628,7 +646,7 @@
 	max_complexity = IC_COMPLEXITY_BASE * 3
 	allowed_circuit_action_flags = IC_ACTION_MOVEMENT | IC_ACTION_COMBAT | IC_ACTION_LONG_RANGE
 	circuit_flags = 0
-	max_health = 50
+	health = 50
 
 /obj/item/device/electronic_assembly/drone/can_move()
 	return TRUE
@@ -668,7 +686,7 @@
 	w_class = ITEM_SIZE_NORMAL
 	max_components = IC_MAX_SIZE_BASE * 2
 	max_complexity = IC_COMPLEXITY_BASE * 2
-	max_health = 10
+	health = 10
 
 /obj/item/device/electronic_assembly/wallmount/afterattack(var/atom/a, var/mob/user, var/proximity)
 	if(proximity && istype(a ,/turf) && a.density)

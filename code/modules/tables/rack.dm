@@ -6,10 +6,8 @@
 	can_plate = 0
 	can_reinforce = 0
 	flipped = -1
+
 	material = DEFAULT_FURNITURE_MATERIAL
-	mass = 4
-	max_health = 40
-	damthreshold_brute = 0
 
 /obj/structure/table/rack/New()
 	..()

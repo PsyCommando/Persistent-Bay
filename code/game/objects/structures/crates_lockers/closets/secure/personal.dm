@@ -1,7 +1,7 @@
 /obj/structure/closet/secure_closet/personal
 	name = "personal closet"
 	desc = "It's a secure locker for personnel. The first card swiped gains control."
-	req_access = list(core_access_command_programs) // Command Staff may approve locker searching/resetting
+	req_access = list(access_all_personal_lockers)
 	var/registered_name = null
 
 /obj/structure/closet/secure_closet/personal/WillContain()
@@ -16,8 +16,6 @@
 /obj/structure/closet/secure_closet/personal/patient
 	name = "patient's closet"
 /obj/structure/closet/secure_closet/personal/patient/WillContain()
-	return
-/obj/structure/closet/secure_closet/personal/patient/filled/WillContain()
 	return list(/obj/item/clothing/suit/hospital/blue, /obj/item/clothing/suit/hospital/green, /obj/item/clothing/suit/hospital/pink)
 
 /obj/structure/closet/secure_closet/personal/cabinet
@@ -26,28 +24,22 @@
 /obj/structure/closet/secure_closet/personal/cabinet/WillContain()
 	return list(/obj/item/weapon/storage/backpack/satchel/grey/withwallet, /obj/item/device/radio/headset)
 
-/obj/structure/closet/secure_closet/personal/cabinet/empty/WillContain()
-	return
-
 /obj/structure/closet/secure_closet/personal/CanToggleLock(var/mob/user, var/obj/item/weapon/card/id/id_card)
-	return ((req_access_faction = "") && ..()) || (user.GetFaction() == req_access_faction && ..()) || (istype(id_card) && id_card.registered_name && (!registered_name || (registered_name == id_card.registered_name)))
+	return ..() || (istype(id_card) && id_card.registered_name && (!registered_name || (registered_name == id_card.registered_name)))
 
 /obj/structure/closet/secure_closet/personal/togglelock(var/mob/user, var/obj/item/weapon/card/id/id_card)
-	if (..() && !src.registered_name)
+	if (..() && !registered_name)
 		id_card = istype(id_card) ? id_card : user.GetIdCard()
 		if (id_card)
 			set_owner(id_card.registered_name)
 
-/obj/structure/closet/secure_closet/personal/proc/set_owner(var/registered_name, var/faction)
+/obj/structure/closet/secure_closet/personal/proc/set_owner(var/registered_name)
 	if (registered_name)
 		src.registered_name = registered_name
 		src.SetName(name + " ([registered_name])")
 		src.desc = "Owned by [registered_name]."
-		if(faction)
-			src.req_access_faction = faction
 	else
 		src.registered_name = null
-		src.req_access_faction = initial(req_access_faction)
 		src.SetName(initial(name))
 		src.desc = initial(desc)
 
@@ -69,4 +61,4 @@
 					return
 			locked = TRUE
 			queue_icon_update()
-			set_owner(null, null)
+			set_owner(null)

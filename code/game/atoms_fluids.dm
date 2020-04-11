@@ -21,8 +21,6 @@
 
 /atom/movable/is_flooded(var/lying_mob, var/absolute)
 	var/turf/T = get_turf(src)
-	if(!T)
-		return FALSE
 	return T.is_flooded(lying_mob)
 
 /atom/proc/submerged(depth)
@@ -48,5 +46,5 @@
 		T.fluid_update()
 
 /atom/movable/update_nearby_tiles(var/need_rebuild)
-	. = ..(need_rebuild)
+	UNLINT(. = ..(need_rebuild))
 	fluid_update()

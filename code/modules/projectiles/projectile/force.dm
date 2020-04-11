@@ -2,8 +2,9 @@
 	name = "force bolt"
 	icon = 'icons/obj/projectiles.dmi'
 	icon_state = "ice_1"
-	force = 20
-	damtype = DAM_ENERGY
+	damage = 20
+	damage_type = BURN
+	damage_flags = 0
 
 /obj/item/projectile/forcebolt/strong
 	name = "force bolt"

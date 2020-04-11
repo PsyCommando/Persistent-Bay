@@ -70,8 +70,7 @@
 			to_world("<span class='notice'><b>Alert: The shuttle autopilot has been overridden. Launch sequence initiated!</b></span>")
 
 	if(usr)
-		log_admin("[key_name(usr)] has overridden the shuttle autopilot and activated launch sequence")
-		message_admins("[key_name_admin(usr)] has overridden the shuttle autopilot and activated launch sequence")
+		log_and_message_admins("has overridden the shuttle autopilot and activated launch sequence")
 
 	..(user)
 
@@ -84,8 +83,7 @@
 			to_world("<span class='notice'><b>Alert: The shuttle autopilot has been overridden. Bluespace drive engaged!</b></span>")
 
 	if(usr)
-		log_admin("[key_name(usr)] has overridden the shuttle autopilot and forced immediate launch")
-		message_admins("[key_name_admin(usr)] has overridden the shuttle autopilot and forced immediate launch")
+		log_and_message_admins("has overridden the shuttle autopilot and forced immediate launch")
 
 	..(user)
 
@@ -101,8 +99,7 @@
 				to_world("<span class='notice'><b>Alert: The shuttle autopilot has been overridden. Launch sequence aborted!</b></span>")
 
 		if(usr)
-			log_admin("[key_name(usr)] has overridden the shuttle autopilot and cancelled launch sequence")
-			message_admins("[key_name_admin(usr)] has overridden the shuttle autopilot and cancelled launch sequence")
+			log_and_message_admins("has overridden the shuttle autopilot and cancelled launch sequence")
 
 	..(user)
 
@@ -151,7 +148,7 @@
 		src.visible_message("\The [src] buzzes. That ID has already been scanned.")
 		return 0
 
-	if (!(access_heads in access))
+	if (!(access_bridge in access))
 		src.visible_message("\The [src] buzzes, rejecting [ident].")
 		return 0
 
@@ -161,8 +158,7 @@
 		to_world("<span class='notice'><b>Alert: [req_authorizations - authorized.len] authorization\s needed to override the shuttle autopilot.</b></span>")
 
 	if(usr)
-		log_admin("[key_name(usr)] has inserted [ID] into the shuttle control computer - [req_authorizations - authorized.len] authorisation\s needed")
-		message_admins("[key_name_admin(usr)] has inserted [ID] into the shuttle control computer - [req_authorizations - authorized.len] authorisation\s needed")
+		log_and_message_admins("has inserted [ID] into the shuttle control computer - [req_authorizations - authorized.len] authorisation\s needed")
 
 	return 1
 
@@ -198,7 +194,7 @@
 			else
 				shuttle_status = "Standing-by at [GLOB.using_map.dock_name]."
 		if(WAIT_LAUNCH, FORCE_LAUNCH)
-			shuttle_status = "Shuttle has recieved command and will depart shortly."
+			shuttle_status = "Shuttle has received command and will depart shortly."
 		if(WAIT_ARRIVE)
 			shuttle_status = "Proceeding to destination."
 		if(WAIT_FINISH)

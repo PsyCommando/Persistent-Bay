@@ -14,7 +14,7 @@
 		usr.client.debug_variables(antag)
 		message_admins("Admin [key_name_admin(usr)] is debugging the [antag.role_text] template.")
 
-/client/proc/debug_controller(controller as null|anything in list("Air","Jobs","Sun","Radio","Supply","Evacuation","Configuration","pAI", "Cameras", "Gas Data","Plants","Alarm","Nano","Wireless","Observation","Alt Appearance Manager","Datacore","Military Branches"))
+/client/proc/debug_controller(controller as null|anything in list("Jobs","Sun","Radio","Evacuation","Configuration","pAI", "Cameras", "Transfer Controller", "Gas Data","Plants","Wireless","Observation","Alt Appearance Manager","Datacore","Military Branches"))
 	set category = "Debug"
 	set name = "Debug Controller"
 	set desc = "Debug the various periodic loop controllers for the game (be careful!)"
@@ -41,9 +41,9 @@
 		if("Cameras")
 			debug_variables(cameranet)
 			SSstatistics.add_field_details("admin_verb","DCameras")
-//		if("Transfer Controller")
-//			debug_variables(transfer_controller)
-//			SSstatistics.add_field_details("admin_verb","DAutovoter")
+		if("Transfer Controller")
+			debug_variables(transfer_controller)
+			SSstatistics.add_field_details("admin_verb","DAutovoter")
 		if("Gas Data")
 			debug_variables(gas_data)
 			SSstatistics.add_field_details("admin_verb","DGasdata")

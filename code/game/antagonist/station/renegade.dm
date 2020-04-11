@@ -17,13 +17,11 @@ GLOBAL_DATUM_INIT(renegades, /datum/antagonist/renegade, new)
 
 	id = MODE_RENEGADE
 	flags = ANTAG_SUSPICIOUS | ANTAG_IMPLANT_IMMUNE | ANTAG_RANDSPAWN | ANTAG_VOTABLE
-	hard_cap = 5
-	hard_cap_round = 7
+	hard_cap = 3
+	hard_cap_round = 5
 
-	hard_cap = 8
-	hard_cap_round = 12
-	initial_spawn_req = 3
-	initial_spawn_target = 6
+	initial_spawn_req = 1
+	initial_spawn_target = 3
 	antaghud_indicator = "hud_renegade"
 	skill_setter = /datum/antag_skill_setter/station
 
@@ -34,18 +32,18 @@ GLOBAL_DATUM_INIT(renegades, /datum/antagonist/renegade, new)
 		/obj/item/weapon/gun/energy/pulse_rifle/pistol,
 		/obj/item/weapon/gun/projectile/automatic,
 		/obj/item/weapon/gun/projectile/automatic/machine_pistol,
-		// /obj/item/weapon/gun/projectile/automatic/sec_smg,
-		// /obj/item/weapon/gun/projectile/pistol/magnum_pistol,
-		// /obj/item/weapon/gun/projectile/pistol/military,
-		// /obj/item/weapon/gun/projectile/pistol/military/alt,
-		// /obj/item/weapon/gun/projectile/pistol/sec/lethal,
-		// /obj/item/weapon/gun/projectile/pistol/holdout,
+		/obj/item/weapon/gun/projectile/automatic/sec_smg,
+		/obj/item/weapon/gun/projectile/pistol/magnum_pistol,
+		/obj/item/weapon/gun/projectile/pistol/military,
+		/obj/item/weapon/gun/projectile/pistol/military/alt,
+		/obj/item/weapon/gun/projectile/pistol/sec/lethal,
+		/obj/item/weapon/gun/projectile/pistol/holdout,
 		/obj/item/weapon/gun/projectile/revolver,
-		// /obj/item/weapon/gun/projectile/revolver/medium,
+		/obj/item/weapon/gun/projectile/revolver/medium,
 		/obj/item/weapon/gun/projectile/shotgun/doublebarrel/sawn,
-		// /obj/item/weapon/gun/projectile/pistol/magnum_pistol,
-		// /obj/item/weapon/gun/projectile/revolver/holdout,
-		// /obj/item/weapon/gun/projectile/pistol/throwback
+		/obj/item/weapon/gun/projectile/pistol/magnum_pistol,
+		/obj/item/weapon/gun/projectile/revolver/holdout,
+		/obj/item/weapon/gun/projectile/pistol/throwback
 		)
 
 /datum/antagonist/renegade/create_objectives(var/datum/mind/player)

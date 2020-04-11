@@ -47,7 +47,7 @@ GLOBAL_DATUM_INIT(discord_api, /datum/discord_api, new)
 
 //The mail proc, which handles sending the mail information to the Bot. The rest is taken care of by it.
 /datum/discord_api/proc/mail(receiver_name, var/datum/computer_file/data/email_message/message)
-	var/receiver_ckey = Retrieve_Record(receiver_name).ckey
+	var/receiver_ckey = GetCharacterRecord(receiver_name).get_ckey()
 	var/sender_name = message.source
 	var/database/query/g = new("SELECT * FROM [usersTable] WHERE ckey = ? AND valid = 1", receiver_ckey)
 	if (g.Execute(GLOB.discord_api.db) && g.NextRow())

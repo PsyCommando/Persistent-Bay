@@ -1,6 +1,3 @@
-//Keeps a list of all the active chat clients. Meant to make things a bit easier when restoring chat sessions
-GLOBAL_LIST_EMPTY(chat_client_sessions)
-
 /datum/computer_file/program/chatclient
 	filename = "ntnrc_client"
 	filedesc = "NTNet Relay Chat Client"
@@ -8,75 +5,22 @@ GLOBAL_LIST_EMPTY(chat_client_sessions)
 	program_key_state = "med_key"
 	program_menu_icon = "comment"
 	extended_desc = "This program allows communication over NTNRC network"
-	size = 4
-	requires_ntnet = TRUE
+	size = 8
+	requires_ntnet = 1
 	requires_ntnet_feature = NTNET_COMMUNICATION
 	network_destination = "NTNRC server"
 	ui_header = "ntnrc_idle.gif"
-	available_on_ntnet = TRUE
-	usage_flags = PROGRAM_ALL
+	available_on_ntnet = 1
 	nanomodule_path = /datum/nano_module/program/computer_chatclient/
 	var/last_message = null				// Used to generate the toolbar icon
 	var/username
 	var/datum/ntnet_conversation/channel = null
 	var/operator_mode = 0		// Channel operator mode
 	var/netadmin_mode = 0		// Administrator mode (invisible to other users + bypasses passwords)
-
-	//Saved stuff
-	var/saved_channelid = null
+	usage_flags = PROGRAM_ALL
 
 /datum/computer_file/program/chatclient/New()
-	..()
-	ADD_SAVED_VAR(username)
-	ADD_SAVED_VAR(last_message)
-	ADD_SAVED_VAR(operator_mode)
-	ADD_SAVED_VAR(netadmin_mode)
-	ADD_SAVED_VAR(saved_channelid)
-
-	ADD_SKIP_EMPTY(username)
-	ADD_SKIP_EMPTY(last_message)
-	ADD_SKIP_EMPTY(saved_channelid)
-
-/datum/computer_file/program/chatclient/New()
-	. = ..()
-	if(!map_storage_loaded || !username)
-		username = "DefaultUser[rand(100, 999)]"
-
-/datum/computer_file/program/chatclient/after_load()
-	. = ..()
-	if(!ntnet_global)
-		log_debug("Failed to restore chatclient session. Global NtNet is null!")
-		return 
-	if(saved_channelid)
-		for(var/datum/ntnet_conversation/ch in ntnet_global.chat_channels)
-			if(ch.title == saved_channelid)
-				channel = ch
-				saved_channelid = null
-
-/datum/computer_file/program/chatclient/before_save()
-	. = ..()
-	if(channel)
-		saved_channelid = channel.title
-	else 
-		saved_channelid = null
-
-/datum/computer_file/program/chatclient/Destroy()
-	GLOB.chat_client_sessions -= src
-	. = ..()
-
-// This is performed on program startup. May be overriden to add extra logic. Remember to include ..() call. Return 1 on success, 0 on failure.
-// When implementing new program based device, use this to run the program.
-/datum/computer_file/program/run_program(var/mob/living/user)
-	if(..())
-		GLOB.chat_client_sessions |= src
-		return TRUE
-
-// Use this proc to kill the program. Designed to be implemented by each program if it requires on-quit logic, such as the NTNRC client.
-/datum/computer_file/program/kill_program(var/forced = 0)
-	if(..())
-		GLOB.chat_client_sessions -= src
-		return TRUE
-
+	username = "DefaultUser[rand(100, 999)]"
 
 /datum/computer_file/program/chatclient/Topic(href, href_list)
 	if(..())
@@ -127,7 +71,8 @@ GLOBAL_LIST_EMPTY(chat_client_sessions)
 		var/channel_title = sanitizeSafe(input(user,"Enter channel name or leave blank to cancel:"), 64)
 		if(!channel_title)
 			return
-		var/datum/ntnet_conversation/C = new/datum/ntnet_conversation(computer.z)
+		var/atom/A = computer.get_physical_host()
+		var/datum/ntnet_conversation/C = new/datum/ntnet_conversation(A.z)
 		C.add_client(src)
 		C.operator = src
 		channel = C
@@ -177,15 +122,8 @@ GLOBAL_LIST_EMPTY(chat_client_sessions)
 			logfile.stored_data += "[logstring]\[BR\]"
 		logfile.stored_data += "\[b\]Logfile dump completed.\[/b\]"
 		logfile.calculate_size()
-		if(!computer || !computer.hard_drive || !computer.hard_drive.store_file(logfile))
-			if(!computer)
-				// This program shouldn't even be runnable without computer.
-				CRASH("Var computer is null!")
-				return 1
-			if(!computer.hard_drive)
-				computer.visible_message("\The [computer] shows an \"I/O Error - Hard drive connection error\" warning.")
-			else	// In 99.9% cases this will mean our HDD is full
-				computer.visible_message("\The [computer] shows an \"I/O Error - Hard drive may be full. Please free some space and try again. Required space: [logfile.size]GQ\" warning.")
+		if(!computer.store_file(logfile))
+			computer.show_error(user, "I/O Error - Check hard drive and free space. Required space: [logfile.size]GQ.")
 	if(href_list["PRG_renamechannel"])
 		. = 1
 		if(!operator_mode || !channel)
@@ -217,9 +155,11 @@ GLOBAL_LIST_EMPTY(chat_client_sessions)
 			channel.password = newpassword
 
 /datum/computer_file/program/chatclient/process_tick()
+
 	..()
 
-	if(channel && !(channel.source_z in GetConnectedZlevels(computer.z)))
+	var/atom/A = computer.get_physical_host()
+	if(channel && !(channel.source_z in GetConnectedZlevels(A.z)))
 		channel.remove_client(src)
 		channel = null
 
@@ -231,12 +171,13 @@ GLOBAL_LIST_EMPTY(chat_client_sessions)
 		else
 			last_message = null
 		return 1
+
 	if(channel && channel.messages && channel.messages.len)
 		ui_header = last_message == channel.messages[channel.messages.len - 1] ? "ntnrc_idle.gif" : "ntnrc_new.gif"
 	else
 		ui_header = "ntnrc_idle.gif"
 
-/datum/computer_file/program/chatclient/kill_program(var/forced = 0)
+/datum/computer_file/program/chatclient/on_shutdown(var/forced = 0)
 	if(channel)
 		channel.remove_client(src)
 		channel = null
@@ -277,7 +218,8 @@ GLOBAL_LIST_EMPTY(chat_client_sessions)
 
 	else // Channel selection screen
 		var/list/all_channels[0]
-		var/list/connected_zs = GetConnectedZlevels(C.computer.z)
+		var/atom/A = C.computer.get_physical_host()
+		var/list/connected_zs = GetConnectedZlevels(A.z)
 		for(var/datum/ntnet_conversation/conv in ntnet_global.chat_channels)
 			if(conv && conv.title && (conv.source_z in connected_zs))
 				all_channels.Add(list(list(

@@ -1,5 +1,5 @@
 /datum/game_mode/malfunction
-	name = "AI Malfunction"
+	name = "Malfunctioning AI"
 	round_description = "The AI is behaving abnormally and must be stopped."
 	extended_round_description = "The AI will attempt to hack the APCs in order to gain as much control as possible."
 	config_tag = "malfunction"
@@ -9,13 +9,18 @@
 	auto_recall_shuttle = FALSE
 	antag_tags = list(MODE_MALFUNCTION)
 	disabled_jobs = list("AI")
+	cinematic_icon_states = list(
+		"intro_malf" = 76,
+		"summary_malf",
+		null
+	)
 
 /datum/game_mode/malfunction/post_setup()
 	. = ..()
 	var/mob/living/silicon/ai/master
 
 	for(var/mob/living/silicon/ai/ai in GLOB.player_list)
-		if(ai.check_special_role("Rampant AI"))
+		if(ai.check_special_role("Malfunctioning AI"))
 			master = ai
 			break
 

@@ -29,18 +29,16 @@
 	else
 		w_class = ITEM_SIZE_TINY
 
-/obj/item/weapon/reagent_containers/attackby(obj/item/weapon/W as obj, mob/user as mob)
-
 /obj/item/weapon/reagent_containers/ivbag/on_update_icon()
 	overlays.Cut()
 	var/percent = round(reagents.total_volume / volume * 100)
 	if(reagents.total_volume)
-		var/image/filling = image(icon, "[round(percent,25)]")
+		var/image/filling = image('icons/obj/bloodpack.dmi', "[round(percent,25)]")
 		filling.color = reagents.get_color()
 		overlays += filling
-	overlays += image(icon, "top")
+	overlays += image('icons/obj/bloodpack.dmi', "top")
 	if(attached)
-		overlays += image(icon, "dongle")
+		overlays += image('icons/obj/bloodpack.dmi', "dongle")
 
 /obj/item/weapon/reagent_containers/ivbag/MouseDrop(over_object, src_location, over_location)
 	if(!CanMouseDrop(over_object))
@@ -64,7 +62,7 @@
 		if(!loc.Adjacent(attached))
 			attached = null
 			visible_message("\The [attached] detaches from \the [src]")
-			queue_icon_update()
+			update_icon()
 			return PROCESS_KILL
 	else
 		return PROCESS_KILL
@@ -77,10 +75,9 @@
 		return
 
 	reagents.trans_to_mob(attached, amount_per_transfer_from_this, CHEM_BLOOD)
-	if(world.time % 10 == 0) //Only update icon every 1 seconds
-		queue_icon_update()
+	update_icon()
 
-/obj/item/weapon/reagent_containers/ivbag/nanoblood/SetupReagents()
+/obj/item/weapon/reagent_containers/ivbag/nanoblood/New()
 	..()
 	reagents.add_reagent(/datum/reagent/nanoblood, volume)
 
@@ -88,15 +85,11 @@
 	name = "blood pack"
 	var/blood_type = null
 
-/obj/item/weapon/reagent_containers/ivbag/blood/Initialize()
-	. = ..()
-	if(blood_type)
-		name = "blood pack [blood_type]"
-
-/obj/item/weapon/reagent_containers/ivbag/blood/SetupReagents()
+/obj/item/weapon/reagent_containers/ivbag/blood/New()
 	..()
 	if(blood_type)
-		reagents.add_reagent(/datum/reagent/blood, volume, list("donor" = null, "donor_name" = "redacted", "blood_DNA" = null, "blood_type" = blood_type, "trace_chem" = null, "virus2" = list(), "antibodies" = list()))
+		name = "blood pack [blood_type]"
+		reagents.add_reagent(/datum/reagent/blood, volume, list("donor" = null, "blood_DNA" = null, "blood_type" = blood_type, "trace_chem" = null))
 
 /obj/item/weapon/reagent_containers/ivbag/blood/APlus
 	blood_type = "A+"

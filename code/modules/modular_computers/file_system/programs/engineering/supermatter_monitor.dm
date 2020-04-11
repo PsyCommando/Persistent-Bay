@@ -7,8 +7,8 @@
 	program_menu_icon = "notice"
 	extended_desc = "This program connects to specially calibrated supermatter sensors to provide information on the status of supermatter-based engines."
 	ui_header = "smmon_0.gif"
-	required_access = core_access_engineering_programs
-	requires_ntnet = TRUE
+	required_access = access_engine
+	requires_ntnet = 1
 	network_destination = "supermatter monitoring system"
 	size = 5
 	category = PROG_ENG
@@ -22,8 +22,7 @@
 		last_status = new_status
 		ui_header = "smmon_[last_status].gif"
 		program_icon_state = "smmon_[last_status]"
-		if(istype(computer))
-			computer.update_icon()
+		update_computer_icon()
 
 /datum/nano_module/supermatter_monitor
 	name = "Supermatter monitor"
@@ -42,10 +41,7 @@
 // Refreshes list of active supermatter crystals
 /datum/nano_module/supermatter_monitor/proc/refresh()
 	supermatters = list()
-	var/turf/T = get_turf(nano_host())
-	if(!T)
-		return
-	var/valid_z_levels = (GetConnectedZlevels(T.z) & GLOB.using_map.station_levels)
+	var/valid_z_levels = GetConnectedZlevels(get_host_z())
 	for(var/obj/machinery/power/supermatter/S in SSmachines.machinery)
 		// Delaminating, not within coverage, not on a tile.
 		if(S.grav_pulling || S.exploded || !(S.z in valid_z_levels) || !istype(S.loc, /turf/))

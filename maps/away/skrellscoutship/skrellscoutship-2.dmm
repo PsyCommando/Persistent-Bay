@@ -105,17 +105,17 @@
 "ap" = (
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
-	id = "xil_airlock";
+	id_tag = "xil_airlock";
 	name = "Blast Doors"
 	},
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1289;
+	frequency = 1439;
 	id_tag = "xil_dock_outer";
 	locked = 1
 	},
 /obj/machinery/access_button{
 	command = "cycle_exterior";
-	frequency = 1289;
+	frequency = 1439;
 	master_tag = "xil_dock";
 	pixel_x = -32;
 	pixel_y = 6
@@ -136,7 +136,6 @@
 "ar" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 8;
-	frequency = 1289;
 	id_tag = "xil_dock_pump"
 	},
 /turf/simulated/floor/plating,
@@ -154,19 +153,18 @@
 "aw" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 4;
-	frequency = 1289;
 	id_tag = "xil_dock_pump"
 	},
 /obj/machinery/airlock_sensor{
-	frequency = 1289;
+	frequency = 1439;
 	id_tag = "xil_dock_sensor";
 	pixel_x = 24
 	},
 /turf/simulated/floor/plating,
 /area/ship/skrellscoutship/dock)
 "ax" = (
-/obj/effect/paint/green,
 /obj/machinery/atmospherics/pipe/simple/hidden/cyan,
+/obj/effect/paint/silver,
 /turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/maintenance/power)
 "ay" = (
@@ -178,13 +176,9 @@
 /turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/dock)
 "aA" = (
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 4;
-	icon_state = "alarm0";
-	pixel_x = -24;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_x = -24
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock)
@@ -225,14 +219,10 @@
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock)
 "aF" = (
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_x = 0;
-	pixel_y = -32;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_y = -32
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock)
@@ -244,11 +234,10 @@
 /area/ship/skrellscoutship/dock)
 "aH" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
-	frequency = 1289;
 	id_tag = "xil_dock_pump"
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port{
-	frequency = 1289;
+	frequency = 1439;
 	id_tag = "xil_dock";
 	pixel_x = -22
 	},
@@ -256,7 +245,6 @@
 /area/ship/skrellscoutship/dock)
 "aI" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
-	frequency = 1289;
 	id_tag = "xil_dock_pump"
 	},
 /turf/simulated/floor/plating,
@@ -267,10 +255,6 @@
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock)
-"aK" = (
-/obj/effect/paint/expeditionary,
-/turf/simulated/wall/r_wall,
-/area/ship/skrellscoutship/crew/fit)
 "aL" = (
 /obj/machinery/light{
 	icon_state = "tube1";
@@ -284,7 +268,6 @@
 "aM" = (
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 8;
-	layer = 2.4;
 	level = 2
 	},
 /turf/simulated/floor/tiled/skrell,
@@ -337,10 +320,6 @@
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock)
-"aS" = (
-/obj/effect/paint/red,
-/turf/simulated/wall/r_wall,
-/area/ship/skrellscoutship/command/bridge)
 "aT" = (
 /obj/machinery/light,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -394,25 +373,13 @@
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/crew/hallway/d1)
 "ba" = (
-/obj/machinery/alarm{
+/obj/machinery/alarm/skrell{
 	dir = 2;
-	icon_state = "alarm0";
 	pixel_x = 0;
-	pixel_y = 32;
-	req_access = list("ACCESS_SKRELLSCOUT");
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_y = 32
 	},
 /turf/simulated/floor/tiled/skrell/orange,
 /area/ship/skrellscoutship/crew/fit)
-"bb" = (
-/obj/effect/paint/expeditionary,
-/obj/machinery/atmospherics/pipe/simple/hidden/supply{
-	dir = 6
-	},
-/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/turf/simulated/wall/r_wall,
-/area/ship/skrellscoutship/crew/toilets)
 "bd" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
@@ -511,12 +478,6 @@
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/crew/hallway/d1)
-"bn" = (
-/obj/effect/paint/expeditionary,
-/obj/machinery/atmospherics/pipe/simple/hidden/supply,
-/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/turf/simulated/wall/r_wall,
-/area/ship/skrellscoutship/crew/toilets)
 "bo" = (
 /obj/structure/fitness/weightlifter,
 /turf/simulated/floor/tiled/skrell/orange,
@@ -534,7 +495,7 @@
 /turf/simulated/floor/tiled/skrell/red,
 /area/ship/skrellscoutship/command/bridge)
 "bu" = (
-/obj/effect/overmap/ship/landable/skrellscoutship,
+/obj/effect/overmap/visitable/ship/landable/skrellscoutship,
 /obj/structure/bed/chair/comfy/black{
 	dir = 1
 	},
@@ -586,7 +547,6 @@
 	},
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 4;
-	layer = 2.4;
 	level = 2
 	},
 /turf/simulated/floor/tiled/skrell/orange,
@@ -685,17 +645,17 @@
 "bH" = (
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
-	id = "xil_airlock";
+	id_tag = "xil_airlock";
 	name = "Blast Doors"
 	},
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1289;
+	frequency = 1439;
 	id_tag = "xil_dock_outer";
 	locked = 1
 	},
 /obj/effect/shuttle_landmark/skrellscoutship/start,
-/obj/machinery/button/remote/blast_door{
-	id = "xil_airlock";
+/obj/machinery/button/blast_door{
+	id_tag = "xil_airlock";
 	name = "Airlock Blast Doors";
 	pixel_x = 32;
 	req_access = list("ACCESS_SKRELLSCOUT")
@@ -746,7 +706,7 @@
 /obj/machinery/light,
 /obj/machinery/access_button{
 	command = "cycle_interior";
-	frequency = 1289;
+	frequency = 1439;
 	master_tag = "xil_dock";
 	pixel_y = 24
 	},
@@ -769,8 +729,8 @@
 /area/ship/skrellscoutship/crew/hallway/d1)
 "bO" = (
 /obj/structure/table/steel,
-/obj/machinery/button/remote/blast_door{
-	id = "xil_airlock";
+/obj/machinery/button/blast_door{
+	id_tag = "xil_airlock";
 	name = "Airlock Blast Doors";
 	req_access = list("ACCESS_SKRELLSCOUT")
 	},
@@ -806,25 +766,17 @@
 	dir = 4
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 8;
-	icon_state = "alarm0";
-	pixel_x = 24;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_x = 24
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/crew/hallway/d1)
 "bU" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 8;
-	icon_state = "alarm0";
-	pixel_x = 24;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_x = 24
 	},
 /obj/structure/cable{
 	d1 = 1;
@@ -850,7 +802,7 @@
 "bZ" = (
 /obj/machinery/access_button{
 	command = "cycle_interior";
-	frequency = 1291;
+	frequency = 1439;
 	master_tag = "xil_solar";
 	pixel_x = 24;
 	pixel_y = 0
@@ -934,17 +886,16 @@
 /obj/machinery/light/small,
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 1;
-	frequency = 1291;
 	id_tag = "xil_solar_pump"
 	},
 /obj/machinery/airlock_sensor{
-	frequency = 1291;
+	frequency = 1439;
 	id_tag = "xil_solar_sensor";
 	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port{
-	frequency = 1291;
+	frequency = 1439;
 	id_tag = "xil_solar";
 	pixel_y = -24
 	},
@@ -1037,7 +988,7 @@
 "cq" = (
 /obj/machinery/access_button{
 	command = "cycle_exterior";
-	frequency = 1291;
+	frequency = 1439;
 	master_tag = "xil_solar";
 	pixel_x = -24;
 	pixel_y = 0
@@ -1061,7 +1012,7 @@
 /area/ship/skrellscoutship/crew/hallway/d1)
 "cu" = (
 /obj/structure/cable,
-/obj/machinery/power/smes/buildable/preset/torch/engine_main{
+/obj/machinery/power/smes/buildable/preset/skrell{
 	charge = 5e+006;
 	input_attempt = 1;
 	input_level = 200000;
@@ -1100,7 +1051,7 @@
 /area/ship/skrellscoutship/maintenance/power)
 "cx" = (
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1289;
+	frequency = 1439;
 	id_tag = "xil_dock_inner";
 	locked = 1
 	},
@@ -1112,7 +1063,7 @@
 /area/ship/skrellscoutship/dock)
 "cy" = (
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1291;
+	frequency = 1439;
 	id_tag = "xil_solar_inner";
 	locked = 1
 	},
@@ -1140,6 +1091,12 @@
 	d2 = 4
 	},
 /obj/machinery/telecomms/allinone/skrellscoutship,
+/obj/machinery/alarm/server{
+	dir = 4;
+	pixel_x = -22;
+	pixel_y = 0;
+	req_access = list("ACCESS_SKRELLSCOUT")
+	},
 /turf/simulated/floor/plating,
 /area/ship/skrellscoutship/maintenance/power)
 "cA" = (
@@ -1226,15 +1183,15 @@
 	},
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
-	id = "xil_airlock"
+	id_tag = "xil_airlock"
 	},
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1291;
+	frequency = 1439;
 	id_tag = "xil_solar_outer";
 	locked = 1
 	},
-/obj/machinery/button/remote/blast_door{
-	id = "xil_airlock";
+/obj/machinery/button/blast_door{
+	id_tag = "xil_airlock";
 	name = "Airlock Blast Doors";
 	pixel_y = 32;
 	req_access = list("ACCESS_SKRELLSCOUT")
@@ -1296,17 +1253,6 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 10
 	},
-/obj/machinery/power/terminal{
-	icon_state = "term";
-	dir = 1
-	},
-/obj/machinery/power/apc/critical{
-	req_access = list("ACCESS_SKRELLSCOUT");
-	dir = 1;
-	name = "north bump";
-	pixel_x = 0;
-	pixel_y = 24
-	},
 /obj/structure/cable{
 	d2 = 8;
 	icon_state = "0-8"
@@ -1319,13 +1265,9 @@
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/crew/hallway/d1)
 "cL" = (
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 4;
-	icon_state = "alarm0";
-	pixel_x = -24;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_x = -24
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock/alt)
@@ -1430,7 +1372,7 @@
 /area/ship/skrellscoutship/dock/alt)
 "cX" = (
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1289;
+	frequency = 1439;
 	id_tag = "xil_dock_inner";
 	locked = 1
 	},
@@ -1443,7 +1385,7 @@
 "cY" = (
 /obj/machinery/access_button{
 	command = "cycle_interior";
-	frequency = 1290;
+	frequency = 1439;
 	master_tag = "xil_air";
 	pixel_y = -24
 	},
@@ -1477,7 +1419,7 @@
 /area/ship/skrellscoutship/dock)
 "dd" = (
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1290;
+	frequency = 1439;
 	id_tag = "xil_air_inner";
 	locked = 1
 	},
@@ -1489,16 +1431,15 @@
 "df" = (
 /obj/machinery/atmospherics/unary/vent_pump/high_volume{
 	dir = 4;
-	frequency = 1290;
 	id_tag = "xil_air_pump"
 	},
 /obj/machinery/airlock_sensor{
-	frequency = 1290;
+	frequency = 1439;
 	id_tag = "xil_air_sensor";
 	pixel_x = 24
 	},
 /obj/machinery/embedded_controller/radio/airlock/docking_port{
-	frequency = 1290;
+	frequency = 1439;
 	id_tag = "xil_air";
 	pixel_x = -22
 	},
@@ -1527,7 +1468,7 @@
 /obj/effect/landmark/map_data{
 	height = 2
 	},
-/obj/effect/overmap/sector/skrellscoutspace,
+/obj/effect/overmap/visitable/sector/skrellscoutspace,
 /turf/space,
 /area/space)
 "dj" = (
@@ -1554,23 +1495,23 @@
 "dm" = (
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
-	id = "xil_airlock";
+	id_tag = "xil_airlock";
 	name = "Blast Doors"
 	},
 /obj/machinery/door/airlock/external/glass{
-	frequency = 1290;
+	frequency = 1439;
 	id_tag = "xil_air_outer";
 	locked = 1
 	},
-/obj/machinery/button/remote/blast_door{
-	id = "xil_airlock";
+/obj/machinery/button/blast_door{
+	id_tag = "xil_airlock";
 	name = "Airlock Blast Doors";
 	pixel_x = 32;
 	req_access = list("ACCESS_SKRELLSCOUT")
 	},
 /obj/machinery/access_button{
 	command = "cycle_exterior";
-	frequency = 1290;
+	frequency = 1439;
 	master_tag = "xil_air";
 	pixel_x = -32;
 	pixel_y = -6
@@ -1578,13 +1519,9 @@
 /turf/simulated/floor/plating,
 /area/ship/skrellscoutship/dock/alt)
 "dn" = (
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 8;
-	icon_state = "alarm0";
-	pixel_x = 24;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_x = 24
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/dock/alt)
@@ -1611,12 +1548,11 @@
 "dp" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/paint/green,
+/obj/effect/paint/silver,
 /turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/maintenance/power)
 "dq" = (
 /obj/structure/ladder,
-/turf/space,
 /turf/simulated/open,
 /area/ship/skrellscoutship/solars)
 "dr" = (
@@ -1669,6 +1605,12 @@
 	pixel_y = 24
 	},
 /turf/simulated/floor/tiled/skrell/white,
+/area/ship/skrellscoutship/crew/toilets)
+"lV" = (
+/obj/effect/paint/silver,
+/obj/machinery/atmospherics/pipe/simple/hidden/supply,
+/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
+/turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/crew/toilets)
 "nH" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
@@ -1738,14 +1680,10 @@
 /turf/simulated/floor/tiled/skrell/orange,
 /area/ship/skrellscoutship/crew/rec)
 "rz" = (
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_x = 0;
-	pixel_y = -32;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_y = -32
 	},
 /obj/structure/cable{
 	d1 = 4;
@@ -1758,10 +1696,6 @@
 	},
 /turf/simulated/floor/tiled/skrell/orange,
 /area/ship/skrellscoutship/crew/rec)
-"sB" = (
-/obj/effect/paint/sun,
-/turf/simulated/wall/r_wall,
-/area/ship/skrellscoutship/crew/rec)
 "td" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 9;
@@ -1769,10 +1703,6 @@
 	},
 /turf/simulated/floor/tiled/skrell/orange,
 /area/ship/skrellscoutship/crew/rec)
-"uC" = (
-/obj/effect/paint/green,
-/turf/simulated/wall/r_wall,
-/area/ship/skrellscoutship/maintenance/power)
 "uX" = (
 /obj/machinery/door/firedoor/autoset,
 /obj/structure/cable{
@@ -1800,8 +1730,8 @@
 /area/ship/skrellscoutship/crew/rec)
 "wS" = (
 /obj/structure/table/steel,
-/obj/machinery/button/remote/blast_door{
-	id = "xil_bridge";
+/obj/machinery/button/blast_door{
+	id_tag = "xil_bridge";
 	name = "Mess Hall Blast Doors"
 	},
 /turf/simulated/floor/tiled/skrell/red,
@@ -1817,14 +1747,10 @@
 	pixel_x = -12;
 	pixel_y = 2
 	},
-/obj/machinery/alarm{
+/obj/machinery/alarm/skrell{
 	dir = 2;
-	icon_state = "alarm0";
 	pixel_x = 0;
-	pixel_y = 32;
-	req_access = list("ACCESS_SKRELLSCOUT");
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_y = 32
 	},
 /turf/simulated/floor/tiled/skrell/white,
 /area/ship/skrellscoutship/crew/toilets)
@@ -1832,10 +1758,6 @@
 /obj/effect/paint/silver,
 /turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/crew/fit)
-"BA" = (
-/obj/machinery/shipsensors,
-/turf/simulated/floor/reinforced/airless,
-/area/ship/skrellscoutship/solars)
 "BU" = (
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 8
@@ -1856,6 +1778,14 @@
 /obj/effect/paint/silver,
 /turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/dock)
+"Cl" = (
+/obj/effect/paint/silver,
+/obj/machinery/atmospherics/pipe/simple/hidden/supply{
+	dir = 6
+	},
+/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
+/turf/simulated/wall/r_wall,
+/area/ship/skrellscoutship/crew/toilets)
 "Cr" = (
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 4
@@ -1919,11 +1849,6 @@
 /obj/effect/paint/silver,
 /turf/simulated/wall/r_wall,
 /area/ship/skrellscoutship/crew/rec)
-"MG" = (
-/obj/effect/wallframe_spawn/reinforced,
-/obj/machinery/door/firedoor/autoset,
-/turf/simulated/floor/tiled/skrell/orange,
-/area/ship/skrellscoutship/crew/rec)
 "NS" = (
 /turf/simulated/open,
 /area/ship/skrellscoutship/crew/hallway/d1)
@@ -1936,14 +1861,10 @@
 	d2 = 4;
 	icon_state = "1-4"
 	},
-/obj/machinery/alarm{
-	req_access = list("ACCESS_SKRELLSCOUT");
+/obj/machinery/alarm/skrell{
 	dir = 1;
-	icon_state = "alarm0";
 	pixel_x = 0;
-	pixel_y = -32;
-	target_temperature = 313.15;
-	temperature = 313.15
+	pixel_y = -32
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/supply,
 /turf/simulated/floor/tiled/skrell,
@@ -1987,12 +1908,6 @@
 	},
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/crew/hallway/d1)
-"Tb" = (
-/obj/effect/landmark{
-	name = "carpspawn"
-	},
-/turf/space,
-/area/space)
 "TF" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/structure/cable{
@@ -2006,9 +1921,6 @@
 /turf/simulated/floor/tiled/skrell,
 /area/ship/skrellscoutship/crew/hallway/d1)
 "Uk" = (
-/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
-	dir = 6
-	},
 /obj/machinery/door/airlock/glass{
 	name = "Bathroom";
 	req_access = newlist()
@@ -6741,7 +6653,7 @@ aa
 aa
 aa
 Mg
-Bz
+Mg
 Mg
 Mg
 Mg
@@ -6984,13 +6896,13 @@ aa
 wb
 wb
 wb
-sB
+Mg
 bj
 Rb
 wz
 HT
 rz
-sB
+Mg
 ah
 ah
 ah
@@ -7106,7 +7018,7 @@ Bz
 wb
 yh
 pi
-MG
+Mg
 bk
 nH
 td
@@ -7225,16 +7137,16 @@ aa
 Bz
 Bz
 bo
-aK
+Bz
 iX
 aq
-sB
+Mg
 bl
-sB
+Mg
 Rr
-sB
+Mg
 qi
-sB
+Mg
 bW
 SD
 YL
@@ -7347,10 +7259,10 @@ Bz
 Bz
 bo
 FP
-aK
+Bz
 Uk
-bb
-bn
+Cl
+lV
 YX
 Gn
 ca
@@ -7469,7 +7381,7 @@ Bz
 FP
 FP
 bx
-aK
+Bz
 BU
 PL
 at
@@ -7478,11 +7390,11 @@ oP
 at
 PL
 bK
-uC
-uC
-uC
-uC
-uC
+bP
+bP
+bP
+bP
+bP
 cE
 cD
 ah
@@ -7593,19 +7505,19 @@ xw
 by
 ae
 oO
-aS
-aS
+aW
+aW
 aU
 aU
-aS
-aS
+aW
+aW
 bK
-uC
+bP
 cz
 co
 cu
-uC
-uC
+bP
+bP
 cH
 ah
 ah
@@ -7713,14 +7625,14 @@ aB
 be
 bq
 bz
-aK
+Bz
 uX
-aS
+aW
 bs
 bO
 wS
 nU
-aS
+aW
 do
 cg
 ci
@@ -7831,20 +7743,20 @@ aa
 aa
 Bz
 Bz
-aK
-aK
-aK
+Bz
+Bz
+Bz
 bg
-aK
+Bz
 oO
-aS
+aW
 bt
 bu
 bY
 cd
-aS
+aW
 bN
-uC
+bP
 cj
 bZ
 cw
@@ -7959,19 +7871,19 @@ oU
 bC
 bE
 aZ
-aS
+aW
 ds
 Lg
 bS
 cf
-aS
+aW
 dr
-uC
+bP
 ck
-uC
+bP
 cy
-uC
-uC
+bP
+bP
 cH
 bQ
 Gb
@@ -7981,7 +7893,7 @@ aa
 aa
 aa
 aa
-Tb
+aa
 aa
 aa
 aa
@@ -8088,12 +8000,12 @@ bU
 cb
 ce
 bG
-uC
+bP
 cl
 ax
 ch
-uC
-uC
+bP
+bP
 cK
 TF
 OH
@@ -8309,7 +8221,7 @@ aa
 aa
 aa
 aa
-Tb
+aa
 aa
 aa
 aa
@@ -8322,7 +8234,7 @@ aL
 aO
 vb
 ac
-BA
+ac
 ai
 am
 am
@@ -9418,7 +9330,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 aj
@@ -9540,7 +9452,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 aj
@@ -9662,7 +9574,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 ak
@@ -9784,7 +9696,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 aj
@@ -9906,7 +9818,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 aj
@@ -10028,7 +9940,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 aj
@@ -10150,7 +10062,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 aj
@@ -10272,7 +10184,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ag
 al
@@ -10394,7 +10306,7 @@ aa
 aa
 aa
 aa
-aa
+ac
 ac
 ac
 ac
@@ -10536,7 +10448,7 @@ aa
 aa
 aa
 aa
-Tb
+aa
 aa
 aa
 aa

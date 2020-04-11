@@ -7,9 +7,12 @@
 	parent_organ = BP_GROIN
 	min_bruised_damage = 25
 	min_broken_damage = 45
-	max_health = 70
+	max_damage = 70
 	relative_size = 60
 
+/obj/item/organ/internal/liver/robotize()
+	. = ..()
+	icon_state = "liver-prosthetic"
 
 /obj/item/organ/internal/liver/Process()
 
@@ -25,7 +28,7 @@
 			spawn owner.vomit()
 
 	//Detox can heal small amounts of damage
-	if (health > 0 && !owner.chem_effects[CE_TOXIN])
+	if (damage < max_damage && !owner.chem_effects[CE_TOXIN])
 		heal_damage(0.2 * owner.chem_effects[CE_ANTITOX])
 
 	// Get the effectiveness of the liver.
@@ -45,13 +48,13 @@
 			owner.adjustToxLoss(0.5 * max(2 - filter_effect, 0) * (owner.chem_effects[CE_ALCOHOL_TOXIC] + 0.5 * owner.chem_effects[CE_ALCOHOL]))
 
 	if(owner.chem_effects[CE_ALCOHOL_TOXIC])
-		take_internal_damage(owner.chem_effects[CE_ALCOHOL_TOXIC], silent=prob(90)) // Chance to warn them
+		take_internal_damage(owner.chem_effects[CE_ALCOHOL_TOXIC], prob(90)) // Chance to warn them
 
 	// Heal a bit if needed and we're not busy. This allows recovery from low amounts of toxloss.
-	if(!owner.chem_effects[CE_ALCOHOL] && !owner.chem_effects[CE_TOXIN] && !owner.radiation && isdamaged())
-		if(get_damages() < min_broken_damage)
+	if(!owner.chem_effects[CE_ALCOHOL] && !owner.chem_effects[CE_TOXIN] && !owner.radiation && damage > 0)
+		if(damage < min_broken_damage)
 			heal_damage(0.2)
-		if(get_damages() < min_bruised_damage)
+		if(damage < min_bruised_damage)
 			heal_damage(0.3)
 
 	//Blood regeneration if there is some space
@@ -61,22 +64,10 @@
 	var/blood_volume = owner.get_blood_volume()
 	if(blood_volume < BLOOD_VOLUME_SAFE || is_bruised())
 		if(owner.nutrition >= 300)
-			owner.nutrition -= 10
+			owner.adjust_nutrition(-10)
 		else if(owner.nutrition >= 200)
-			owner.nutrition -= 3
-
-	var/scarring = get_scarring_level()
-	if(owner.chem_effects[CE_ALCOHOL] && scarring) // If your liver is messed up, you can't hold liqour very well
-		if(prob(scarring*scarring)) // Scarring 1 == 1%, Scarring 2 == 4%, Scarring 3 == 9%
-			spawn owner.vomit()
+			owner.adjust_nutrition(-3)
 
 //We got it covered in Process with more detailed thing
 /obj/item/organ/internal/liver/handle_regeneration()
 	return
-
-/obj/item/organ/internal/liver/on_update_icon()
-	. = ..()
-	if(BP_IS_ROBOTIC(src))
-		icon_state = "[initial(icon_state)]-prosthetic"
-	else
-		icon_state = initial(icon_state)

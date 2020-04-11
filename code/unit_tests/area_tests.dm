@@ -8,20 +8,25 @@
 			continue
 		if(A.type in GLOB.using_map.area_coherency_test_exempt_areas)
 			continue
+		if(is_path_in_list(A.type, GLOB.using_map.area_coherency_test_exempted_root_areas))
+			continue
 		var/list/area_turfs = list()
 		for(var/turf/T in A)
 			area_turfs += T
 
-		var/actual_number_of_sub_areas = 0
-		var/expected_number_of_sub_areas = (A.type in GLOB.using_map.area_coherency_test_subarea_count) ? GLOB.using_map.area_coherency_test_subarea_count[A.type] : 1
+		var/list/sub_area_turfs = list()
+		var/expected_number_of_sub_areas = GLOB.using_map.area_coherency_test_subarea_count[A.type] || 1
 		do
-			actual_number_of_sub_areas++
-			area_turfs -= get_turfs_fill(area_turfs[1])
+			var/turf/T = area_turfs[1]
+			sub_area_turfs += T
+			area_turfs -= get_turfs_fill(T)
 		while(area_turfs.len)
 
-		if(actual_number_of_sub_areas != expected_number_of_sub_areas)
+		if(sub_area_turfs.len != expected_number_of_sub_areas)
 			incoherent_areas++
-			log_bad("[log_info_line(A)] is incoherent. Expected [expected_number_of_sub_areas] subarea\s, fill gave [actual_number_of_sub_areas].")
+			log_bad("[log_info_line(A)] is incoherent. Expected [expected_number_of_sub_areas] subarea\s, fill gave [sub_area_turfs.len]. Origin turfs:")
+			for(var/T in sub_area_turfs)
+				log_bad(log_info_line(T))
 
 	if(incoherent_areas)
 		fail("Found [incoherent_areas] incoherent area\s.")
@@ -70,4 +75,25 @@
 	else
 		pass("All areas are pure.")
 
+	return 1
+
+/datum/unit_test/areas_shall_be_used
+	name = "AREA: Areas shall be used"
+
+/datum/unit_test/areas_shall_be_used/start_test()
+	var/unused_areas = 0
+	for(var/area_type in subtypesof(/area))
+		if(area_type in GLOB.using_map.area_usage_test_exempted_areas)
+			continue
+		if(is_path_in_list(area_type, GLOB.using_map.area_usage_test_exempted_root_areas))
+			continue
+		var/area/located_area = locate(area_type)
+		if(located_area && !located_area.z)
+			log_bad("[log_info_line(located_area)] is unused.")
+			unused_areas++
+
+	if(unused_areas)
+		fail("Found [unused_areas] unused area\s.")
+	else
+		pass("All areas are used.")
 	return 1

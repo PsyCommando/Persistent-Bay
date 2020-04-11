@@ -1,16 +1,11 @@
 /obj/item/weapon/gun/launcher/net
-	name = "XX-1 \"Varmint Catcher\" net gun"
+	name = "net gun"
 	desc = "Specially made-to-order by Xenonomix, the XX-1 \"Varmint Catcher\" is designed to trap even the most unruly of creatures for safe transport."
 	icon_state = "netgun"
 	item_state = "netgun"
 	fire_sound = 'sound/weapons/empty.ogg'
 	fire_sound_text = "a metallic thunk"
 	var/obj/item/weapon/net_shell/chambered
-
-/obj/item/weapon/gun/launcher/net/New()
-	..()
-	ADD_SAVED_VAR(chambered)
-	ADD_SKIP_EMPTY(chambered)
 
 /obj/item/weapon/net_shell
 	name = "net gun shell"
@@ -25,10 +20,10 @@
 	else
 		..()
 
-/obj/item/weapon/gun/launcher/net/examine(mob/user)
-	if(..(user, 2))
-		if(chambered)
-			to_chat(user, "\A [chambered] is chambered.")
+/obj/item/weapon/gun/launcher/net/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 2 && chambered)
+		to_chat(user, "\A [chambered] is chambered.")
 
 /obj/item/weapon/gun/launcher/net/proc/can_load(var/obj/item/weapon/net_shell/S, var/mob/user)
 	if(chambered)

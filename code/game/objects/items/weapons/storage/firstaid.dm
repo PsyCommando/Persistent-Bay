@@ -10,7 +10,6 @@
 /obj/item/weapon/storage/firstaid
 	name = "first-aid kit"
 	desc = "It's an emergency medical kit for those serious boo-boos."
-	icon = 'icons/obj/items/storage/firstaid.dmi'
 	icon_state = "firstaid"
 	throw_speed = 2
 	throw_range = 8
@@ -20,6 +19,7 @@
 
 /obj/item/weapon/storage/firstaid/empty
 	icon_state = "firstaid"
+	name = "First-Aid (empty)"
 
 /obj/item/weapon/storage/firstaid/regular
 	icon_state = "firstaid"
@@ -31,9 +31,6 @@
 		/obj/item/weapon/storage/pill_bottle/paracetamol,
 		/obj/item/stack/medical/splint
 		)
-
-/obj/item/weapon/storage/firstaid/regular/empty
-	startswith = null
 
 /obj/item/weapon/storage/firstaid/trauma
 	name = "trauma first-aid kit"
@@ -49,38 +46,19 @@
 	..()
 	icon_state = pick("radfirstaid", "radfirstaid2", "radfirstaid3")
 
-/obj/item/weapon/storage/firstaid/trauma/empty
-	startswith = null
-
 /obj/item/weapon/storage/firstaid/fire
 	name = "fire first-aid kit"
 	desc = "It's an emergency medical kit for when the toxins lab <i>-spontaneously-</i> burns down."
 	icon_state = "ointment"
 	item_state = "firstaid-ointment"
 
-/obj/item/weapon/storage/firstaid/fire/full
 	startswith = list(
 		/obj/item/weapon/storage/med_pouch/burn = 4
 		)
 
-/obj/item/weapon/storage/firstaid/fire/empty
-	startswith = null
-
 /obj/item/weapon/storage/firstaid/fire/New()
 	..()
 	icon_state = pick("ointment","firefirstaid")
-
-/obj/item/weapon/storage/firstaid/regular/full
-	icon_state = "firstaid"
-
-	startswith = list(
-		/obj/item/stack/medical/bruise_pack = 2,
-		/obj/item/stack/medical/ointment = 1,
-		/obj/item/device/scanner/health,
-		/obj/item/weapon/reagent_containers/hypospray/autoinjector,
-		/obj/item/weapon/storage/pill_bottle/antidexafen,
-		/obj/item/weapon/storage/pill_bottle/paracetamol
-		)
 
 /obj/item/weapon/storage/firstaid/toxin
 	name = "toxin first aid"
@@ -88,13 +66,9 @@
 	icon_state = "antitoxin"
 	item_state = "firstaid-toxin"
 
-/obj/item/weapon/storage/firstaid/toxin/full
 	startswith = list(
 		/obj/item/weapon/storage/med_pouch/toxin = 4
 		)
-
-/obj/item/weapon/storage/firstaid/toxin/empty
-	startswith = null
 
 /obj/item/weapon/storage/firstaid/toxin/New()
 	..()
@@ -106,13 +80,9 @@
 	icon_state = "o2"
 	item_state = "firstaid-o2"
 
-/obj/item/weapon/storage/firstaid/o2/full
 	startswith = list(
 		/obj/item/weapon/storage/med_pouch/oxyloss = 4
 		)
-
-/obj/item/weapon/storage/firstaid/o2/empty
-	startswith = null
 
 /obj/item/weapon/storage/firstaid/adv
 	name = "advanced first-aid kit"
@@ -120,7 +90,6 @@
 	icon_state = "purplefirstaid"
 	item_state = "firstaid-advanced"
 
-/obj/item/weapon/storage/firstaid/adv/full
 	startswith = list(
 		/obj/item/weapon/storage/pill_bottle/assorted,
 		/obj/item/stack/medical/advanced/bruise_pack = 3,
@@ -128,16 +97,12 @@
 		/obj/item/stack/medical/splint
 		)
 
-/obj/item/weapon/storage/firstaid/adv/empty
-	startswith = null
-
 /obj/item/weapon/storage/firstaid/combat
 	name = "combat medical kit"
 	desc = "Contains advanced medical treatments."
 	icon_state = "bezerk"
 	item_state = "firstaid-advanced"
 
-/obj/item/weapon/storage/firstaid/combat/full
 	startswith = list(
 		/obj/item/weapon/storage/pill_bottle/bicaridine,
 		/obj/item/weapon/storage/pill_bottle/dermaline,
@@ -147,9 +112,6 @@
 		/obj/item/weapon/storage/pill_bottle/spaceacillin,
 		/obj/item/stack/medical/splint,
 		)
-
-/obj/item/weapon/storage/firstaid/combat/empty
-	startswith = null
 
 /obj/item/weapon/storage/firstaid/stab
 	name = "stabilisation first aid"
@@ -162,15 +124,12 @@
 		/obj/item/weapon/storage/med_pouch/burn,
 		/obj/item/weapon/storage/med_pouch/oxyloss,
 		/obj/item/weapon/storage/med_pouch/toxin,
+		/obj/item/weapon/storage/med_pouch/radiation,
 		)
-
-/obj/item/weapon/storage/firstaid/stab/empty
-	startswith = null
 
 /obj/item/weapon/storage/firstaid/surgery
 	name = "surgery kit"
 	desc = "Contains tools for surgery. Has precise foam fitting for safe transport and automatically sterilizes the content between uses."
-	icon = 'icons/obj/items/storage/toolboxes.dmi'
 	icon_state = "surgerykit"
 	item_state = "firstaid-surgery"
 
@@ -193,7 +152,6 @@
 		/obj/item/stack/nanopaste
 		)
 
-/obj/item/weapon/storage/firstaid/surgery/full
 	startswith = list(
 		/obj/item/weapon/bonesetter,
 		/obj/item/weapon/cautery,
@@ -207,9 +165,6 @@
 		/obj/item/stack/medical/advanced/bruise_pack,
 		)
 
-/obj/item/weapon/storage/firstaid/surgery/empty
-	startswith = null
-
 /*
  * Pill Bottles
  */
@@ -221,23 +176,14 @@
 	item_state = "contsolid"
 	w_class = ITEM_SIZE_SMALL
 	max_w_class = ITEM_SIZE_TINY
-	matter = list(MATERIAL_GLASS = 100)
 	max_storage_space = 21
 	can_hold = list(/obj/item/weapon/reagent_containers/pill,/obj/item/weapon/dice,/obj/item/weapon/paper)
 	allow_quick_gather = 1
 	use_to_pickup = 1
 	use_sound = 'sound/effects/storage/pillbottle.ogg'
+	matter = list(MATERIAL_PLASTIC = 250)
 	var/wrapper_color
 	var/label
-
-/obj/item/weapon/storage/pill_bottle/New()
-	. = ..()
-	ADD_SAVED_VAR(wrapper_color)
-	ADD_SAVED_VAR(label)
-
-/obj/item/weapon/storage/pill_bottle/Initialize()
-	. = ..()
-	update_icon() //don't queue it, because it does weirdness in the autolathe recipe datum
 
 /obj/item/weapon/storage/pill_bottle/afterattack(mob/living/target, mob/living/user, proximity_flag)
 	if(!proximity_flag || !istype(target) || target != user)
@@ -255,6 +201,30 @@
 			remove_from_storage(P)
 			P.attack(target,user)
 			return 1
+
+/obj/item/weapon/storage/pill_bottle/attack_self(mob/living/user)
+	if(user.get_inactive_hand())
+		to_chat(user, "<span class='notice'>You need an empty hand to take something out.</span>")
+		return
+	if(contents.len)
+		var/obj/item/I = contents[1]
+		if(!remove_from_storage(I,user))
+			return
+		if(user.put_in_inactive_hand(I))
+			to_chat(user, "<span class='notice'>You take \the [I] out of \the [src].</span>")
+			if(iscarbon(user))
+				var/mob/living/carbon/C = user
+				C.swap_hand()
+		else
+			I.dropInto(loc)
+			to_chat(user, "<span class='notice'>You fumble around with \the [src] and drop \the [I] on the floor.</span>")
+	else
+		to_chat(user, "<span class='warning'>\The [src] is empty.</span>")
+
+
+/obj/item/weapon/storage/pill_bottle/Initialize()
+	. = ..()
+	update_icon()
 
 /obj/item/weapon/storage/pill_bottle/on_update_icon()
 	overlays.Cut()

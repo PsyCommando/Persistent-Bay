@@ -11,7 +11,7 @@
 	starter_outfit	= /decl/hierarchy/outfit/nexus/citizen
 
 	//Mapper helpers
-	icon 			= 'icons/misc/map_helpers.dmi'
+	icon 			= 'code/modules/persistence_modules/icons/misc/map_helpers.dmi'
 	icon_state 		= "faction"
 
 //Null faction
@@ -26,5 +26,5 @@
 	starter_outfit	= /decl/hierarchy/outfit/nexus/starter
 
 	//Mapper helpers
-	icon 			= 'icons/misc/map_helpers.dmi'
+	icon 			= 'code/modules/persistence_modules/icons/misc/map_helpers.dmi'
 	icon_state 		= "faction"

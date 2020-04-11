@@ -5,7 +5,7 @@
 	item_state = "brown"
 	permeability_coefficient = 0.05
 	item_flags = ITEM_FLAG_NOSLIP
-	origin_tech = list(TECH_ILLEGAL = 3)
+	origin_tech = list(TECH_ESOTERIC = 3)
 	var/list/clothing_choices = list()
 	siemens_coefficient = 0.8
 	species_restricted = null
@@ -13,167 +13,112 @@
 /obj/item/clothing/shoes/mime
 	name = "mime shoes"
 	icon_state = "mime"
+	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/swat
 	name = "\improper SWAT boots"
 	desc = "When you want to turn up the heat."
 	icon_state = "swat"
 	force = 3
+	armor = list(
+		melee = ARMOR_MELEE_VERY_HIGH, 
+		bullet = ARMOR_BALLISTIC_RIFLE, 
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_SMALL, 
+		bomb = ARMOR_BOMB_RESISTANT, 
+		bio = ARMOR_BIO_MINOR
+		)
 	item_flags = ITEM_FLAG_NOSLIP
 	siemens_coefficient = 0.6
-	can_hold_knife = 1
-	armor  = list(
-		DAM_BLUNT 	= 80,
-		DAM_PIERCE 	= 70,
-		DAM_CUT 	= 80,
-		DAM_BULLET 	= 60,
-		DAM_LASER 	= 60,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 50,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 10)
 
 /obj/item/clothing/shoes/combat //Basically SWAT shoes combined with galoshes.
 	name = "combat boots"
 	desc = "When you REALLY want to turn up the heat."
 	icon_state = "jungle"
 	force = 5
+	armor = list(
+		melee = ARMOR_MELEE_VERY_HIGH, 
+		bullet = ARMOR_BALLISTIC_RIFLE, 
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_SMALL, 
+		bomb = ARMOR_BOMB_RESISTANT, 
+		bio = ARMOR_BIO_MINOR
+		)
 	item_flags = ITEM_FLAG_NOSLIP
 	siemens_coefficient = 0.6
-	can_hold_knife = 1
 
 	cold_protection = FEET
 	min_cold_protection_temperature = SHOE_MIN_COLD_PROTECTION_TEMPERATURE
 	heat_protection = FEET
 	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 80,
-		DAM_PIERCE 	= 70,
-		DAM_CUT 	= 80,
-		DAM_BULLET 	= 60,
-		DAM_LASER 	= 60,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 40,
-		DAM_BOMB 	= 50,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 5)
-
-/obj/item/clothing/shoes/eod
-	name = "bomb boots"
-	desc = "A pair of boot reinforced to provide some explosion protection."
-	icon_state = "swat"
-	force = 2
-	item_flags = ITEM_FLAG_NOSLIP
-	siemens_coefficient = 0.6
-	can_hold_knife = 1
-	heat_protection = FEET
-	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 70,
-		DAM_PIERCE 	= 60,
-		DAM_CUT 	= 70,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 50,
-		DAM_BURN 	= 60,
-		DAM_BOMB 	= 90,
-		DAM_EMP 	= 10,
-		DAM_BIO 	= 5,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 5)
 
 /obj/item/clothing/shoes/jungleboots
 	name = "jungle boots"
 	desc = "A pair of durable brown boots. Waterproofed for use planetside."
 	icon_state = "jungle"
 	force = 3
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		bullet = ARMOR_BALLISTIC_MINOR, 
+		laser = ARMOR_LASER_MINOR, 
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED, 
+		bio = ARMOR_BIO_MINOR
+		)
 	siemens_coefficient = 0.7
-	can_hold_knife = 1
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
 
 /obj/item/clothing/shoes/desertboots
 	name = "desert boots"
 	desc = "A pair of durable tan boots. Designed for use in hot climates."
 	icon_state = "desert"
 	force = 3
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		bullet = ARMOR_BALLISTIC_MINOR, 
+		laser = ARMOR_LASER_MINOR, 
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED, 
+		bio = ARMOR_BIO_MINOR
+		)
 	siemens_coefficient = 0.7
-	can_hold_knife = 1
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 10,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
 
 /obj/item/clothing/shoes/dutyboots
 	name = "duty boots"
 	desc = "A pair of steel-toed synthleather boots with a mirror shine."
 	icon_state = "duty"
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		energy = ARMOR_ENERGY_MINOR, 
+		bomb = ARMOR_BOMB_PADDED, 
+		rad = ARMOR_RAD_MINOR
+		)
 	siemens_coefficient = 0.7
-	can_hold_knife = 1
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 20,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 20,
-		DAM_STUN 	= 0)
+	gas_transfer_coefficient = 0.90
+	permeability_coefficient = 0.50
+	body_parts_covered = FEET
+	heat_protection = FEET
+	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_pressure_protection = FIRESUIT_MAX_PRESSURE
 
 /obj/item/clothing/shoes/tactical
 	name = "tactical boots"
 	desc = "Tan boots with extra padding and armor."
 	icon_state = "desert"
 	force = 3
+	armor = list(
+		melee = ARMOR_MELEE_RESISTANT, 
+		bullet = ARMOR_BALLISTIC_PISTOL, 
+		laser = ARMOR_LASER_HANDGUNS, 
+		energy = ARMOR_ENERGY_SMALL, 
+		bomb = ARMOR_BOMB_RESISTANT)
 	siemens_coefficient = 0.7
-	can_hold_knife = 1
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 30,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 25,
-		DAM_BURN 	= 25,
-		DAM_BOMB 	= 50,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 5,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 2)
 
 /obj/item/clothing/shoes/dress
 	name = "dress shoes"
 	desc = "The height of fashion, and they're pre-polished!"
 	icon_state = "laceups"
+	can_add_hidden_item = FALSE
+	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/dress/white
 	name = "white dress shoes"
@@ -186,8 +131,9 @@
 	icon_state = "wizard"
 	species_restricted = null
 	body_parts_covered = 0
-
 	wizard_garb = 1
+	can_add_hidden_item = FALSE
+	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/sandal/marisa
 	desc = "A pair of magic, black shoes."
@@ -203,6 +149,7 @@
 	force = 0
 	var/footstep = 1	//used for squeeks whilst walking
 	species_restricted = null
+	can_add_hidden_item = FALSE
 
 /obj/item/clothing/shoes/clown_shoes/New()
 	..()
@@ -220,9 +167,17 @@
 
 /obj/item/clothing/shoes/cult
 	name = "boots"
-	desc = "A pair of oddly designed boots that stare into your soul."
+	desc = "A pair of boots worn by the followers of Nar-Sie."
 	icon_state = "cult"
 	item_state = "cult"
+	force = 2
+	siemens_coefficient = 0.7
+
+	cold_protection = FEET
+	min_cold_protection_temperature = SHOE_MIN_COLD_PROTECTION_TEMPERATURE
+	heat_protection = FEET
+	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
+	species_restricted = null
 
 /obj/item/clothing/shoes/cyborg
 	name = "cyborg boots"
@@ -237,19 +192,21 @@
 	force = 0
 	species_restricted = null
 	w_class = ITEM_SIZE_SMALL
+	can_add_hidden_item = FALSE
+	can_add_cuffs = FALSE
 
-/obj/item/clothing/shoes/slippers_worn
+/obj/item/clothing/shoes/slippers/worn
 	name = "worn bunny slippers"
 	desc = "Fluffy..."
 	icon_state = "slippers_worn"
 	item_state = "slippers_worn"
-	force = 0
-	w_class = ITEM_SIZE_SMALL
 
 /obj/item/clothing/shoes/laceup
 	name = "laceup shoes"
 	desc = "The height of fashion, and they're pre-polished!"
 	icon_state = "laceups"
+	can_add_hidden_item = FALSE
+	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/swimmingfins
 	desc = "Help you swim good."
@@ -257,6 +214,8 @@
 	icon_state = "flippers"
 	item_flags = ITEM_FLAG_NOSLIP
 	species_restricted = null
+	can_add_hidden_item = FALSE
+	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/swimmingfins/New()
 	..()
@@ -277,6 +236,7 @@
 	name = "high heels"
 	icon_state = "heels"
 	desc = "A pair of colourable high heels."
+	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/heels/black
 	name = "black high heels"

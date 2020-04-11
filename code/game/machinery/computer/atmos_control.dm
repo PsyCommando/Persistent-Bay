@@ -1,4 +1,4 @@
-/obj/item/weapon/circuitboard/atmoscontrol
+/obj/item/weapon/stock_parts/circuitboard/atmoscontrol
 	name = "\improper Central Atmospherics Computer Circuitboard"
 	build_path = /obj/machinery/computer/atmoscontrol
 
@@ -8,16 +8,12 @@
 	icon_keyboard = "generic_key"
 	icon_screen = "comm_logs"
 	light_color = "#00b000"
-	density = TRUE
-	anchored = TRUE
-	circuit = /obj/item/weapon/circuitboard/atmoscontrol
-	req_access = list(core_access_engineering_programs)
+	density = 1
+	anchored = 1.0
+	req_access = list(access_ce)
 	var/list/monitored_alarm_ids = null
 	var/datum/nano_module/atmos_control/atmos_control
-
-/obj/machinery/computer/atmoscontrol/New()
-	..()
-	ADD_SAVED_VAR(monitored_alarm_ids)
+	base_type = /obj/machinery/computer/atmoscontrol
 
 /obj/machinery/computer/atmoscontrol/laptop
 	name = "Atmospherics Laptop"
@@ -25,15 +21,11 @@
 	icon_state = "laptop"
 	icon_keyboard = "laptop_key"
 	icon_screen = "atmoslaptop"
-	density = FALSE
+	density = 0
 
-/obj/machinery/computer/atmoscontrol/attack_ai(var/mob/user as mob)
+/obj/machinery/computer/atmoscontrol/interface_interact(user)
 	ui_interact(user)
-
-/obj/machinery/computer/atmoscontrol/attack_hand(mob/user)
-	if(..())
-		return 1
-	ui_interact(user)
+	return TRUE
 
 /obj/machinery/computer/atmoscontrol/emag_act(var/remaining_carges, var/mob/user)
 	if(!emagged)
@@ -45,5 +37,5 @@
 
 /obj/machinery/computer/atmoscontrol/ui_interact(var/mob/user)
 	if(!atmos_control)
-		atmos_control = new(src, req_access, req_one_access, monitored_alarm_ids)
+		atmos_control = new(src, req_access, monitored_alarm_ids)
 	atmos_control.ui_interact(user)

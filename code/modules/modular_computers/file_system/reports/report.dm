@@ -11,33 +11,13 @@
 	var/available_on_ntnet = 0                             //Whether this report type should show up on NTNet.
 	var/logo                                               //Can be set to a pencode logo for use with some display methods.
 
-	var/faction_uid_access          //faction uid required to access
-	var/faction_uid_edit            //faction uid required to edit
-
-
 /datum/computer_file/report/New()
 	..()
 	generate_fields()
-	ADD_SAVED_VAR(title)
-	ADD_SAVED_VAR(form_name)
-	ADD_SAVED_VAR(creator)
-	ADD_SAVED_VAR(file_time)
-	ADD_SAVED_VAR(access_edit)
-	ADD_SAVED_VAR(access)
-	ADD_SAVED_VAR(fields)
-	ADD_SAVED_VAR(logo)
-	ADD_SAVED_VAR(faction_uid_access)
-	ADD_SAVED_VAR(faction_uid_edit)
 
 /datum/computer_file/report/Destroy()
 	QDEL_NULL_LIST(fields)
 	. = ..()
-
-/datum/computer_file/report/after_load()
-	. = ..()
-	//make sure all our references are up to date
-	for(var/datum/report_field/field in fields)
-		field.owner = src
 
 /*
 Access stuff. The report's access/access_edit should control whether it can be opened/submitted.
@@ -53,7 +33,7 @@ If null is passed to one of the arguments, that access type is left alone. Pass 
 The recursive option resets access to all fields in the report as well.
 If the override option is set to 0, the access supplied will instead be added as another access pattern, rather than resetting the access.
 */
-/datum/computer_file/report/proc/set_access(access, access_edit, recursive = 1, override = 1, var/faction_uid_access = null, var/faction_uid_edit = null)
+/datum/computer_file/report/proc/set_access(access, access_edit, recursive = 1, override = 1)
 	if(access)
 		if(!islist(access))
 			access = list(access)
@@ -64,22 +44,15 @@ If the override option is set to 0, the access supplied will instead be added as
 		override ? (src.access_edit = list(access_edit)) : (src.access_edit += list(access_edit))
 	if(recursive)
 		for(var/datum/report_field/field in fields)
-			field.set_access(access, access_edit, override, faction_uid_access, faction_uid_edit)
-
-	src.faction_uid_access = faction_uid_access
-	src.faction_uid_edit = faction_uid_edit
+			field.set_access(access, access_edit, override)
 
 //Strongly recommended to use these procs to check for access. They can take access values (numbers) or lists of values.
-/datum/computer_file/report/proc/verify_access(given_access, faction_uid)
-	if(faction_uid_access && faction_uid_access != faction_uid)
-		return FALSE
+/datum/computer_file/report/proc/verify_access(given_access)
 	return has_access_pattern(access, given_access)
 
-/datum/computer_file/report/proc/verify_access_edit(given_access, faction_uid)
-	if(!verify_access(given_access, faction_uid))
+/datum/computer_file/report/proc/verify_access_edit(given_access)
+	if(!verify_access(given_access))
 		return //Need access for access_edit
-	if(faction_uid_edit && faction_uid_edit != faction_uid)
-		return FALSE
 	return has_access_pattern(access_edit, given_access)
 
 //Looking up fields. Names might not be unique unless you ensure otherwise.
@@ -134,8 +107,6 @@ If the override option is set to 0, the access supplied will instead be added as
 	temp.file_time = file_time
 	temp.access_edit = access_edit
 	temp.access = access
-	temp.faction_uid_access = faction_uid_access
-	temp.faction_uid_edit = faction_uid_edit
 	for(var/i = 1, i <= length(fields), i++)
 		var/datum/report_field/new_field = temp.fields[i]
 		new_field.copy_value(fields[i])
@@ -145,7 +116,7 @@ If the override option is set to 0, the access supplied will instead be added as
 	return "Form [form_name]: [title]"
 
 //if access is given, will include access information by performing checks against it.
-/datum/computer_file/report/proc/generate_nano_data(list/given_access, var/datum/world_faction/faction)
+/datum/computer_file/report/proc/generate_nano_data(list/given_access)
 	. = list()
 	.["name"] = display_name()
 	.["uid"] = uid
@@ -153,10 +124,10 @@ If the override option is set to 0, the access supplied will instead be added as
 	.["file_time"] = file_time
 	.["fields"] = list()
 	if(given_access)
-		.["access"] = verify_access(given_access, faction.uid)
-		.["access_edit"] = verify_access_edit(given_access, faction.uid)
+		.["access"] = verify_access(given_access)
+		.["access_edit"] = verify_access_edit(given_access)
 	for(var/datum/report_field/field in fields)
-		.["fields"] += list(field.generate_nano_data(given_access, faction))
+		.["fields"] += list(field.generate_nano_data(given_access))
 /*
 This formats the report into pencode for use with paper and printing. Setting access to null will bypass access checks.
 with_fields will include a field link after the field value (useful to print fillable forms).
@@ -174,7 +145,7 @@ no_html will strip any html, possibly killing useful formatting in the process.
 	if(no_html)
 		. = html2pencode(.)
 
-//recipient reports have a designated recipients field, for recieving submitted reports.
+//recipient reports have a designated recipients field, for receiving submitted reports.
 /datum/computer_file/report/recipient
 	var/datum/report_field/people/list_from_manifest/recipients
 

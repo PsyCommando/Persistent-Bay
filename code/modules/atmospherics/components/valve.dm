@@ -1,93 +1,29 @@
 /obj/machinery/atmospherics/valve
 	icon = 'icons/atmos/valve.dmi'
 	icon_state = "map_valve0"
+
 	name = "manual valve"
 	desc = "A pipe valve."
+
 	level = 1
 	dir = SOUTH
 	initialize_directions = SOUTH|NORTH
 
 	var/open = 0
 	var/openDuringInit = 0
+
+
 	var/datum/pipe_network/network_node1
 	var/datum/pipe_network/network_node2
+
+	connect_types = CONNECT_TYPE_REGULAR|CONNECT_TYPE_SUPPLY|CONNECT_TYPE_SCRUBBER|CONNECT_TYPE_FUEL
+	connect_dir_type = SOUTH | NORTH
+	rotate_class = PIPE_ROTATE_TWODIR
+	build_icon_state = "mvalve"
 
 /obj/machinery/atmospherics/valve/open
 	open = 1
 	icon_state = "map_valve1"
-
-/obj/machinery/atmospherics/valve/New()
-	. = ..()
-	ADD_SAVED_VAR(open)
-
-/obj/machinery/atmospherics/valve/after_load()
-	. = ..()
-	if(open)
-		open()
-	else
-		close()
-
-/obj/machinery/atmospherics/valve/Destroy()
-	loc = null
-
-	if(node1)
-		node1.disconnect(src)
-		qdel(network_node1)
-	if(node2)
-		node2.disconnect(src)
-		qdel(network_node2)
-
-	node1 = null
-	node2 = null
-
-	. = ..()
-
-/obj/machinery/atmospherics/valve/setup_initialize_directions()
-	. = ..()
-	switch(dir)
-		if(NORTH, SOUTH)
-			initialize_directions = NORTH|SOUTH
-		if(EAST, WEST)
-			initialize_directions = EAST|WEST
-
-/obj/machinery/atmospherics/valve/atmos_init()
-	..()
-	normalize_dir()
-
-	var/node1_dir
-	var/node2_dir
-
-	for(var/direction in GLOB.cardinal)
-		if(direction&initialize_directions)
-			if (!node1_dir)
-				node1_dir = direction
-			else if (!node2_dir)
-				node2_dir = direction
-
-	for(var/obj/machinery/atmospherics/target in get_step(src,node1_dir))
-		if(target.initialize_directions & get_dir(target,src))
-			if (check_connect_types(target,src))
-				node1 = target
-				break
-	for(var/obj/machinery/atmospherics/target in get_step(src,node2_dir))
-		if(target.initialize_directions & get_dir(target,src))
-			if (check_connect_types(target,src))
-				node2 = target
-				break
-
-	build_network()
-
-	queue_icon_update()
-	update_underlays()
-
-	if(openDuringInit)
-		close()
-		open()
-		openDuringInit = 0
-
-/obj/machinery/atmospherics/valve/Process()
-	..()
-	return PROCESS_KILL
 
 /obj/machinery/atmospherics/valve/on_update_icon(animation)
 	if(animation)
@@ -132,6 +68,19 @@
 
 	return null
 
+/obj/machinery/atmospherics/valve/Destroy()
+	if(node1)
+		node1.disconnect(src)
+		qdel(network_node1)
+	if(node2)
+		node2.disconnect(src)
+		qdel(network_node2)
+
+	node1 = null
+	node2 = null
+
+	. = ..()
+
 /obj/machinery/atmospherics/valve/proc/open()
 	if(open) return 0
 
@@ -165,23 +114,52 @@
 
 	return 1
 
-/obj/machinery/atmospherics/valve/proc/normalize_dir()
-	if(dir==3)
-		set_dir(1)
-	else if(dir==12)
-		set_dir(4)
+/obj/machinery/atmospherics/valve/proc/toggle()
+	return open ? close() : open()
 
-/obj/machinery/atmospherics/valve/attack_ai(mob/user as mob)
-	return
+/obj/machinery/atmospherics/valve/physical_attack_hand(mob/user)
+	user_toggle()
+	return TRUE
 
-/obj/machinery/atmospherics/valve/attack_hand(mob/user as mob)
-	src.add_fingerprint(usr)
+/obj/machinery/atmospherics/valve/proc/user_toggle()
 	update_icon(1)
 	sleep(10)
-	if (src.open)
-		src.close()
-	else
-		src.open()
+	toggle()
+
+/obj/machinery/atmospherics/valve/Process()
+	..()
+	return PROCESS_KILL
+
+/obj/machinery/atmospherics/valve/atmos_init()
+	..()
+	var/node1_dir
+	var/node2_dir
+
+	for(var/direction in GLOB.cardinal)
+		if(direction&initialize_directions)
+			if (!node1_dir)
+				node1_dir = direction
+			else if (!node2_dir)
+				node2_dir = direction
+
+	for(var/obj/machinery/atmospherics/target in get_step(src,node1_dir))
+		if(target.initialize_directions & get_dir(target,src))
+			if (check_connect_types(target,src))
+				node1 = target
+				break
+	for(var/obj/machinery/atmospherics/target in get_step(src,node2_dir))
+		if(target.initialize_directions & get_dir(target,src))
+			if (check_connect_types(target,src))
+				node2 = target
+				break
+
+	update_icon()
+	update_underlays()
+
+	if(openDuringInit)
+		close()
+		open()
+		openDuringInit = 0
 
 /obj/machinery/atmospherics/valve/build_network()
 	if(!network_node1 && node1)
@@ -213,7 +191,7 @@
 
 	return 1
 
-/obj/machinery/atmospherics/valve/return_network_air(datum/network/reference)
+/obj/machinery/atmospherics/valve/return_network_air(datum/pipe_network/reference)
 	return null
 
 /obj/machinery/atmospherics/valve/disconnect(obj/machinery/atmospherics/reference)
@@ -229,61 +207,8 @@
 
 	return null
 
-//
-// Digital Valve
-//
-/obj/machinery/atmospherics/valve/digital		// can be controlled by AI
-	name = "digital valve"
-	desc = "A digitally controlled valve."
-	icon = 'icons/atmos/digital_valve.dmi'
-
-	id_tag 				= null
-	frequency 			= null
-	radio_filter_in 	= RADIO_ATMOSIA
-	radio_filter_out 	= RADIO_ATMOSIA
-
-/obj/machinery/atmospherics/valve/digital/open
-	open = 1
-	icon_state = "map_valve1"
-
-/obj/machinery/atmospherics/valve/digital/attack_ai(mob/user as mob)
-	return src.attack_hand(user)
-
-/obj/machinery/atmospherics/valve/digital/attack_hand(mob/user as mob)
-	if(!powered())
-		return
-	if(!src.allowed(user))
-		to_chat(user, SPAN_WARNING("Access denied."))
-		return
-	..()
-
-/obj/machinery/atmospherics/valve/digital/on_update_icon()
-	..()
-	if(!powered())
-		icon_state = "valve[open]nopower"
-
-/obj/machinery/atmospherics/valve/digital/OnSignal(datum/signal/signal)
-	if(!..())
-		return
-
-	switch(signal.data["command"])
-		if("valve_open")
-			if(!open)
-				open()
-
-		if("valve_close")
-			if(open)
-				close()
-
-		if("valve_toggle")
-			if(open)
-				close()
-			else
-				open()
-
-
 /obj/machinery/atmospherics/valve/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
-	if (!istype(W, /obj/item/weapon/tool/wrench))
+	if (!istype(W, /obj/item/weapon/wrench))
 		return ..()
 	var/datum/gas_mixture/int_air = return_air()
 	var/datum/gas_mixture/env_air = loc.return_air()
@@ -298,9 +223,79 @@
 			"<span class='notice'>\The [user] unfastens \the [src].</span>", \
 			"<span class='notice'>You have unfastened \the [src].</span>", \
 			"You hear a ratchet.")
-		new /obj/item/pipe(loc, make_from=src)
+		new /obj/item/pipe(loc, src)
 		qdel(src)
 
 /obj/machinery/atmospherics/valve/examine(mob/user)
 	. = ..()
 	to_chat(user, "It is [open ? "open" : "closed"].")
+
+/decl/public_access/public_variable/valve_open
+	expected_type = /obj/machinery/atmospherics/valve
+	name = "valve open"
+	desc = "Whether or not the valve is open."
+	can_write = FALSE
+	has_updates = FALSE
+
+/decl/public_access/public_variable/valve_open/access_var(obj/machinery/atmospherics/valve/valve)
+	return valve.open
+
+/decl/public_access/public_method/open_valve
+	name = "open valve"
+	desc = "Sets the valve to open."
+	call_proc = /obj/machinery/atmospherics/valve/proc/open
+
+/decl/public_access/public_method/close_valve
+	name = "open valve"
+	desc = "Sets the valve to open."
+	call_proc = /obj/machinery/atmospherics/valve/proc/close
+
+/decl/public_access/public_method/toggle_valve
+	name = "toggle valve"
+	desc = "Toggles whether the valve is open or closed."
+	call_proc = /obj/machinery/atmospherics/valve/proc/toggle
+
+/obj/machinery/atmospherics/valve/digital		// can be controlled by AI
+	name = "digital valve"
+	desc = "A digitally controlled valve."
+	icon = 'icons/atmos/digital_valve.dmi'
+	uncreated_component_parts = list(
+		/obj/item/weapon/stock_parts/radio/receiver,
+		/obj/item/weapon/stock_parts/power/apc
+	)
+	public_variables = list(/decl/public_access/public_variable/valve_open)
+	public_methods = list(
+		/decl/public_access/public_method/open_valve,
+		/decl/public_access/public_method/close_valve,
+		/decl/public_access/public_method/toggle_valve
+	)
+	stock_part_presets = list(/decl/stock_part_preset/radio/receiver/valve = 1)
+
+	build_icon_state = "dvalve"
+
+/obj/machinery/atmospherics/valve/digital/interface_interact(mob/user)
+	if(!CanInteract(user, DefaultTopicState()))
+		return FALSE
+	user_toggle()
+	return TRUE
+
+/obj/machinery/atmospherics/valve/digital/physical_attack_hand(mob/user)
+	return FALSE
+
+/obj/machinery/atmospherics/valve/digital/open
+	open = 1
+	icon_state = "map_valve1"
+
+/obj/machinery/atmospherics/valve/digital/on_update_icon()
+	..()
+	if(!powered())
+		icon_state = "valve[open]nopower"
+
+/decl/stock_part_preset/radio/receiver/valve
+	frequency = FUEL_FREQ
+	filter = RADIO_ATMOSIA
+	receive_and_call = list(
+		"valve_open" = /decl/public_access/public_method/open_valve,
+		"valve_close" = /decl/public_access/public_method/close_valve,
+		"valve_toggle" = /decl/public_access/public_method/toggle_valve
+	)

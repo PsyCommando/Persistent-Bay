@@ -1,12 +1,11 @@
 /obj/item/weapon/storage/wallet
 	name = "wallet"
 	desc = "It can hold a few small and personal things."
-	icon = 'icons/obj/items/wallet.dmi'
+	icon = 'icons/obj/wallet.dmi'
 	icon_state = "wallet-white"
 	w_class = ITEM_SIZE_SMALL
 	max_w_class = ITEM_SIZE_SMALL //Don't worry, see can_hold[]
 	max_storage_space = 8
-	matter = list(MATERIAL_CLOTH = 1000)
 	can_hold = list(
 		/obj/item/weapon/spacecash,
 		/obj/item/weapon/card,
@@ -48,7 +47,6 @@
 
 /obj/item/weapon/storage/wallet/leather
 	color = COLOR_SEDONA
-	matter = list(MATERIAL_LEATHER = 1000)
 
 /obj/item/weapon/storage/wallet/Destroy()
 	if(front_id)
@@ -75,7 +73,7 @@
 	overlays.Cut()
 	if(front_id)
 		var/tiny_state = "id-generic"
-		if("id-"+front_id.icon_state in icon_states(icon))
+		if(("id-"+front_id.icon_state) in icon_states(icon))
 			tiny_state = "id-"+front_id.icon_state
 		var/image/tiny_image = new/image(icon, icon_state = tiny_state)
 		tiny_image.appearance_flags = RESET_COLOR
@@ -84,12 +82,12 @@
 /obj/item/weapon/storage/wallet/GetIdCard()
 	return front_id
 
-/obj/item/weapon/storage/wallet/GetAccess(var/faction_uid)
+/obj/item/weapon/storage/wallet/GetAccess()
 	var/obj/item/I = GetIdCard()
 	if(I)
-		return I.GetAccess(faction_uid)
+		return I.GetAccess()
 	else
-		return ..(faction_uid)
+		return ..()
 
 /obj/item/weapon/storage/wallet/random/New()
 	..()
@@ -111,7 +109,6 @@
 /obj/item/weapon/storage/wallet/poly
 	name = "polychromic wallet"
 	desc = "You can recolor it! Fancy! The future is NOW!"
-	matter = list(MATERIAL_LEATHER = 1000)
 
 /obj/item/weapon/storage/wallet/poly/New()
 	..()

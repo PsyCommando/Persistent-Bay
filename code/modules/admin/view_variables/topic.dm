@@ -108,17 +108,6 @@
 		src.give_spell(M)
 		href_list["datumrefresh"] = href_list["give_spell"]
 
-	else if(href_list["give_disease2"])
-		if(!check_rights(R_ADMIN|R_FUN))	return
-
-		var/mob/M = locate(href_list["give_disease2"])
-		if(!istype(M))
-			to_chat(usr, "This can only be used on instances of type /mob")
-			return
-
-		src.give_disease2(M)
-		href_list["datumrefresh"] = href_list["give_spell"]
-
 	else if(href_list["godmode"])
 		if(!check_rights(R_REJUVINATE))	return
 
@@ -257,27 +246,7 @@
 
 		src.holder.marked_datum_weak = weakref(D)
 		href_list["datumrefresh"] = href_list["mark_object"]
-	else if(href_list["saved_vars"])
-		if(!check_rights(0))	return
 
-		var/datum/D = locate(href_list["saved_vars"])
-		if(!istype(D))
-			to_chat(usr, "This can only be done to instances of type /datum")
-			return
-		D.add_saved_var(usr)
-	else if(href_list["Add_Var"])
-		if(!check_rights(0))	return
-		var/datum/D = locate(href_list["Varsx"])
-		D.add_saved(usr)
-		D.add_saved_var(usr)
-		return 0
-	else if(href_list["Remove_Var"])
-		if(!check_rights(0))	return
-		var/ind = text2num(href_list["Remove_Var"])
-		var/datum/D = locate(href_list["Varsx"])		
-		D.remove_saved(ind)
-		D.add_saved_var(usr)
-		return 0
 	else if(href_list["rotatedatum"])
 		if(!check_rights(0))	return
 
@@ -503,7 +472,8 @@
 
 		to_chat(usr, "Removed [rem_organ] from [M].")
 		rem_organ.removed()
-		qdel(rem_organ)
+		if(!QDELETED(rem_organ))
+			qdel(rem_organ)
 
 	else if(href_list["fix_nano"])
 		if(!check_rights(R_DEBUG)) return

@@ -8,25 +8,23 @@
 	var/heartbeat = 0
 	var/beat_sound = 'sound/effects/singlebeat.ogg'
 	var/tmp/next_blood_squirt = 0
-	relative_size = 15
-	max_health = 64
-	broken_threshold = 56
-	min_bruised_damage = 32
+	damage_reduction = 0.7
+	relative_size = 5
+	max_damage = 45
 	var/open
 	var/list/external_pump
 
 /obj/item/organ/internal/heart/open
 	open = 1
 
-/obj/item/organ/internal/heart/New(mob/living/carbon/holder)
-	. = ..()
-	ADD_SAVED_VAR(pulse)
-	ADD_SAVED_VAR(heartbeat)
-	ADD_SAVED_VAR(open)
+/obj/item/organ/internal/heart/die()
+	if(dead_icon)
+		icon_state = dead_icon
+	..()
 
-/obj/item/organ/internal/heart/after_load()
+/obj/item/organ/internal/heart/robotize()
 	. = ..()
-	Process()
+	icon_state = "heart-prosthetic"
 
 /obj/item/organ/internal/heart/Process()
 	if(owner)
@@ -136,7 +134,7 @@
 
 				for(var/datum/wound/W in temp.wounds)
 
-					if(!open_wound && (ISDAMTYPE(W.damage_type, DAM_CUT) || ISDAMTYPE(W.damage_type, DAM_PIERCE)) && W.damage && !W.is_treated())
+					if(!open_wound && (W.damage_type == CUT || W.damage_type == PIERCE) && W.damage && !W.is_treated())
 						open_wound = TRUE
 
 					if(W.bleeding())
@@ -223,11 +221,5 @@
 
 	. = "[pulsesound] pulse"
 
-/obj/item/organ/internal/heart/on_update_icon()
-	. = ..()
-	if(BP_IS_ROBOTIC(src))
-		icon_state = "heart-prosthetic"
-	else if((status & ORGAN_DEAD) && dead_icon)
-		icon_state = dead_icon
-	else
-		icon_state = initial(icon_state)
+/obj/item/organ/internal/heart/get_mechanical_assisted_descriptor()
+	return "pacemaker-assisted [name]"

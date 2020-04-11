@@ -77,8 +77,6 @@ Radio:
 1347 - Cargo techs
 1349 - Service people
 
-1700
-
 Devices:
 1451 - tracking implant
 1457 - RSD default
@@ -99,29 +97,13 @@ On the map:
 1455 for AI access
 */
 
-//Ranges
 var/const/RADIO_LOW_FREQ	= 1200
 var/const/PUBLIC_LOW_FREQ	= 1441
 var/const/PUBLIC_HIGH_FREQ	= 1489
 var/const/RADIO_HIGH_FREQ	= 1600
-var/const/RADIO_CUSTOM_FREQ = 1700
-var/const/RADIO_CUSTOM_FREQ_MAX = 1800
 
-//Machines
-var/const/MAGNET_FREQ			= 1311
-var/const/INCINERATOR_FREQ		= 1378
-var/const/DOOR_FREQ				= 1379
-var/const/MISC_MACHINE_FREQ		= 1202
-var/const/ALARMLOCKS_FREQ		= 1437
-var/const/ENGINE_FREQ			= 1438
-var/const/AIRALARM_FREQ			= 1439
-var/const/STATUS_FREQ 			= 1435
-var/const/ATMOS_CONTROL_FREQ 	= 1441
-var/const/AIRLOCK_FREQ			= 1449
-var/const/POD_LAUNCHER_FREQ 	= 1452
-
-//Other Comms
 var/const/BOT_FREQ	= 1447
+var/const/SKRELL_FREQ = 1598
 var/const/COMM_FREQ = 1353
 var/const/ERT_FREQ	= 1345
 var/const/AI_FREQ	= 1343
@@ -140,16 +122,22 @@ var/const/SRV_FREQ = 1349
 var/const/SUP_FREQ = 1347
 var/const/EXP_FREQ = 1361
 
-// public interesting channels
-var/const/TT_FREQ = 1489
-
 // internal department channels
 var/const/MED_I_FREQ = 1485
 var/const/SEC_I_FREQ = 1475
 
-// special intercoms
-var/const/SEC_INTERCOM_FREQ = 1476
-var/const/CONFESSIONALS_FREQ = 1480
+// Device signal frequencies
+var/const/ATMOS_ENGINE_FREQ = 1438 // Used by atmos monitoring in the engine.
+var/const/PUMP_FREQ         = 1439 // Used by air alarms and their progeny.
+var/const/FUEL_FREQ         = 1447 // Used by fuel atmos stuff, and currently default for digital valves
+var/const/ATMOS_TANK_FREQ   = 1441 // Used for gas tank sensors and monitoring.
+var/const/ATMOS_DIST_FREQ   = 1443 // Alternative atmos frequency.
+var/const/BUTTON_FREQ       = 1301 // Used by generic buttons controlling stuff
+var/const/BLAST_DOORS_FREQ  = 1303 // Used by blast doors, buttons controlling them, and mass drivers.
+var/const/AIRLOCK_FREQ      = 1305 // Used by airlocks and buttons controlling them.
+var/const/SHUTTLE_AIR_FREQ  = 1331 // Used by shuttles and shuttle-related atmos systems.
+var/const/AIRLOCK_AIR_FREQ  = 1379 // Used by some airlocks for atmos devices.
+var/const/EXTERNAL_AIR_FREQ = 1380 // Used by some external airlocks.
 
 var/list/radiochannels = list(
 	"Common"		= PUB_FREQ,
@@ -167,24 +155,26 @@ var/list/radiochannels = list(
 	"Service" 		= SRV_FREQ,
 	"AI Private"	= AI_FREQ,
 	"Entertainment" = ENT_FREQ,
-	"Trauma Response" = TT_FREQ,
 	"Medical(I)"	= MED_I_FREQ,
-	"Security(I)"	= SEC_I_FREQ
+	"Security(I)"	= SEC_I_FREQ,
+	"Recon"			= SKRELL_FREQ
 )
 
 var/list/channel_color_presets = list(
-	"Global Green" = "#008000",
-	"Phenomenal Purple" = "#993399",
-	"Bitchin' Blue" = "#395a9a",
-	"Menacing Maroon" = "#6d3f40",
-	"Pretty Periwinkle" = "#5c5c8a",
-	"Painful Pink" = "#ff00ff",
-	"Raging Red" = "#a30000",
-	"Operational Orange" = "#a66300",
-	"Tantalizing Turquoise" = "#008160",
-	"Bemoaning Brown" = "#7f6539",
-	"Gastric Green" = "#6eaa2c",
-	"Bold Brass" = "#a3a332"
+	"Bemoaning Brown" = COMMS_COLOR_SUPPLY,
+	"Bitchin' Blue" = COMMS_COLOR_COMMAND,
+	"Bold Brass" = COMMS_COLOR_EXPLORER,
+	"Gastric Green" = COMMS_COLOR_SERVICE,
+	"Global Green" = COMMS_COLOR_COMMON,
+	"Menacing Maroon" = COMMS_COLOR_SYNDICATE,
+	"Operational Orange" = COMMS_COLOR_ENGINEER,
+	"Painful Pink" = COMMS_COLOR_AI,
+	"Phenomenal Purple" = COMMS_COLOR_SCIENCE,
+	"Pretty Periwinkle" = COMMS_COLOR_CENTCOMM,
+	"Raging Red" = COMMS_COLOR_SECURITY,
+	"Spectacular Silver" = COMMS_COLOR_ENTERTAIN,
+	"Tantalizing Turquoise" = COMMS_COLOR_MEDICAL,
+	"Viewable Violet" = COMMS_COLOR_SKRELL
 )
 
 // central command channels, i.e deathsquid & response teams
@@ -194,7 +184,7 @@ var/list/CENT_FREQS = list(ERT_FREQ, DTH_FREQ)
 var/list/ANTAG_FREQS = list(SYND_FREQ, RAID_FREQ)
 
 //Department channels, arranged lexically
-var/list/DEPT_FREQS = list(AI_FREQ, COMM_FREQ, ENG_FREQ, MED_FREQ, SEC_FREQ, SCI_FREQ, SRV_FREQ, SUP_FREQ, EXP_FREQ, ENT_FREQ, TT_FREQ)
+var/list/DEPT_FREQS = list(AI_FREQ, COMM_FREQ, ENG_FREQ, MED_FREQ, SEC_FREQ, SCI_FREQ, SRV_FREQ, SUP_FREQ, EXP_FREQ, ENT_FREQ)
 
 #define TRANSMISSION_WIRE	0
 #define TRANSMISSION_RADIO	1
@@ -229,19 +219,10 @@ var/list/DEPT_FREQS = list(AI_FREQ, COMM_FREQ, ENG_FREQ, MED_FREQ, SEC_FREQ, SCI
 		return "srvradio"
 	if(frequency == ENT_FREQ) //entertainment
 		return "entradio"
-	if(frequency == TT_FREQ) // trauma response
-		return "ttradio"
 	if(frequency in DEPT_FREQS)
 		return "deptradio"
-	if(frequency >= RADIO_CUSTOM_FREQ)
-		return "custradio"
 
 	return "radio"
-
-
-/* range */
-var/const/RADIO_DEFAULT_RANGE	= 0
-var/const/AIRLOCK_CONTROL_RANGE = 22
 
 /* filters */
 //When devices register with the radio controller, they might register under a certain filter.
@@ -249,26 +230,31 @@ var/const/AIRLOCK_CONTROL_RANGE = 22
 //This is done for performance, so we don't send signals to lots of machines unnecessarily.
 
 //This filter is special because devices belonging to default also recieve signals sent to any other filter.
-var/const/RADIO_DEFAULT 		= "radio_default"
-var/const/RADIO_TO_AIRALARM 	= "radio_airalarm" 		//air alarms
-var/const/RADIO_FROM_AIRALARM 	= "radio_airalarm_rcvr" //devices interested in recieving signals from air alarms
-var/const/RADIO_CHAT 			= "radio_telecoms"
-var/const/RADIO_ATMOSIA 		= "radio_atmos"
-var/const/RADIO_ENGI			= "radio_engi"
-var/const/RADIO_NAVBEACONS 		= "radio_navbeacon"
-var/const/RADIO_AIRLOCK 		= "radio_airlock"
-var/const/RADIO_BLAST_DOORS		= "radio_blastdoor"
-var/const/RADIO_SECBOT 			= "radio_secbot"
-var/const/RADIO_MULEBOT 		= "radio_mulebot"
-var/const/RADIO_MAGNETS 		= "radio_magnet"
-var/const/RADIO_EMITTERS 		= "radio_emitter"
-var/const/RADIO_MASSDRIVER		= "radio_massdriver"
-var/const/RADIO_FLASHERS		= "radio_flasher"
-var/const/RADIO_STATUS_DISPLAY  = "radio_status_display"
-var/const/RADIO_INCINERATOR  	= "radio_incinerator"
-var/const/RADIO_POD_LAUNCHER	= "radio_podlauncher"
-var/const/RADIO_FOAM_DISPENSER	= "radio_foam_dispenser"
-var/const/RADIO_RECYCLER		= "radio_recycler"
+var/const/RADIO_DEFAULT = "radio_default"
+
+var/const/RADIO_TO_AIRALARM = "radio_airalarm" //air alarms
+var/const/RADIO_FROM_AIRALARM = "radio_airalarm_rcvr" //devices interested in recieving signals from air alarms
+var/const/RADIO_CHAT = "radio_telecoms"
+var/const/RADIO_ATMOSIA = "radio_atmos"
+var/const/RADIO_NAVBEACONS = "radio_navbeacon"
+var/const/RADIO_AIRLOCK = "radio_airlock"
+var/const/RADIO_SECBOT = "radio_secbot"
+var/const/RADIO_MULEBOT = "radio_mulebot"
+var/const/RADIO_MAGNETS = "radio_magnet"
+
+// These are exposed to players, by name.
+GLOBAL_LIST_INIT(all_selectable_radio_filters, list(
+	RADIO_DEFAULT,
+	RADIO_TO_AIRALARM,
+	RADIO_FROM_AIRALARM,
+	RADIO_CHAT,
+	RADIO_ATMOSIA,
+	RADIO_NAVBEACONS,
+	RADIO_AIRLOCK,
+	RADIO_SECBOT,
+	RADIO_MULEBOT,
+	RADIO_MAGNETS
+))
 
 var/global/datum/controller/radio/radio_controller
 
@@ -276,11 +262,16 @@ var/global/datum/controller/radio/radio_controller
 	radio_controller = new /datum/controller/radio()
 	return 1
 
+//callback used by objects to react to incoming radio signals
+/obj/proc/receive_signal(datum/signal/signal, receive_method, receive_param)
+	set waitfor = FALSE
+	return null
+
 //The global radio controller
 /datum/controller/radio
 	var/list/datum/radio_frequency/frequencies = list()
 
-/datum/controller/radio/proc/add_object(obj/device as obj, var/new_frequency as num, var/filter = null as text|null)
+/datum/controller/radio/proc/add_object(obj/device as obj, var/new_frequency as num, var/object_filter = null as text|null)
 	var/f_text = num2text(new_frequency)
 	var/datum/radio_frequency/frequency = frequencies[f_text]
 
@@ -289,7 +280,7 @@ var/global/datum/controller/radio/radio_controller
 		frequency.frequency = new_frequency
 		frequencies[f_text] = frequency
 
-	frequency.add_listener(device, filter)
+	frequency.add_listener(device, object_filter)
 	return frequency
 
 /datum/controller/radio/proc/remove_object(obj/device, old_frequency)
@@ -319,17 +310,16 @@ var/global/datum/controller/radio/radio_controller
 /datum/radio_frequency
 	var/frequency as num
 	var/list/list/obj/devices = list()
-	var/signalcount = 0
 
-/datum/radio_frequency/proc/post_signal(obj/source as obj|null, datum/signal/signal, var/filter = null as text|null, var/range = null as num|null)
+/datum/radio_frequency/proc/post_signal(obj/source as obj|null, datum/signal/signal, var/radio_filter = null as text|null, var/range = null as num|null)
 	var/turf/start_point
 	if(range)
 		start_point = get_turf(source)
 		if(!start_point)
 			qdel(signal)
 			return 0
-	if (filter)
-		send_to_filter(source, signal, filter, start_point, range)
+	if (radio_filter)
+		send_to_filter(source, signal, radio_filter, start_point, range)
 		send_to_filter(source, signal, RADIO_DEFAULT, start_point, range)
 	else
 		//Broadcast the signal to everyone!
@@ -337,40 +327,32 @@ var/global/datum/controller/radio/radio_controller
 			send_to_filter(source, signal, next_filter, start_point, range)
 
 //Sends a signal to all machines belonging to a given filter. Should be called by post_signal()
-/datum/radio_frequency/proc/send_to_filter(obj/source, datum/signal/signal, var/filter, var/turf/start_point = null, var/range = null)
-	if (range && !start_point)
-		return
-	signalcount++
-	// if((signalcount % 100) == 0)
-	// 	testing("Signals sent on [frequency] : [signalcount]")
-	for(var/obj/device in devices[filter])
+/datum/radio_frequency/proc/send_to_filter(obj/source, datum/signal/signal, var/radio_filter, var/turf/start_point = null, var/range = null)
+	var/list/z_levels
+	if(start_point)
+		z_levels = GetConnectedZlevels(start_point.z)
+
+	for(var/obj/device in devices[radio_filter])
 		if(device == source)
 			continue
-		if(range)
-			var/turf/end_point = get_turf(device)
-			if(!end_point)
-				continue
-			if(start_point.z!=end_point.z || get_dist(start_point, end_point) > range)
-				continue
-		
-		//INVOKE_ASYNC(device, /obj/.proc/receive_signal, signal, TRANSMISSION_RADIO, frequency)
-		spawn(0)
-			device.receive_signal(signal, TRANSMISSION_RADIO, frequency)
-		CHECK_TICK
+		var/turf/end_point = get_turf(device)
+		if(!end_point)
+			continue
+		if(z_levels && !(end_point.z in z_levels))
+			continue
+		if(range && get_dist(start_point, end_point) > range)
+			continue
 
-/datum/radio_frequency/proc/add_listener(obj/device as obj, var/filter as text|null)
-	if (!filter)
-		filter = RADIO_DEFAULT
-	//log_admin("add_listener(device=[device],filter=[filter]) frequency=[frequency]")
-	var/list/obj/devices_line = devices[filter]
+		device.receive_signal(signal, TRANSMISSION_RADIO, frequency)
+
+/datum/radio_frequency/proc/add_listener(obj/device as obj, var/radio_filter as text|null)
+	if (!radio_filter)
+		radio_filter = RADIO_DEFAULT
+	var/list/obj/devices_line = devices[radio_filter]
 	if (!devices_line)
 		devices_line = new
-		devices[filter] = devices_line
-	devices_line+=device
-//			var/list/obj/devices_line___ = devices[filter_str]
-//			var/l = devices_line___.len
-	//log_admin("DEBUG: devices_line.len=[devices_line.len]")
-	//log_admin("DEBUG: devices(filter_str).len=[l]")
+		devices[radio_filter] = devices_line
+	devices_line |= device
 
 /datum/radio_frequency/proc/remove_listener(obj/device)
 	for (var/devices_filter in devices)

@@ -1,17 +1,11 @@
-/*
- * Crowbar
- */
-/obj/item/weapon/tool/crowbar
+/obj/item/weapon/crowbar
 	name = "crowbar"
 	desc = "A heavy crowbar of solid steel, good and solid in your hand."
-	description_info = "Crowbars have countless uses: click on floor tiles to pry them loose. Use alongside a screwdriver to install or remove windows. Force open emergency shutters, or depowered airlocks. Open the panel of an unlocked APC. Pry a computer's circuit board free. And much more!"
-	description_fluff = "As is the case with most standard-issue tools, crowbars are a simple and timeless design, the only difference being that advanced materials like plasteel have made them uncommonly tough."
-	description_antag = "Need to bypass a bolted door? You can use a crowbar to pry the electronics out of an airlock, provided that it has no power and has been welded shut."
 	icon = 'icons/obj/tools.dmi'
 	icon_state = "crowbar"
 	obj_flags = OBJ_FLAG_CONDUCTIBLE
 	slot_flags = SLOT_BELT
-	force = 7
+	force = 14
 	attack_cooldown = 2*DEFAULT_WEAPON_COOLDOWN
 	melee_accuracy_bonus = -10
 	throwforce = 7
@@ -23,9 +17,39 @@
 	center_of_mass = "x=16;y=20"
 	attack_verb = list("attacked", "bashed", "battered", "bludgeoned", "whacked")
 
-/obj/item/weapon/tool/crowbar/red
+/obj/item/weapon/crowbar/red
 	icon_state = "red_crowbar"
 	item_state = "crowbar_red"
 
-/obj/item/weapon/tool/crowbar/play_tool_sound()
-	playsound(loc, 'sound/items/Crowbar.ogg', 50, 1)
+/obj/item/weapon/crowbar/prybar
+	name = "pry bar"
+	desc = "A steel bar with a wedge. It comes in a variety of configurations and colours - collect them all."
+	icon_state = "prybar_preview"
+	item_state = "crowbar"
+	force = 4
+	throwforce = 6
+	throw_range = 5
+	w_class = ITEM_SIZE_SMALL
+	matter = list(MATERIAL_STEEL = 80)
+
+	var/prybar_types = list("1","2","3","4","5")
+	var/valid_colours = list(COLOR_RED_GRAY, COLOR_BLUE_GRAY, COLOR_BOTTLE_GREEN, COLOR_MAROON, COLOR_DARK_BROWN, COLOR_VIOLET, COLOR_GRAY20)
+
+/obj/item/weapon/crowbar/prybar/Initialize()
+	var/shape = pick(prybar_types)
+	icon_state = "bar[shape]_handle"
+	color = pick(valid_colours)
+	overlays += overlay_image(icon, "bar[shape]_hardware", flags=RESET_COLOR)
+	. = ..()
+
+/obj/item/weapon/crowbar/emergency_forcing_tool
+	name = "emergency forcing tool"
+	desc = "This is an emergency forcing tool, made of steel bar with a wedge on one end, and a hatchet on the other end. It has a blue plastic grip"
+	icon_state = "emergency_forcing_tool"
+	item_state = "emergency_forcing_tool"
+	force = 10
+	throwforce = 6
+	throw_range = 5
+	w_class = ITEM_SIZE_SMALL
+	matter = list(MATERIAL_STEEL = 150)
+	attack_verb = list("attacked", "bashed", "battered", "bludgeoned", "whacked", "attacked", "slashed", "torn", "ripped", "cut")

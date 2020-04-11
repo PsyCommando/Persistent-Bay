@@ -56,7 +56,6 @@ steam.start() -- spawns the effect
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "extinguish"
 	density = 0
-	should_save = 0
 
 /datum/effect/effect/system/steam_spread
 
@@ -101,7 +100,6 @@ steam.start() -- spawns the effect
 	var/amount = 6.0
 	anchored = 1.0
 	mouse_opacity = 0
-	should_save = 0
 
 /obj/effect/sparks/New()
 	..()
@@ -172,7 +170,6 @@ steam.start() -- spawns the effect
 	mouse_opacity = 0
 	var/amount = 6.0
 	var/time_to_live = 100
-	should_save = 0
 
 	//Remove this bit to use the old smoke
 	icon = 'icons/effects/96x96.dmi'
@@ -210,7 +207,6 @@ steam.start() -- spawns the effect
 	opacity = 0
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "sparks"
-	should_save = 0
 
 /obj/effect/effect/smoke/illumination/New(var/newloc, var/lifetime=10, var/range=null, var/power=null, var/color=null)
 	set_light(power, 0.1, range, 2, color)
@@ -223,7 +219,6 @@ steam.start() -- spawns the effect
 
 /obj/effect/effect/smoke/bad
 	time_to_live = 200
-	should_save = 0
 
 /obj/effect/effect/smoke/bad/Move()
 	..()
@@ -245,14 +240,13 @@ steam.start() -- spawns the effect
 	if(air_group || (height==0)) return 1
 	if(istype(mover, /obj/item/projectile/beam))
 		var/obj/item/projectile/beam/B = mover
-		B.force = (B.force/2)
+		B.damage = (B.damage/2)
 	return 1
 /////////////////////////////////////////////
 // Sleep smoke
 /////////////////////////////////////////////
 
 /obj/effect/effect/smoke/sleepy
-	should_save = 0
 
 /obj/effect/effect/smoke/sleepy/Move()
 	..()
@@ -278,7 +272,6 @@ steam.start() -- spawns the effect
 /obj/effect/effect/smoke/mustard
 	name = "mustard gas"
 	icon_state = "mustard"
-	should_save = 0
 
 /obj/effect/effect/smoke/mustard/Move()
 	..()
@@ -419,7 +412,6 @@ steam.start() -- spawns the effect
 	name = "ion trails"
 	icon_state = "ion_trails"
 	anchored = 1.0
-	should_save = 0
 
 /datum/effect/effect/system/trail/ion
 	trail_type = /obj/effect/effect/ion_trails
@@ -435,7 +427,6 @@ steam.start() -- spawns the effect
 	name = "therman trail"
 	icon_state = "explosion_particle"
 	anchored = 1
-	should_save = 0
 
 /datum/effect/effect/system/trail/thermal
 	trail_type = /obj/effect/effect/thermal_trail

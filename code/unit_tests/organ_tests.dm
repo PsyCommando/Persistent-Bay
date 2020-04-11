@@ -1,21 +1,21 @@
 // ==============================================================================
 
-/datum/unit_test/max_health_setup
-	name = "ORGAN: Max Health Is Setup"
+/datum/unit_test/max_damage_setup
+	name = "ORGAN: Max Damage Is Setup"
 
-/datum/unit_test/max_health_setup/start_test()
-	var/list/skipped_organ_types = list(/obj/item/organ/external, /obj/item/organ/internal, /obj/item/organ/external/stump)
+/datum/unit_test/max_damage_setup/start_test()
+	var/list/skipped_organ_types = list(/obj/item/organ/external, /obj/item/organ/internal)
 
 	var/list/failed_organ_types = list()
 	for(var/organ_type in (subtypesof(/obj/item/organ) - skipped_organ_types))
 		var/obj/item/organ/O = organ_type
-		if(!initial(O.max_health))
+		if(!initial(O.max_damage))
 			failed_organ_types += O
 
 	if(failed_organ_types.len)
-		fail("The following organs have incorrectly setup max health: [english_list(failed_organ_types)]")
+		fail("The following organs have incorrectly setup max damage: [english_list(failed_organ_types)]")
 	else
-		pass("All organs have a correctly setup max health")
+		pass("All organs have a correctly setup max damage")
 
 	return 1
 

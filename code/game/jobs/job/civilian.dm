@@ -8,6 +8,7 @@
 	supervisors = "the head of personnel"
 	access = list(access_hydroponics, access_bar, access_kitchen)
 	minimal_access = list(access_bar)
+	alt_titles = list("Barista")
 	outfit_type = /decl/hierarchy/outfit/job/service/bartender
 
 /datum/job/chef
@@ -80,8 +81,8 @@
 	total_positions = 1
 	spawn_positions = 1
 	supervisors = "the head of personnel"
-	access = list(access_janitor, access_maint_tunnels, access_engine, core_access_science_programs, access_sec_doors, access_medical)
-	minimal_access = list(access_janitor, access_maint_tunnels, access_engine, core_access_science_programs, access_sec_doors, access_medical)
+	access = list(access_janitor, access_maint_tunnels, access_engine, access_research, access_sec_doors, access_medical)
+	minimal_access = list(access_janitor, access_maint_tunnels, access_engine, access_research, access_sec_doors, access_medical)
 	alt_titles = list("Custodian","Sanitation Technician")
 	outfit_type = /decl/hierarchy/outfit/job/service/janitor
 
@@ -106,8 +107,8 @@
 	spawn_positions = 2
 	supervisors = "company officials and Corporate Regulations"
 	economic_power = 7
-	access = list(access_lawyer, access_sec_doors, access_maint_tunnels, access_heads)
-	minimal_access = list(access_lawyer, access_sec_doors, access_heads)
+	access = list(access_lawyer, access_sec_doors, access_maint_tunnels, access_bridge)
+	minimal_access = list(access_lawyer, access_sec_doors, access_bridge)
 	minimal_player_age = 10
 	outfit_type = /decl/hierarchy/outfit/job/internal_affairs_agent
 

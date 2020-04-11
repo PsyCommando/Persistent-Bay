@@ -14,16 +14,6 @@
 	var/fail_det_time = 5 // If you are clumsy and fail, you get this time.
 	var/arm_sound = 'sound/weapons/armbomb.ogg'
 
-/obj/item/weapon/grenade/New()
-	. = ..()
-	ADD_SAVED_VAR(active)
-	ADD_SAVED_VAR(det_time)
-
-/obj/item/weapon/grenade/after_load()
-	. = ..()
-	if(active)
-		activate(null) //that could happen
-
 /obj/item/weapon/grenade/proc/clown_check(var/mob/living/user)
 	if((MUTATION_CLUMSY in user.mutations) && prob(50))
 		to_chat(user, "<span class='warning'>Huh? How does this thing work?</span>")
@@ -33,8 +23,9 @@
 		return 0
 	return 1
 
-/obj/item/weapon/grenade/examine(mob/user)
-	if(..(user, 0))
+/obj/item/weapon/grenade/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 0)
 		if(det_time > 1)
 			to_chat(user, "The timer is set to [det_time/10] seconds.")
 			return
@@ -85,7 +76,7 @@
 				det_time = 1
 				to_chat(user, "<span class='notice'>You set the [name] for instant detonation.</span>")
 		add_fingerprint(user)
-	return ..()
+	..()
 
 /obj/item/weapon/grenade/attack_hand()
 	walk(src, null, null)

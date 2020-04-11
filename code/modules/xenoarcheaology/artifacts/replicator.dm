@@ -44,7 +44,7 @@
 	/obj/item/weapon/material/knife/kitchen/cleaver,
 	/obj/item/weapon/caution,
 	/obj/item/weapon/caution/cone,
-	/obj/item/weapon/tool/crowbar,
+	/obj/item/weapon/crowbar,
 	/obj/item/weapon/material/clipboard,
 	/obj/item/weapon/cell,
 	/obj/item/weapon/circular_saw,
@@ -57,10 +57,10 @@
 	/obj/item/weapon/light/tube,
 	/obj/item/weapon/pickaxe,
 	/obj/item/weapon/shovel,
-	/obj/item/weapon/tool/weldingtool,
-	/obj/item/weapon/tool/wirecutters,
-	/obj/item/weapon/tool/wrench,
-	/obj/item/weapon/tool/screwdriver,
+	/obj/item/weapon/weldingtool,
+	/obj/item/weapon/wirecutters,
+	/obj/item/weapon/wrench,
+	/obj/item/weapon/screwdriver,
 	/obj/item/weapon/grenade/chem_grenade/cleaner,
 	/obj/item/weapon/grenade/chem_grenade/metalfoam)
 
@@ -82,7 +82,7 @@
 		[pick("front","side","top","bottom","rear","inside")].</span>"
 
 /obj/machinery/replicator/Process()
-	if(spawning_types.len && powered())
+	if(spawning_types.len && !(stat & NOPOWER))
 		spawn_progress_time += world.time - last_process_time
 		if(spawn_progress_time > max_spawn_time)
 			src.visible_message("<span class='notice'>\icon[src] [src] pings!</span>")
@@ -112,8 +112,9 @@
 
 	last_process_time = world.time
 
-/obj/machinery/replicator/attack_hand(mob/user as mob)
+/obj/machinery/replicator/interface_interact(mob/user)
 	interact(user)
+	return TRUE
 
 /obj/machinery/replicator/interact(mob/user)
 	var/dat = "The control panel displays an incomprehensible selection of controls, many with unusual markings or text around them.<br>"
@@ -121,7 +122,7 @@
 	for(var/index=1, index<=construction.len, index++)
 		dat += "<A href='?src=\ref[src];activate=[index]'>\[[construction[index]]\]</a><br>"
 
-	user << browse(dat, "window=alien_replicator")
+	show_browser(user, dat, "window=alien_replicator")
 
 /obj/machinery/replicator/attackby(obj/item/weapon/W as obj, mob/living/user as mob)
 	if(!user.unEquip(W, src))

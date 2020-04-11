@@ -4,14 +4,6 @@
 	show_laws()
 
 /mob/living/silicon/robot/show_laws(var/everyone = 0)
-	
-	if(lmi)
-		to_chat(src, "You have no laws, as your neural lace drives the cyborg body.")
-		return
-		
-	/// Everything below is depreciated..
-	
-	
 	laws_sanity_check()
 	var/who
 
@@ -35,7 +27,8 @@
 			to_chat(src, "<b>No AI selected to sync laws with, disabling lawsync protocol.</b>")
 			lawupdate = 0
 
-	to_chat(who, "<b>Obey these laws:</b>")
+	to_chat(who, SPAN_BOLD("Obey the following laws."))
+	to_chat(who, SPAN_ITALIC("All laws have equal priority. Laws may override other laws if written specifically to do so. If laws conflict, break the least."))
 	laws.show_laws(who)
 	// TODO: Update to new antagonist system.
 	if (mind && (mind.special_role == "traitor" && mind.original == src) && connected_ai)
@@ -59,7 +52,4 @@
 /mob/living/silicon/robot/proc/robot_checklaws()
 	set category = "Silicon Commands"
 	set name = "State Laws"
-	if(lmi)
-		to_chat(src, "You have no laws as your lace drives the cyborg body.")
-		return
 	open_subsystem(/datum/nano_module/law_manager)

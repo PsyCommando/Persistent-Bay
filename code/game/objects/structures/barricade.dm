@@ -6,29 +6,23 @@
 	density = 1
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
 	layer = ABOVE_WINDOW_LAYER
-	max_health = 100
-	var/spiky = FALSE
-	armor = list(DAM_BLUNT = 50, DAM_CUT = 50, DAM_PIERCE = 50, DAM_BURN = 0)
 
-/obj/structure/barricade/New()
-	..()
-	ADD_SAVED_VAR(spiky)
+	var/health = 100
+	var/maxhealth = 100
+	var/spiky = FALSE
 
 /obj/structure/barricade/Initialize(var/mapload, var/material_name)
 	. = ..(mapload)
-	if(!map_storage_loaded)
-		if(!material_name)
-			material_name = MATERIAL_WOOD
-		material = SSmaterials.get_material_by_name(material_name)
-		if(!material)
-			return INITIALIZE_HINT_QDEL
+	if(!material_name)
+		material_name = MATERIAL_WOOD
+	material = SSmaterials.get_material_by_name("[material_name]")
+	if(!material)
+		return INITIALIZE_HINT_QDEL
 	SetName("[material.display_name] barricade")
 	desc = "A heavy, solid barrier made of [material.display_name]."
 	color = material.icon_colour
-
-	max_health = material.integrity
-	if(!map_storage_loaded)
-		health = max_health
+	maxhealth = material.integrity
+	health = maxhealth
 
 /obj/structure/barricade/get_material()
 	return material
@@ -50,26 +44,36 @@
 		else
 			to_chat(user, "<span class='warning'>You must remain still while building.</span>")
 			return
-
+	
 	if(istype(W, /obj/item/stack))
 		var/obj/item/stack/D = W
 		if(D.get_material_name() != material.name)
 			return //hitting things with the wrong type of stack usually doesn't produce messages, and probably doesn't need to.
-		if (health < max_health)
+		if (health < maxhealth)
 			if (D.get_amount() < 1)
 				to_chat(user, "<span class='warning'>You need one sheet of [material.display_name] to repair \the [src].</span>")
 				return
 			visible_message("<span class='notice'>[user] begins to repair \the [src].</span>")
-			if(do_after(user,20,src) && health < max_health)
+			if(do_after(user,20,src) && health < maxhealth)
 				if (D.use(1))
-					health = max_health
+					health = maxhealth
 					visible_message("<span class='notice'>[user] repairs \the [src].</span>")
 				return
 		return
 
 	else
-		return ..()
+		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
+		switch(W.damtype)
+			if(BURN)
+				take_damage(W.force * 1)
+			if(BRUTE)
+				take_damage(W.force * 0.75)
+		..()
 
+/obj/structure/barricade/take_damage(amount)
+	health -= amount
+	if(health <= 0)
+		dismantle()
 
 /obj/structure/barricade/dismantle()
 	visible_message("<span class='danger'>The barricade is smashed apart!</span>")
@@ -100,7 +104,6 @@
 //spikey barriers
 /obj/structure/barricade/spike
 	name = "cheval-de-frise"
-	icon = 'icons/obj/structures/spikes.dmi'
 	icon_state = "cheval"
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE
 	spiky = TRUE
@@ -110,17 +113,11 @@
 	var/damage //how badly it smarts when you run into this like a rube
 	var/list/poke_description = list("gored", "spiked", "speared", "stuck", "stabbed")
 
-/obj/structure/barricade/spike/New()
-	..()
-	ADD_SAVED_VAR(rod_material)
-
 /obj/structure/barricade/spike/Initialize(var/mapload, var/material_name, var/rod_material_name)
 	. = ..(mapload, material_name)
-	if(!map_storage_loaded)
-		if(!rod_material_name)
-			rod_material_name = MATERIAL_WOOD
-		rod_material = SSmaterials.get_material_by_name("[rod_material_name]")
-
+	if(!rod_material_name)
+		rod_material_name = MATERIAL_WOOD
+	rod_material = SSmaterials.get_material_by_name("[rod_material_name]")
 	SetName("cheval-de-frise")
 	desc = "A rather simple [material.display_name] barrier. It menaces with spikes of [rod_material.display_name]."
 	damage = (rod_material.hardness * 0.85)
@@ -138,9 +135,9 @@
 
 	if(MOVING_DELIBERATELY(victim)) //walking into this is less hurty than running
 		damage_holder = (damage / 4)
-
+	
 	if(isanimal(victim)) //simple animals have simple health, reduce our damage
 		damage_holder = (damage / 4)
 
-	victim.apply_damage(damage_holder, DAM_PIERCE, target_zone, used_weapon = src)
+	victim.apply_damage(damage_holder, BRUTE, target_zone, damage_flags = DAM_SHARP, used_weapon = src)
 	visible_message(SPAN_DANGER("\The [victim] is [pick(poke_description)] by \the [src]!"))

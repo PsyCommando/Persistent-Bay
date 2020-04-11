@@ -20,23 +20,12 @@
 	var/flashlight_inner_range = 1 //inner range of light when on, can be negative
 	var/flashlight_outer_range = 3 //outer range of light when on, can be negative
 	var/flashlight_flags = 0 // FLASHLIGHT_ bitflags
-	var/power_usage = 2
-	var/obj/item/weapon/cell/flashlight_cell = null
-
-/obj/item/device/flashlight/New()
-	..()
-	ADD_SAVED_VAR(on)
-	ADD_SAVED_VAR(flashlight_cell)
-	ADD_SKIP_EMPTY(flashlight_cell)
 
 /obj/item/device/flashlight/Initialize()
 	. = ..()
 
 	set_flashlight()
-	queue_icon_update()
-
-/obj/item/device/flashlight/get_cell()
-	return flashlight_cell
+	update_icon()
 
 /obj/item/device/flashlight/on_update_icon()
 	if (flashlight_flags & FLASHLIGHT_ALWAYS_ON)
@@ -59,10 +48,6 @@
 	if (flashlight_flags & FLASHLIGHT_SINGLE_USE && on)
 		to_chat(user, "The [name] is already lit.")
 		return 0
-	if(power_usage)
-		if(!get_cell() || (get_cell() && !(get_cell().check_charge(power_usage * CELLRATE))))
-			to_chat(user, "<span class='warning'>\The [src] refuses to operate.</span> ")
-			return FALSE
 
 	on = !on
 	if(on && activation_sound)
@@ -72,65 +57,11 @@
 	user.update_action_buttons()
 	return 1
 
-/obj/item/device/flashlight/examine(mob/user)
-	if(..(user, 0))
-		if (!power_usage)
-			return
-		if(flashlight_cell)
-			to_chat(user,"<span class='notice'>There is about [round(src.flashlight_cell.percent(), 1)]% charge remaining.</span>")
-		else
-			to_chat(user,"<span class='warning'>\The [src] is missing a battery!</span>")
-
-/obj/item/device/flashlight/Process(mob/user)
-	if(!get_cell())
-		on = FALSE
-		set_flashlight()
-		return
-	if(!get_cell().checked_use(power_usage * CELLRATE))	//if this passes, there's not enough power in the battery
-		on = FALSE
-		set_flashlight()
-		to_chat(user,"<span class='warning'>\The [src] flickers briefly as the last of its charge is depleted.</span>")
-		return
-
-/obj/item/device/flashlight/attackby(var/obj/item/I, var/mob/user as mob)
-	if(isScrewdriver(I))
-		if(power_usage && get_cell())	//if contains powercell & uses power
-			flashlight_cell.update_icon()
-			flashlight_cell.dropInto(loc)
-			flashlight_cell = null
-			to_chat(user, "<span class='notice'>You remove \the [flashlight_cell] from \the [src].</span>")
-		else if (power_usage && !get_cell())	//does not contains cell, but still uses power
-			to_chat(user, "<span class='notice'>There's no battery in \the [src].</span>")
-		else	//no chat message for lights that don't use power
-			return
-	if(power_usage && !get_cell() && istype(I, /obj/item/weapon/cell/device) && user.unEquip(I, target = src))
-		if (get_cell())
-			to_chat(user, "<span class='notice'>\The [src] already has a battery installed.</span>")
-		if(power_usage && !get_cell() && user.unEquip(I))
-			I.forceMove(src)
-			flashlight_cell = I
-			to_chat(user, "<span class='notice'>You install [I] into \the [src].</span>")
-			update_icon()
-		else	//no message for trying to put batteries in glowsticks
-			return
-
-/obj/item/device/flashlight/emp_act(severity)
-	if(flashlight_cell)	//only flashlights with cells installed are affected
-		on = FALSE
-		set_flashlight()
-		flashlight_cell.emp_act(severity)
-	..()
-
 /obj/item/device/flashlight/proc/set_flashlight()
 	if (on)
 		set_light(flashlight_max_bright, flashlight_inner_range, flashlight_outer_range, 2, light_color)
-		START_PROCESSING(SSobj, src)
 	else
 		set_light(0)
-		STOP_PROCESSING(SSobj, src)
-	update_icon()
-	if(usr)
-		usr.update_action_buttons()
 
 /obj/item/device/flashlight/attack(mob/living/M as mob, mob/living/user as mob)
 	add_fingerprint(user)
@@ -180,7 +111,7 @@
 			return
 		if(MUTATION_XRAY in H.mutations)
 			to_chat(user, "<span class='notice'>\The [H]'s pupils give an eerie glow!</span>")
-		if(vision.isdamaged())
+		if(vision.damage)
 			to_chat(user, "<span class='warning'>There's visible damage to [H]'s [vision.name]!</span>")
 		else if(H.eye_blurry)
 			to_chat(user, "<span class='notice'>\The [H]'s pupils react slower than normally.</span>")
@@ -228,7 +159,6 @@
 	flashlight_max_bright = 0.25
 	flashlight_inner_range = 0.1
 	flashlight_outer_range = 2
-	matter = list(MATERIAL_STEEL = 30,MATERIAL_GLASS = 10)
 
 /obj/item/device/flashlight/maglight
 	name = "maglight"
@@ -238,7 +168,7 @@
 	force = 10
 	attack_verb = list ("smacked", "thwacked", "thunked")
 	matter = list(MATERIAL_ALUMINIUM = 200, MATERIAL_GLASS = 50)
-	sound_hit = "swing_hit"
+	hitsound = "swing_hit"
 	flashlight_max_bright = 0.5
 	flashlight_outer_range = 5
 
@@ -276,7 +206,6 @@
 	flashlight_max_bright = 0.25
 	flashlight_inner_range = 0.1
 	flashlight_outer_range = 2
-	power_usage = 0
 
 
 // the desk lamps are a bit special
@@ -323,14 +252,10 @@
 	var/produce_heat = 1500
 	activation_sound = 'sound/effects/flare.ogg'
 	flashlight_flags = FLASHLIGHT_SINGLE_USE
-	power_usage = 0 //Don't use batteries!!!!
+
 	flashlight_max_bright = 0.8
 	flashlight_inner_range = 0.1
 	flashlight_outer_range = 5
-
-/obj/item/device/flashlight/flare/New()
-	. = ..()
-	ADD_SAVED_VAR(fuel)
 
 /obj/item/device/flashlight/flare/Initialize()
 	. = ..()
@@ -375,13 +300,13 @@
 	..()
 
 /obj/item/device/flashlight/flare/proc/activate(var/mob/user)
-	if(user)
+	if(istype(user))
 		user.visible_message("<span class='notice'>[user] pulls the cord on \the [src], activating it.</span>", "<span class='notice'>You pull the cord on \the [src], activating it!</span>")
 
 /obj/item/device/flashlight/flare/proc/update_damage()
 	if(on)
 		force = on_damage
-		damtype = DAM_BURN
+		damtype = BURN
 	else
 		force = initial(force)
 		damtype = initial(damtype)
@@ -401,7 +326,7 @@
 	item_state = "glowstick"
 	randpixel = 12
 	produce_heat = 0
-	activation_sound = null
+	activation_sound = 'sound/effects/glowstick.ogg'
 
 	flashlight_max_bright = 0.6
 	flashlight_inner_range = 0.1
@@ -433,7 +358,7 @@
 			M.update_inv_r_hand()
 
 /obj/item/device/flashlight/flare/glowstick/activate(var/mob/user)
-	if(user)
+	if(istype(user))
 		user.visible_message("<span class='notice'>[user] cracks and shakes \the [src].</span>", "<span class='notice'>You crack and shake \the [src], turning it on!</span>")
 
 /obj/item/device/flashlight/flare/glowstick/red
@@ -471,7 +396,7 @@
 	w_class = ITEM_SIZE_TINY
 	on = TRUE //Bio-luminesence has one setting, on.
 	flashlight_flags = FLASHLIGHT_ALWAYS_ON
-	power_usage = 0
+
 	flashlight_max_bright = 1
 	flashlight_inner_range = 0.1
 	flashlight_outer_range = 5
@@ -489,14 +414,11 @@
 	item_state = "lamp"
 	on = 0
 	w_class = ITEM_SIZE_LARGE
-	obj_flags = OBJ_FLAG_CONDUCTIBLE
+	obj_flags = OBJ_FLAG_CONDUCTIBLE | OBJ_FLAG_ROTATABLE
 
 	flashlight_max_bright = 1
 	flashlight_inner_range = 3
 	flashlight_outer_range = 7
-
-/obj/item/device/flashlight/floodlamp/AltClick()
-	rotate()
 
 /obj/item/device/flashlight/lamp/floodlamp/green
 	icon_state = "greenfloodlamp"
@@ -510,45 +432,44 @@
 	on = 0
 	action_button_name = "Toggle lamp"
 	flashlight_outer_range = 3 //range of light when on
+	matter = list(MATERIAL_ALUMINIUM = 250, MATERIAL_GLASS = 200)
+
+/obj/item/device/flashlight/lamp/lava/on_update_icon()
+	overlays.Cut()
+	var/image/I = image(icon = icon, icon_state = "lavalamp-[on ? "on" : "off"]")
+	I.color = light_color
+	overlays += I
 
 /obj/item/device/flashlight/lamp/lava/red
 	desc = "A kitchy red decorative light."
-	icon_state = "redlamp"
 	light_color = COLOR_RED
 
 /obj/item/device/flashlight/lamp/lava/blue
 	desc = "A kitchy blue decorative light"
-	icon_state = "bluelamp"
 	light_color = COLOR_BLUE
 
 /obj/item/device/flashlight/lamp/lava/cyan
 	desc = "A kitchy cyan decorative light"
-	icon_state = "cyanlamp"
 	light_color = COLOR_CYAN
 
 /obj/item/device/flashlight/lamp/lava/green
 	desc = "A kitchy green decorative light"
-	icon_state = "greenlamp"
 	light_color = COLOR_GREEN
 
 /obj/item/device/flashlight/lamp/lava/orange
 	desc = "A kitchy orange decorative light"
-	icon_state = "orangelamp"
 	light_color = COLOR_ORANGE
 
 /obj/item/device/flashlight/lamp/lava/purple
 	desc = "A kitchy purple decorative light"
-	icon_state = "purplelamp"
 	light_color = COLOR_PURPLE
-
 /obj/item/device/flashlight/lamp/lava/pink
 	desc = "A kitchy pink decorative light"
-	icon_state = "pinklamp"
 	light_color = COLOR_PINK
 
 /obj/item/device/flashlight/lamp/lava/yellow
 	desc = "A kitchy yellow decorative light"
-	icon_state = "yellowlamp"
 	light_color = COLOR_YELLOW
 
 #undef FLASHLIGHT_ALWAYS_ON
+#undef FLASHLIGHT_SINGLE_USE

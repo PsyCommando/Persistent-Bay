@@ -3,6 +3,18 @@
 #define LIST "list"
 #define ENTRY "entry"
 
+/obj/item/weapon/stock_parts/circuitboard/isolator
+	name = T_BOARD("Isolator")
+	build_path = /obj/machinery/disease2/isolator
+	board_type = "machine"
+	origin_tech = list(TECH_DATA = 3, TECH_BIO = 3)
+	req_components = list(
+		/obj/item/weapon/stock_parts/matter_bin = 1,
+		/obj/item/weapon/stock_parts/scanning_module = 1,
+		/obj/item/weapon/stock_parts/manipulator = 1,
+		/obj/item/weapon/stock_parts/console_screen = 1,
+		)
+
 /obj/machinery/disease2/isolator/
 	name = "pathogenic isolator"
 	density = 1
@@ -26,11 +38,11 @@
 	. = ..()
 	if(!map_storage_loaded)
 		component_parts = list()
-		component_parts += new /obj/item/weapon/circuitboard/isolator(src)
+		component_parts += new /obj/item/weapon/stock_parts/circuitboard/isolator(src)
 		component_parts += new /obj/item/weapon/stock_parts/scanning_module(src)
 		component_parts += new /obj/item/weapon/stock_parts/manipulator(src)
 		component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-		component_parts += new /obj/item/weapon/computer_hardware/hard_drive/portable(src)
+		component_parts += new /obj/item/weapon/stock_parts/computer/hard_drive/portable(src)
 	RefreshParts()
 
 /obj/machinery/disease2/isolator/update_icon()
@@ -46,11 +58,7 @@
 		icon_state = "isolator"
 
 /obj/machinery/disease2/isolator/attackby(var/obj/O as obj, var/mob/user)
-	if(default_deconstruction_screwdriver(user, O))
-		return 1
-	else if(default_deconstruction_crowbar(user, O))
-		return 1
-	else if(istype(O,/obj/item/weapon/reagent_containers/syringe))
+	if(istype(O,/obj/item/weapon/reagent_containers/syringe))
 		var/obj/item/weapon/reagent_containers/syringe/S = O
 		if(sample)
 			to_chat(user, "\The [src] is already loaded.")
@@ -66,9 +74,9 @@
 	else 
 		return ..()
 
-/obj/machinery/disease2/isolator/attack_hand(mob/user as mob)
-	if(inoperable()) return
+/obj/machinery/disease2/isolator/interface_interact(mob/user)
 	ui_interact(user)
+	return TRUE
 
 /obj/machinery/disease2/isolator/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	user.set_machine(src)

@@ -1,36 +1,45 @@
 /obj/machinery/door/airlock/alarmlock
+
 	name = "Glass Alarm Airlock"
 	icon = 'icons/obj/doors/Doorglass.dmi'
-	opacity 		= FALSE
-	glass			= TRUE
-	id_tag 			= null
-	frequency 		= ALARMLOCKS_FREQ
-	radio_filter_in = RADIO_FROM_AIRALARM
-	radio_filter_out= RADIO_TO_AIRALARM
-	autoclose 		= FALSE
+	opacity = 0
+	glass = 1
+
+	var/datum/radio_frequency/air_connection
+	var/air_frequency = 1437
+	autoclose = 0
 
 /obj/machinery/door/airlock/alarmlock/New()
 	..()
-	ADD_SAVED_VAR(id_tag)
-	ADD_SAVED_VAR(autoclose)
+	air_connection = new
+
+/obj/machinery/door/airlock/alarmlock/Destroy()
+	if(radio_controller)
+		radio_controller.remove_object(src,air_frequency)
+	..()
 
 /obj/machinery/door/airlock/alarmlock/Initialize()
 	. = ..()
+	radio_controller.remove_object(src, air_frequency)
+	air_connection = radio_controller.add_object(src, air_frequency, RADIO_TO_AIRALARM)
 	open()
 
-/obj/machinery/door/airlock/alarmlock/OnSignal(datum/signal/signal)
-	. = ..()
+
+/obj/machinery/door/airlock/alarmlock/receive_signal(datum/signal/signal)
+	..()
+	if(stat & (NOPOWER|BROKEN))
+		return
+
 	var/alarm_area = signal.data["zone"]
 	var/alert = signal.data["alert"]
+
 	var/area/our_area = get_area(src)
+
 	if(alarm_area == our_area.name)
 		switch(alert)
 			if("severe")
-				autoclose = TRUE
+				autoclose = 1
 				close()
-				. = TOPIC_HANDLED
 			if("minor", "clear")
-				autoclose = FALSE
+				autoclose = 0
 				open()
-				. = TOPIC_HANDLED
-	return .

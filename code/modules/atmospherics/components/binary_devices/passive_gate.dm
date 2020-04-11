@@ -3,41 +3,39 @@
 #define REGULATE_OUTPUT	2	//shuts off when output side is above the target pressure
 
 /obj/machinery/atmospherics/binary/passive_gate
-	name 				= "pressure regulator"
-	desc 				= "A one-way air valve that can be used to regulate input or output pressure, and flow rate. Does not require power."
-	icon 				= 'icons/atmos/passive_gate.dmi'
-	icon_state 			= "map_off"
-	level 				= 1
-	use_power 			= POWER_USE_OFF
-	interact_offline 	= TRUE
+	icon = 'icons/atmos/passive_gate.dmi'
+	icon_state = "map_off"
+	level = 1
 
-	//Radio
-	frequency 			= null
-	id_tag 				= null
-	radio_filter_in 	= RADIO_ATMOSIA
-	radio_filter_out 	= RADIO_ATMOSIA
-	radio_check_id 		= TRUE
+	name = "pressure regulator"
+	desc = "A one-way air valve that can be used to regulate input or output pressure, and flow rate. Does not require power."
 
-	var/unlocked = FALSE	//If 0, then the valve is locked closed, otherwise it is open(-able, it's a one-way valve so it closes if gas would flow backwards).
+	use_power = POWER_USE_OFF
+	uncreated_component_parts = null
+	interact_offline = 1
+	var/unlocked = 0	//If 0, then the valve is locked closed, otherwise it is open(-able, it's a one-way valve so it closes if gas would flow backwards).
 	var/target_pressure = ONE_ATMOSPHERE
 	var/max_pressure_setting = MAX_PUMP_PRESSURE
 	var/set_flow_rate = ATMOS_DEFAULT_VOLUME_PUMP * 2.5
 	var/regulate_mode = REGULATE_OUTPUT
-	var/flowing = FALSE	//for icons - becomes zero if the valve closes itself due to regulation mode
 
+	var/flowing = 0	//for icons - becomes zero if the valve closes itself due to regulation mode
+
+	var/frequency = 0
+	var/id = null
+	var/datum/radio_frequency/radio_connection
+
+	connect_types = CONNECT_TYPE_REGULAR|CONNECT_TYPE_FUEL
+	build_icon_state = "passivegate"
 
 /obj/machinery/atmospherics/binary/passive_gate/on
-	unlocked 	= TRUE
-	icon_state 	= "map_on"
+	unlocked = 1
+	icon_state = "map_on"
 
-/obj/machinery/atmospherics/binary/passive_gate/New()
-	..()
+/obj/machinery/atmospherics/binary/passive_gate/Initialize()
+	. = ..()
 	air1.volume = ATMOS_DEFAULT_VOLUME_PUMP * 2.5
 	air2.volume = ATMOS_DEFAULT_VOLUME_PUMP * 2.5
-	ADD_SAVED_VAR(unlocked)
-	ADD_SAVED_VAR(target_pressure)
-	ADD_SAVED_VAR(set_flow_rate)
-	ADD_SAVED_VAR(regulate_mode)
 
 /obj/machinery/atmospherics/binary/passive_gate/on_update_icon()
 	icon_state = (unlocked && flowing)? "on" : "off"
@@ -55,9 +53,9 @@
 	update_underlays()
 
 /obj/machinery/atmospherics/binary/passive_gate/Process()
-	. = ..()
+	..()
 
-	//last_flow_rate = 0
+	last_flow_rate = 0
 
 	if(!unlocked)
 		return 0
@@ -75,7 +73,7 @@
 	//-1 if pump_gas() did not move any gas, >= 0 otherwise
 	var/returnval = -1
 	if((regulate_mode == REGULATE_NONE || pressure_delta > 0.01) && (air1.temperature > 0 || air2.temperature > 0))	//since it's basically a valve, it makes sense to check both temperatures
-		flowing = TRUE
+		flowing = 1
 
 		//flow rate limit
 		var/transfer_moles = (set_flow_rate/air1.volume)*air1.total_moles
@@ -92,22 +90,35 @@
 
 	if (returnval >= 0)
 		if(network1)
-			network1.update = TRUE
+			network1.update = 1
 
 		if(network2)
-			network2.update = TRUE
+			network2.update = 1
 
 	if (last_flow_rate)
-		flowing = TRUE
+		flowing = 1
 
 	update_icon()
 
-/obj/machinery/atmospherics/binary/passive_gate/proc/broadcast_status()
-	if(!has_transmitter())
-		return FALSE
 
-	var/list/data = list(
-		// "tag" = id,
+//Radio remote control
+
+/obj/machinery/atmospherics/binary/passive_gate/proc/set_frequency(new_frequency)
+	radio_controller.remove_object(src, frequency)
+	frequency = new_frequency
+	if(frequency)
+		radio_connection = radio_controller.add_object(src, frequency, object_filter = RADIO_ATMOSIA)
+
+/obj/machinery/atmospherics/binary/passive_gate/proc/broadcast_status()
+	if(!radio_connection)
+		return 0
+
+	var/datum/signal/signal = new
+	signal.transmission_method = 1 //radio signal
+	signal.source = src
+
+	signal.data = list(
+		"tag" = id,
 		"device" = "AGP",
 		"power" = unlocked,
 		"target_output" = target_pressure,
@@ -115,15 +126,26 @@
 		"set_flow_rate" = set_flow_rate,
 		"sigtype" = "status"
 	)
-	broadcast_signal(data)
-	return TRUE
 
-/obj/machinery/atmospherics/binary/passive_gate/OnSignal(datum/signal/signal)
-	if(!..() || signal.data["sigtype"] != "command")
-		return
+	radio_connection.post_signal(src, signal, radio_filter = RADIO_ATMOSIA)
 
-	if("power" in signal.data)
-		unlocked = text2num(signal.data["power"])
+	return 1
+
+/obj/machinery/atmospherics/binary/passive_gate/Initialize()
+	. = ..()
+	if(frequency)
+		set_frequency(frequency)
+
+/obj/machinery/atmospherics/binary/passive_gate/Destroy()
+	unregister_radio(src, frequency)
+	. = ..()
+
+/obj/machinery/atmospherics/binary/passive_gate/receive_signal(datum/signal/signal)
+	if(!signal.data["tag"] || (signal.data["tag"] != id) || (signal.data["sigtype"]!="command"))
+		return 0
+
+	if("set_power" in signal.data)
+		unlocked = text2num(signal.data["set_power"])
 
 	if("power_toggle" in signal.data)
 		unlocked = !unlocked
@@ -151,25 +173,11 @@
 	update_icon()
 	return
 
-//Makes passive gate operable on no power
-/obj/machinery/atmospherics/binary/passive_gate/inoperable(additional_flags = 0)
-	return (stat & (BROKEN|additional_flags))
-
-/obj/machinery/atmospherics/binary/passive_gate/attack_hand(user as mob)
-	if(..())
-		return
-	src.add_fingerprint(usr)
-	if(!src.allowed(user))
-		to_chat(user, SPAN_WARNING("Access denied."))
-		return
-	usr.set_machine(src)
+/obj/machinery/atmospherics/binary/passive_gate/interface_interact(mob/user)
 	ui_interact(user)
 	return
 
 /obj/machinery/atmospherics/binary/passive_gate/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
-	if(inoperable())
-		return
-
 	// this is the data which will be sent to the ui
 	var/data[0]
 
@@ -249,7 +257,7 @@
 			"<span class='notice'>\The [user] unfastens \the [src].</span>", \
 			"<span class='notice'>You have unfastened \the [src].</span>", \
 			"You hear ratchet.")
-		new /obj/item/pipe(loc, make_from=src)
+		new /obj/item/pipe(loc, src)
 		qdel(src)
 
 #undef REGULATE_NONE

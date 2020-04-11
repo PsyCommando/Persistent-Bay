@@ -13,6 +13,12 @@
 	supported_upgrades = list(
 		/obj/item/borg/upgrade/weaponcooler
 	)
+	skills = list(
+		SKILL_COMBAT      = SKILL_EXPERT,
+		SKILL_WEAPONS     = SKILL_EXPERT,
+		SKILL_FORENSICS   = SKILL_EXPERT,
+		SKILL_BUREAUCRACY = SKILL_ADEPT
+	)
 
 /obj/item/weapon/robot_module/security/respawn_consumable(var/mob/living/silicon/robot/R, var/amount)
 	..()
@@ -30,6 +36,7 @@
 /obj/item/weapon/robot_module/security/general
 	name = "security robot module"
 	display_name = "Security"
+	crisis_locked = TRUE
 	sprites = list(
 		"Basic" = "secborg",
 		"Red Knight" = "Security",
@@ -47,7 +54,7 @@
 		/obj/item/taperoll/police,
 		/obj/item/device/megaphone,
 		/obj/item/device/holowarrant,
-		/obj/item/weapon/tool/crowbar,
+		/obj/item/weapon/crowbar,
 		/obj/item/device/hailer
 	)
 	emag = /obj/item/weapon/gun/energy/laser/mounted
@@ -67,6 +74,6 @@
 		/obj/item/weapon/gun/energy/plasmacutter,
 		/obj/item/borg/combat/shield,
 		/obj/item/borg/combat/mobility,
-		/obj/item/weapon/tool/crowbar
+		/obj/item/weapon/crowbar
 	)
 	emag = /obj/item/weapon/gun/energy/lasercannon/mounted

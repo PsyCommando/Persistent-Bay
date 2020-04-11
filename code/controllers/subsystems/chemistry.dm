@@ -2,6 +2,7 @@ SUBSYSTEM_DEF(chemistry)
 	name = "Chemistry"
 	priority = SS_PRIORITY_CHEMISTRY
 	init_order = SS_INIT_CHEMISTRY
+	wait = 5
 
 	var/list/active_holders =               list()
 	var/list/chemical_reactions =           list()
@@ -35,7 +36,7 @@ SUBSYSTEM_DEF(chemistry)
 			if(!chemical_reactions_by_id[reagent_id])
 				chemical_reactions_by_id[reagent_id] = list()
 			chemical_reactions_by_id[reagent_id] += D
-	return ..()
+	. = ..()
 
 /datum/controller/subsystem/chemistry/fire(resumed = FALSE)
 	if (!resumed)

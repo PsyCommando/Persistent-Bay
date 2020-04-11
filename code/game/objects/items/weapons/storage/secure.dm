@@ -12,7 +12,6 @@
 // -----------------------------
 /obj/item/weapon/storage/secure
 	name = "secstorage"
-	icon = 'icons/obj/items/storage/secure.dmi'
 	var/icon_locking = "secureb"
 	var/icon_sparking = "securespark"
 	var/icon_opened = "secure0"
@@ -27,10 +26,6 @@
 	w_class = ITEM_SIZE_NORMAL
 	max_w_class = ITEM_SIZE_SMALL
 	max_storage_space = DEFAULT_BOX_STORAGE
-
-	examine(mob/user)
-		if(..(user, 1))
-			to_chat(user, text("The service panel is [src.open ? "open" : "closed"]."))
 
 	attackby(obj/item/weapon/W as obj, mob/user as mob)
 		if(locked)
@@ -92,7 +87,7 @@
 		if (!src.locked)
 			message = "*****"
 		dat += text("<HR>\n>[]<BR>\n<A href='?src=\ref[];type=1'>1</A>-<A href='?src=\ref[];type=2'>2</A>-<A href='?src=\ref[];type=3'>3</A><BR>\n<A href='?src=\ref[];type=4'>4</A>-<A href='?src=\ref[];type=5'>5</A>-<A href='?src=\ref[];type=6'>6</A><BR>\n<A href='?src=\ref[];type=7'>7</A>-<A href='?src=\ref[];type=8'>8</A>-<A href='?src=\ref[];type=9'>9</A><BR>\n<A href='?src=\ref[];type=R'>R</A>-<A href='?src=\ref[];type=0'>0</A>-<A href='?src=\ref[];type=E'>E</A><BR>\n</TT>", message, src, src, src, src, src, src, src, src, src, src, src, src)
-		user << browse(dat, "window=caselock;size=300x280")
+		show_browser(user, dat, "window=caselock;size=300x280")
 
 	Topic(href, href_list)
 		..()
@@ -106,7 +101,7 @@
 				else if ((src.code == src.l_code) && (src.emagged == 0) && (src.l_set == 1))
 					src.locked = 0
 					overlays.Cut()
-					overlays += image(src.icon, icon_opened)
+					overlays += image('icons/obj/storage.dmi', icon_opened)
 					src.code = null
 				else
 					src.code = "ERROR"
@@ -125,14 +120,20 @@
 					src.attack_self(M)
 				return
 		return
+		
+	
+/obj/item/weapon/storage/secure/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1)
+		to_chat(user, text("The service panel is [src.open ? "open" : "closed"]."))
 
 /obj/item/weapon/storage/secure/emag_act(var/remaining_charges, var/mob/user, var/feedback)
 	if(!emagged)
 		emagged = 1
-		src.overlays += image(src.icon, icon_sparking)
+		src.overlays += image('icons/obj/storage.dmi', icon_sparking)
 		sleep(6)
 		overlays.Cut()
-		overlays += image(src.icon, icon_locking)
+		overlays += image('icons/obj/storage.dmi', icon_locking)
 		locked = 0
 		to_chat(user, (feedback ? feedback : "You short out the lock of \the [src]."))
 		return 1
@@ -142,7 +143,7 @@
 // -----------------------------
 /obj/item/weapon/storage/secure/briefcase
 	name = "secure briefcase"
-	icon = 'icons/obj/items/storage/secure.dmi'
+	icon = 'icons/obj/storage.dmi'
 	icon_state = "secure"
 	item_state = "sec-case"
 	desc = "A large briefcase with a digital locking system."
@@ -173,7 +174,7 @@
 
 /obj/item/weapon/storage/secure/safe
 	name = "secure safe"
-	icon = 'icons/obj/items/storage/secure.dmi'
+	icon = 'icons/obj/storage.dmi'
 	icon_state = "safe"
 	icon_opened = "safe0"
 	icon_locking = "safeb"
@@ -196,4 +197,4 @@
 
 /obj/item/weapon/storage/secure/safe/HoS/New()
 	..()
-	//new /obj/item/weapon/storage/lockbox/clusterbang(src) This item is currently broken... and probably shouldnt exist to begin with (even though it's cool)
+	//new /obj/item/weapon/storage/lockbox/clusterbang(src) This item is currently broken... and probably shouldn't exist to begin with (even though it's cool)

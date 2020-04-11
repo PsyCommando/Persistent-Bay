@@ -1,108 +1,70 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 
 /obj/var/list/req_access = list()
-/obj/var/list/req_one_access = list()
-/obj/var/req_access_faction = ""
-/obj/var/req_access_personal
-/obj/var/list/req_access_personal_list = list()
-/obj/var/req_access_business
-/obj/var/list/req_access_business_list = list()
-/obj/var/list/req_one_access_business_list = list()
+
 //returns 1 if this mob has sufficient access to use this object
-/obj/proc/allowed(mob/M)
+/atom/movable/proc/allowed(mob/M)
 	//check if it doesn't require any access at all
-	if(!istype(M))
-		return 0
-
-	if(req_access_personal_list && req_access_personal_list.len)
-		for(var/nam in req_access_personal_list)
-			if(M.get_id_name() == nam)
-				return 1
-		return 0
-
-	if(req_access_personal)
-		if(M.get_id_name() == req_access_personal)
-			return 1
-		return 0
-	if(req_access_business)
-		var/datum/small_business/business = get_business(req_access_business)
-		if(business)
-			if(M.get_id_name() == business.ceo_name) return 1
-			var/datum/employee_data/employee = business.get_employee_data(M.get_id_name())
-			if(employee)
-				var/pass = 1
-				var/one_pass = 0
-				for(var/x in req_access_business_list)		//needs all
-					if(!(x in employee.accesses))
-						pass = 0
-						break								//Break since we found one required access that we don't have on a list that we need ALL
-				if(req_one_access_business_list.len)
-					for(var/x in req_one_access_business_list)
-						if(x in employee.accesses)
-							one_pass = 1
-							break
-
-				if(pass && (one_pass || !req_one_access_business_list.len) )
-					return 1
-			return 0
 	if(src.check_access(null))
-		return 1
+		return TRUE
+	if(!istype(M))
+		return FALSE
+	return check_access_list(M.GetAccess())
 
-
-	return check_access_list(M.GetAccess(req_access_faction))
-
-//FIXME?: Why provide the faction uid if the ID contains it??
-/atom/movable/proc/GetAccess(var/faction_uid)
+/atom/movable/proc/GetAccess()
+	. = list()
 	var/obj/item/weapon/card/id/id = GetIdCard()
-	return id ? id.GetAccess(faction_uid) : list()
-
-/atom/movable/proc/GetFaction()
-	var/obj/item/weapon/card/id/id = GetIdCard()
-	return id ? id.GetFaction() : ""
-
-// /atom/movable/proc/GetAccess()
-// 	. = list()
-// 	var/obj/item/weapon/card/id/id = GetIdCard()
-// 	if(id)
-// 		. += id.GetAccess()
-// 	if(maint_all_access)
-// 		. |= access_maint_tunnels
+	if(id)
+		. += id.GetAccess()
 
 /atom/movable/proc/GetIdCard()
 	return null
 
-/obj/proc/check_access(obj/item/I, var/faction)
-	var/use_faction = req_access_faction
-	if(faction)
-		use_faction = faction
-	return check_access_list(I ? I.GetAccess(use_faction) : list())
+/atom/movable/proc/check_access(atom/movable/A)
+	return check_access_list(A ? A.GetAccess() : list())
 
-/obj/proc/check_access_list(var/list/L)
-	if(!req_access)		req_access = list()
-	if(!req_one_access)	req_one_access = list()
-	if(req_access_personal || (req_access_personal_list && req_access_personal_list.len))
-		return 0
-	if(!istype(L, /list))	return 0
-	return has_access(req_access, req_one_access, L)
+/atom/movable/proc/check_access_list(list/L)
+	var/list/R = get_req_access()
 
-/proc/has_access(var/list/req_access, var/list/req_one_access, var/list/accesses)
+	if(!R)
+		R = list()
+	if(!istype(L, /list))
+		return FALSE
+
+	if(maint_all_access)
+		L = L.Copy()
+		L |= access_maint_tunnels
+
+	return has_access(R, L)
+
+/proc/has_access(list/req_access, list/accesses)
 	for(var/req in req_access)
-		if(!(req in accesses)) //doesn't have this access
-			return 0
-	if(req_one_access.len)
-		for(var/req in req_one_access)
-			if(req in accesses) //has an access from the single access list
-				return 1
-		return 0
-	return 1
+		if(islist(req))
+			var/found = FALSE
+			for(var/req_one in req)
+				if(req_one in accesses)
+					found = TRUE
+					break
+			if(!found)
+				return FALSE
+		else if(!(req in accesses)) //doesn't have this access
+			return FALSE
+	return TRUE
 
 //Checks if the access (constant or list) is contained in one of the entries of access_patterns, a list of lists.
 /proc/has_access_pattern(list/access_patterns, access)
 	if(!islist(access))
 		access = list(access)
 	for(var/access_pattern in access_patterns)
-		if(has_access(access_pattern, list(), access))
+		if(has_access(access_pattern, access))
 			return 1
+
+// Used for retrieving required access information, if available
+/atom/movable/proc/get_req_access()
+	return null
+
+/obj/get_req_access()
+	return req_access
 
 /proc/get_centcom_access(job)
 	switch(job)
@@ -235,17 +197,7 @@
 
 /proc/get_access_by_id(id)
 	var/list/AS = priv_all_access_datums_id || get_all_access_datums_by_id()
-	return AS[num2text(id)]
-
-///proc/get_all_jobs()
-//	var/list/all_jobs = list()
-//	var/list/all_datums = typesof(/datum/job)
-//	all_datums -= exclude_jobs
-//	var/datum/job/jobdatum
-//	for(var/jobtype in all_datums)
-//		jobdatum = new jobtype
-//		all_jobs.Add(jobdatum.title)
-//	return all_jobs
+	return AS[id]
 
 /proc/get_all_centcom_jobs()
 	return list("VIP Guest",
@@ -281,20 +233,24 @@
 		var/obj/item/weapon/card/id = I ? I.GetIdCard() : null
 		if(id)
 			return id
+	var/obj/item/organ/internal/controller/controller = locate() in internal_organs
+	if(istype(controller))
+		return controller.GetIdCard()
 
-/mob/living/carbon/human/GetAccess(var/faction_uid)
+/mob/living/carbon/human/GetAccess()
 	. = list()
 	for(var/item_slot in HUMAN_ID_CARDS)
 		var/obj/item/I = item_slot
 		if(I)
-			. |= I.GetAccess(faction_uid)
+			. |= I.GetAccess()
+	var/obj/item/organ/internal/controller/controller = locate() in internal_organs
+	if(istype(controller))
+		. |= controller.GetAccess()
 #undef HUMAN_ID_CARDS
 
 /mob/living/silicon/GetIdCard()
 	if(stat || (ckey && !client))
 		return // Unconscious, dead or once possessed but now client-less silicons are not considered to have id access.
-	if(idcard)
-		idcard.registered_name = real_name
 	return idcard
 
 /proc/FindNameFromID(var/mob/M, var/missing_id_name = "Unknown")

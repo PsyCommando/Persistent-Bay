@@ -22,25 +22,6 @@
 /obj/machinery/camera/network/thunder
 	network = list(NETWORK_THUNDER)
 
-/obj/machinery/camera/network/public
-	network = list(NETWORK_PUBLIC)
-
-/obj/machinery/camera/network/nanotrasen
-	network = list(NETWORK_NT)
-
-/obj/machinery/camera/network/refugee
-	network = list(NETWORK_REFUGEE)
-
-/obj/machinery/camera/network/nexus
-	network = list(NETWORK_NEXUS)
-
-/obj/machinery/camera/network/nexus_security
-	icon_state = "xraycam" // Thanks to Krutchen for the icons.
-	network = list(NETWORK_NEXUS_SECURITY)
-/obj/machinery/camera/network/nexus_security/Initialize()
-	. = ..()
-	upgradeXRay()
-
 // EMP
 
 /obj/machinery/camera/emp_proof/Initialize()
@@ -104,7 +85,7 @@
 /obj/machinery/camera/proc/upgradeMotion()
 	assembly.upgrades.Add(new /obj/item/device/assembly/prox_sensor(assembly))
 	setPowerUsage()
-	START_PROCESSING(SSmachines, src)
+	STOP_PROCESSING_MACHINE(src, MACHINERY_PROCESS_SELF)
 	update_coverage()
 
 /obj/machinery/camera/proc/setPowerUsage()

@@ -1,28 +1,22 @@
 // Pretty much everything here is stolen from the dna scanner FYI
 /obj/machinery/bodyscanner
+	var/mob/living/carbon/human/occupant
+	var/locked
 	name = "Body Scanner"
 	icon = 'icons/obj/Cryogenic2.dmi'
 	icon_state = "body_scanner_0"
-	density = TRUE
-	anchored = TRUE
+	density = 1
+	anchored = 1
 	idle_power_usage = 60
 	active_power_usage = 10000	//10 kW. It's a big all-body scanner.
-	circuit_type = /obj/item/weapon/circuitboard/bodyscanner
-	var/mob/living/carbon/human/occupant
-	var/locked
-
-/obj/machinery/bodyscanner/New()
-	..()
-	ADD_SAVED_VAR(occupant)
-	ADD_SAVED_VAR(locked)
-
-	ADD_SKIP_EMPTY(occupant)
-
+	construct_state = /decl/machine_construction/default/panel_closed
+	uncreated_component_parts = null
+	stat_immune = 0
 
 /obj/machinery/bodyscanner/examine(mob/user)
 	. = ..()
-	if (. && occupant && user.Adjacent(src))
-		occupant.examine(user)
+	if (occupant && user.Adjacent(src))
+		occupant.examine(arglist(args))
 
 /obj/machinery/bodyscanner/relaymove(mob/user as mob)
 	..()
@@ -66,19 +60,18 @@
 	update_icon()
 	SetName(initial(name))
 
-/obj/machinery/bodyscanner/attackby(obj/item/grab/normal/G, user as mob)
-	if(default_deconstruction_screwdriver(user, G))
+/obj/machinery/bodyscanner/state_transition(var/decl/machine_construction/default/new_state)
+	. = ..()
+	if(istype(new_state))
 		updateUsrDialog()
-		return
-	else if(default_deconstruction_crowbar(user, G))
-		return
-	else if(default_part_replacement(user, G))
-		return
-	else if(istype(G))
+
+/obj/machinery/bodyscanner/attackby(obj/item/grab/normal/G, user as mob)
+	if(istype(G))
 		var/mob/M = G.affecting
 		if(!user_can_move_target_inside(M, user))
-			return	
+			return
 		qdel(G)
+		return TRUE
 	return ..()
 
 /obj/machinery/bodyscanner/proc/user_can_move_target_inside(var/mob/target, var/mob/user)
@@ -107,9 +100,11 @@
 
 /obj/machinery/bodyscanner/on_update_icon()
 	if(!occupant)
-		src.icon_state = "body_scanner_0"
+		icon_state = "body_scanner_0"
+	else if(stat & (BROKEN|NOPOWER))
+		icon_state = "body_scanner_1"
 	else
-		src.icon_state = "body_scanner_1"
+		icon_state = "body_scanner_2"
 
 //Like grap-put, but for mouse-drop.
 /obj/machinery/bodyscanner/MouseDrop_T(var/mob/target, var/mob/user)
@@ -120,6 +115,27 @@
 		return
 	if(!user_can_move_target_inside(target, user))
 		return
+
+/obj/machinery/bodyscanner/ex_act(severity)
+	switch(severity)
+		if(1.0)
+			for(var/atom/movable/A as mob|obj in src)
+				A.dropInto(loc)
+				A.ex_act(severity)
+			qdel(src)
+		if(2.0)
+			if (prob(50))
+				for(var/atom/movable/A as mob|obj in src)
+					A.dropInto(loc)
+					A.ex_act(severity)
+				qdel(src)
+		if(3.0)
+			if (prob(25))
+				for(var/atom/movable/A as mob|obj in src)
+					A.dropInto(loc)
+					A.ex_act(severity)
+				qdel(src)
+
 
 /obj/machinery/bodyscanner/Destroy()
 	if(occupant)

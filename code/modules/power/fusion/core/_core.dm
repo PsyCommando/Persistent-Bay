@@ -6,36 +6,34 @@
 	desc = "An enormous solenoid for generating extremely high power electromagnetic fields. It includes a kinetic energy harvester."
 	icon = 'icons/obj/machines/power/fusion_core.dmi'
 	icon_state = "core0"
-	plane = ABOVE_HUMAN_PLANE
 	layer = ABOVE_HUMAN_LAYER
-	density = TRUE
+	density = 1
 	use_power = POWER_USE_IDLE
 	idle_power_usage = 50
 	active_power_usage = 500 //multiplied by field strength
-	anchored = FALSE
-	id_tag = null
-	obj_flags = OBJ_FLAG_ANCHORABLE
+	anchored = 0
+	construct_state = /decl/machine_construction/default/panel_closed
+	uncreated_component_parts = null
+	stat_immune = 0
+	base_type = /obj/machinery/power/fusion_core
+
 	var/obj/effect/fusion_em_field/owned_field
 	var/field_strength = 1//0.01
 	var/initial_id_tag
 
 /obj/machinery/power/fusion_core/mapped
-	anchored = TRUE
-
-/obj/machinery/power/fusion_core/New()
-	. = ..()
-	ADD_SAVED_VAR(field_strength)
+	anchored = 1
 
 /obj/machinery/power/fusion_core/Initialize()
 	. = ..()
 	connect_to_network()
-	set_extension(src, /datum/extension/fusion_plant_member, /datum/extension/fusion_plant_member)
-	if(!map_storage_loaded && initial_id_tag)
-		var/datum/extension/fusion_plant_member/fusion = get_extension(src, /datum/extension/fusion_plant_member)
+	set_extension(src, /datum/extension/local_network_member)
+	if(initial_id_tag)
+		var/datum/extension/local_network_member/fusion = get_extension(src, /datum/extension/local_network_member)
 		fusion.set_tag(null, initial_id_tag)
 
 /obj/machinery/power/fusion_core/Process()
-	if(isbroken() || !powernet || !owned_field)
+	if((stat & BROKEN) || !powernet || !owned_field)
 		Shutdown()
 
 /obj/machinery/power/fusion_core/Topic(href, href_list)
@@ -84,12 +82,11 @@
 	if(owned_field)
 		owned_field.ChangeFieldStrength(value)
 
-/obj/machinery/power/fusion_core/attack_hand(var/mob/user)
-	if(!Adjacent(user)) // As funny as it was for the AI to hug-kill the tokamak field from a distance...
-		return
+/obj/machinery/power/fusion_core/physical_attack_hand(var/mob/user)
 	visible_message("<span class='notice'>\The [user] hugs \the [src] to make it feel better!</span>")
 	if(owned_field)
 		Shutdown()
+	return TRUE
 
 /obj/machinery/power/fusion_core/attackby(var/obj/item/W, var/mob/user)
 
@@ -98,8 +95,21 @@
 		return
 
 	if(isMultitool(W))
-		var/datum/extension/fusion_plant_member/fusion = get_extension(src, /datum/extension/fusion_plant_member)
+		var/datum/extension/local_network_member/fusion = get_extension(src, /datum/extension/local_network_member)
 		fusion.get_new_tag(user)
+		return
+	
+	else if(isWrench(W))
+		anchored = !anchored
+		playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
+		if(anchored)
+			user.visible_message("[user.name] secures [src.name] to the floor.", \
+				"You secure the [src.name] to the floor.", \
+				"You hear a ratchet")
+		else
+			user.visible_message("[user.name] unsecures [src.name] from the floor.", \
+				"You unsecure the [src.name] from the floor.", \
+				"You hear a ratchet")
 		return
 
 	return ..()

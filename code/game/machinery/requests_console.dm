@@ -23,14 +23,11 @@ var/req_console_information = list()
 var/list/obj/machinery/requests_console/allConsoles = list()
 
 /obj/machinery/requests_console
-	name 			= "Requests Console"
-	desc 			= "A console intended to send requests to different departments."
-	anchored 		= TRUE
-	icon 			= 'icons/obj/machines/terminals/reqterm.dmi'
-	icon_state 		= "req_comp0"
-	frame_type 		= /obj/item/frame/request_console
-	light_outer_range = 0
-
+	name = "Requests Console"
+	desc = "A console intended to send requests to different departments."
+	anchored = 1
+	icon = 'icons/obj/terminals.dmi'
+	icon_state = "req_comp0"
 	var/department = "Unknown" //The list of all departments on the station (Determined from this variable on each unit) Set this to the same thing if you want several consoles in one department
 	var/list/message_log = list() //List of all messages
 	var/departmentType = 0 		//Bitflag. Zero is reply-only. Map currently uses raw numbers instead of defines.
@@ -40,6 +37,9 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 		// 2 = high priority
 	var/screen = RCS_MAINMENU
 	var/silent = 0 // set to 1 for it not to beep all the time
+//	var/hackState = 0
+		// 0 = not hacked
+		// 1 = hacked
 	var/announcementConsole = 0
 		// 0 = This console cannot be used to send department announcements
 		// 1 = This console can send department announcementsf
@@ -53,8 +53,21 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 	light_outer_range = 0
 	var/datum/announcement/announcement = new
 
+/obj/machinery/requests_console/on_update_icon()
+	if(stat & NOPOWER)
+		if(icon_state != "req_comp_off")
+			icon_state = "req_comp_off"
+	else
+		if(icon_state == "req_comp_off")
+			icon_state = "req_comp[newmessagepriority]"
+
 /obj/machinery/requests_console/New()
 	..()
+
+	announcement.title = "[department] announcement"
+	announcement.newscast = 1
+
+	name = "[department] Requests Console"
 	allConsoles += src
 	if (departmentType & RC_ASSIST)
 		req_console_assistance |= department
@@ -63,14 +76,6 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 	if (departmentType & RC_INFO)
 		req_console_information |= department
 
-	// pixel_x = (dir & 3)? 0 : (dir == 4 ? -42 : 42)
-	// pixel_y = (dir & 3)? (dir ==1 ? -42 : 42) : 0
-
-/obj/machinery/requests_console/Initialize(mapload, d)
-	. = ..()
-	name 					= "[department] Requests Console"
-	announcement.title 		= "[department] announcement"
-	announcement.newscast 	= TRUE
 	set_light(1)
 
 /obj/machinery/requests_console/Destroy()
@@ -89,35 +94,9 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 			req_console_information -= department
 	. = ..()
 
-/obj/machinery/requests_console/update_icon()
-	pixel_x = 0
-	pixel_y = 0
-	switch(dir)
-		if(NORTH)
-			pixel_y = -32
-		if(SOUTH)
-			pixel_y = 32
-		if(WEST)
-			pixel_x = 34
-		if(EAST)
-			pixel_x = -34
-
-	if(stat & NOPOWER)
-		if(icon_state != "req_comp_off")
-			icon_state = "req_comp_off"
-		return
-
-	if(panel_open)
-		icon_state = "req_comp_off"
-		return
-
-	if(icon_state == "req_comp_off")
-		icon_state = "req_comp[newmessagepriority]"
-
-/obj/machinery/requests_console/attack_hand(user as mob)
-	if(..(user))
-		return
+/obj/machinery/requests_console/interface_interact(mob/user)
 	ui_interact(user)
+	return TRUE
 
 /obj/machinery/requests_console/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
 	var/data[0]
@@ -146,11 +125,7 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 		ui.set_initial_data(data)
 		ui.open()
 
-/obj/machinery/requests_console/Topic(href, href_list)
-	if(..())	return
-	usr.set_machine(src)
-	add_fingerprint(usr)
-
+/obj/machinery/requests_console/OnTopic(href, href_list)
 	if(reject_bad_text(href_list["write"]))
 		recipient = href_list["write"] //write contains the string of the receiving department's name
 
@@ -164,6 +139,7 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 				else	priority = 0
 		else
 			reset_message(1)
+		return TOPIC_REFRESH
 
 	if(href_list["writeAnnouncement"])
 		var/new_message = sanitize(input("Write your message:", "Awaiting Input", ""))
@@ -171,15 +147,16 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 			message = new_message
 		else
 			reset_message(1)
+		return TOPIC_REFRESH
 
 	if(href_list["sendAnnouncement"])
 		if(!announcementConsole)	return
 		announcement.Announce(message, msg_sanitized = 1)
 		reset_message(1)
+		return TOPIC_REFRESH
 
 	if( href_list["department"] && message )
 		var/log_msg = message
-
 		screen = RCS_SENTFAIL
 		var/obj/machinery/message_server/MS = get_message_server(get_z(src))
 		if(MS)
@@ -187,7 +164,8 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 				screen = RCS_SENTPASS
 				message_log += "<B>Message sent to [recipient]</B><BR>[message]"
 		else
-			audible_message(text("\icon[src] *The Requests Console beeps: 'NOTICE: No server detected!'"), hearing_distance = 4)
+			audible_message(text("\icon[src] *The Requests Console beeps: 'NOTICE: No server detected!'"),,4)
+		return TOPIC_REFRESH
 
 	//Handle screen switching
 	if(href_list["setScreen"])
@@ -203,27 +181,42 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 		if(tempScreen == RCS_MAINMENU)
 			reset_message()
 		screen = tempScreen
+		return TOPIC_REFRESH
 
 	//Handle silencing the console
 	if(href_list["toggleSilent"])
 		silent = !silent
-
-	updateUsrDialog()
-	return
+		return TOPIC_REFRESH
 
 					//err... hacking code, which has no reason for existing... but anyway... it was once supposed to unlock priority 3 messanging on that console (EXTREME priority...), but the code for that was removed.
 /obj/machinery/requests_console/attackby(var/obj/item/weapon/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
-		updateUsrDialog()
-		return
-	else if(default_deconstruction_crowbar(user, O))
-		return
-	else if (istype(O, /obj/item/weapon/card/id))
+	/*
+	if (istype(O, /obj/item/weapon/crowbar))
+		if(open)
+			open = 0
+			icon_state="req_comp0"
+		else
+			open = 1
+			if(hackState == 0)
+				icon_state="req_comp_open"
+			else if(hackState == 1)
+				icon_state="req_comp_rewired"
+	if (istype(O, /obj/item/weapon/screwdriver))
+		if(open)
+			if(hackState == 0)
+				hackState = 1
+				icon_state="req_comp_rewired"
+			else if(hackState == 1)
+				hackState = 0
+				icon_state="req_comp_open"
+		else
+			to_chat(user, "You can't do much with that.") */
+	if (istype(O, /obj/item/weapon/card/id))
 		if(inoperable(MAINT)) return
 		if(screen == RCS_MESSAUTH)
 			var/obj/item/weapon/card/id/T = O
 			msgVerified = text("<font color='green'><b>Verified by [T.registered_name] ([T.assignment])</b></font>")
-			updateUsrDialog()
+			SSnano.update_uis(src)
 		if(screen == RCS_ANNOUNCE)
 			var/obj/item/weapon/card/id/ID = O
 			if (access_RC_announce in ID.GetAccess())
@@ -232,16 +225,14 @@ var/list/obj/machinery/requests_console/allConsoles = list()
 			else
 				reset_message()
 				to_chat(user, "<span class='warning'>You are not authorized to send announcements.</span>")
-			updateUsrDialog()
-		return
-	else if (istype(O, /obj/item/weapon/stamp))
+			SSnano.update_uis(src)
+	if (istype(O, /obj/item/weapon/stamp))
 		if(inoperable(MAINT)) return
 		if(screen == RCS_MESSAUTH)
 			var/obj/item/weapon/stamp/T = O
 			msgStamped = text("<font color='blue'><b>Stamped with the [T.name]</b></font>")
-			updateUsrDialog()
-		return
-	return ..()
+			SSnano.update_uis(src)
+	return
 
 /obj/machinery/requests_console/proc/reset_message(var/mainmenu = 0)
 	message = ""

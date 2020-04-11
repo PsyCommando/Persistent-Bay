@@ -5,10 +5,6 @@
 	var/temperature = T20C
 	var/temperature_coefficient = MAX_TEMPERATURE_COEFFICIENT
 
-/atom/New()
-	..()
-	ADD_SAVED_VAR(temperature)
-	
 /atom/movable/Entered(var/atom/movable/atom, var/atom/old_loc)
 	. = ..()
 	QUEUE_TEMPERATURE_ATOMS(atom)
@@ -24,7 +20,7 @@
 
 /obj/Initialize()
 	. = ..()
-	temperature_coefficient = !temperature_coefficient? Clamp(MAX_TEMPERATURE_COEFFICIENT - w_class, MIN_TEMPERATURE_COEFFICIENT, MAX_TEMPERATURE_COEFFICIENT) : temperature_coefficient
+	temperature_coefficient = isnull(temperature_coefficient) ? Clamp(MAX_TEMPERATURE_COEFFICIENT - w_class, MIN_TEMPERATURE_COEFFICIENT, MAX_TEMPERATURE_COEFFICIENT) : temperature_coefficient
 
 /obj/proc/HandleObjectHeating(var/obj/item/heated_by, var/mob/user, var/adjust_temp)
 	if(ATOM_IS_TEMPERATURE_SENSITIVE(src))

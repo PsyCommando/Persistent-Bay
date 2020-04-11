@@ -14,7 +14,7 @@
 	obj_flags = OBJ_FLAG_CONDUCTIBLE
 	matter = list(MATERIAL_ALUMINIUM = 3000)
 	var/list/carrying = list() // List of things on the tray. - Doohl
-	var/max_carry = 2*base_storage_cost(ITEM_SIZE_NORMAL)
+	var/max_carry = 2*BASE_STORAGE_COST(ITEM_SIZE_NORMAL)
 
 /obj/item/weapon/tray/resolve_attackby(var/atom/A, mob/user)
 	if(istype(A, /obj/item/weapon/storage/)) // There used to be here where it would just deny the tray storage if it had contents. It seems wiser, considering just how useful this tray is as a weapon, to deny it backpacks entirely without actually raising its weight class.
@@ -41,7 +41,7 @@
 	if((MUTATION_CLUMSY in user.mutations) && prob(50))              //What if he's a clown?
 		to_chat(M, "<span class='warning'>You accidentally slam yourself with the [src]!</span>")
 		M.Weaken(1)
-		user.apply_damage(2)
+		user.take_organ_damage(2)
 		if(prob(50))
 			playsound(M, 'sound/items/trayhit1.ogg', 50, 1)
 			return
@@ -63,9 +63,9 @@
 
 		if(prob(15))
 			M.Weaken(3)
-			M.apply_damage(3)
+			M.take_organ_damage(3)
 		else
-			M.apply_damage(5)
+			M.take_organ_damage(5)
 		if(prob(50))
 			playsound(M, 'sound/items/trayhit1.ogg', 50, 1)
 			for(var/mob/O in viewers(M, null))
@@ -109,10 +109,10 @@
 				O.show_message(text("<span class='danger'>[] slams [] with the tray!</span>", user, M), 1)
 		if(prob(10))
 			M.Stun(rand(1,3))
-			M.apply_damage(3)
+			M.take_organ_damage(3)
 			return
 		else
-			M.apply_damage(5)
+			M.take_organ_damage(5)
 			return
 
 	else //No eye or head protection, tough luck!
@@ -133,10 +133,10 @@
 				O.show_message(text("<span class='danger'>[] slams [] in the face with the tray!</span>", user, M), 1)
 		if(prob(30))
 			M.Stun(rand(2,4))
-			M.apply_damage(4)
+			M.take_organ_damage(4)
 			return
 		else
-			M.apply_damage(8)
+			M.take_organ_damage(8)
 			if(prob(30))
 				M.Weaken(2)
 				return

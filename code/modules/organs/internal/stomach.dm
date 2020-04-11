@@ -7,10 +7,6 @@
 	dead_icon = "stomach"
 	organ_tag = BP_STOMACH
 	parent_organ = BP_GROIN
-	max_health = 60
-	min_bruised_damage = 30
-	broken_threshold = 45
-	atom_flags = ATOM_FLAG_OPEN_CONTAINER
 	var/stomach_capacity
 	var/datum/reagents/metabolism/ingested
 	var/next_cramp = 0
@@ -103,8 +99,7 @@
 
 	if(owner)
 		var/functioning = is_usable()
-		var/damages = get_damages()
-		if(functioning && damages >= min_bruised_damage && prob(damages))
+		if(damage >= min_bruised_damage && prob((damage / max_damage) * 100))
 			functioning = FALSE
 
 		if(functioning)

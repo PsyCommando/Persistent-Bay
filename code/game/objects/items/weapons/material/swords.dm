@@ -5,21 +5,24 @@
 	item_state = "claymore"
 	slot_flags = SLOT_BELT
 	w_class = ITEM_SIZE_LARGE
-	force_divisor = 0.25 // 15 when wielded with hardness 60 (steel)
+	force_divisor = 0.5 // 30 when wielded with hardnes 60 (steel)
+	armor_penetration = 10
 	thrown_force_divisor = 0.5 // 10 when thrown with weight 20 (steel)
-	sharpness = 1
+	sharp = 1
+	edge = 1
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
-	sound_attack = 'sound/weapons/bladeslice.ogg'
+	hitsound = 'sound/weapons/bladeslice.ogg'
 	base_parry_chance = 50
 	melee_accuracy_bonus = 10
-	damtype = DAM_CUT
-	mass = 3.6 
+	worth_multiplier = 30
+
 /obj/item/weapon/material/sword/replica
-	sharpness = 0
-	force_divisor = 0.15
+	max_force = 10
+	edge = 0
+	sharp = 0
+	force_divisor = 0.2
 	thrown_force_divisor = 0.2
-	damtype = DAM_BLUNT
-	mass = 1
+	worth_multiplier = 15
 
 /obj/item/weapon/material/sword/katana
 	name = "katana"
@@ -28,20 +31,19 @@
 	item_state = "katana"
 	furniture_icon = "katana_handle"
 	slot_flags = SLOT_BELT | SLOT_BACK
-	mass = 1.5
 
 /obj/item/weapon/material/sword/katana/replica
-	sharpness = 0
-	force_divisor = 0.15
+	max_force = 10
+	edge = 0
+	sharp = 0
+	force_divisor = 0.2
 	thrown_force_divisor = 0.2
-	damtype = DAM_BLUNT
-	mass = 1
 
 /obj/item/weapon/material/sword/katana/vibro
 	name = "vibrokatana"
 	desc = "A high-tech take on a woefully underpowered weapon. Can't mistake its sound for anything."
 	default_material = MATERIAL_TITANIUM
-	sound_hit = 'sound/weapons/anime_sword.wav'
+	hitsound = 'sound/weapons/anime_sword.wav'
 
 /obj/item/weapon/material/sword/katana/vibro/equipped(mob/user, slot)
 	if(slot == slot_l_hand || slot == slot_r_hand)

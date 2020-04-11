@@ -1,12 +1,20 @@
 /mob/living/simple_animal
 	name = "animal"
-	icon = 'icons/mob/animal.dmi'
+	icon = 'icons/mob/simple_animal/animal.dmi'
 	health = 20
 	maxHealth = 20
+	universal_speak = FALSE
 
 	mob_bump_flag = SIMPLE_ANIMAL
 	mob_swap_flags = MONKEY|SLIME|SIMPLE_ANIMAL
 	mob_push_flags = MONKEY|SLIME|SIMPLE_ANIMAL
+
+	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat
+	meat_amount = 3
+	bone_material = MATERIAL_BONE_GENERIC
+	bone_amount = 5
+	skin_material = MATERIAL_SKIN_GENERIC 
+	skin_amount = 5
 
 	var/show_stat_health = 1	//does the percentage health show in the stat panel for the mob
 
@@ -21,9 +29,6 @@
 
 	var/turns_per_move = 1
 	var/turns_since_move = 0
-	universal_speak = 0		//No, just no.
-	var/meat_amount = 0
-	var/meat_type
 	var/stop_automated_movement = 0 //Use this to temporarely stop random movement or to if you write special movement code for animals.
 	var/wander = 1	// Does the mob wander around when idle?
 	var/stop_automated_movement_when_pulled = 1 //When set to 1 this stops the animal from moving when someone is pulling it.
@@ -33,7 +38,7 @@
 	var/response_disarm = "tries to disarm"
 	var/response_harm   = "tries to hurt"
 	var/harm_intent_damage = 3
-	var/can_escape = 0 // 'smart' simple animals such as human enemies, or things small, big, sharp or strong enough to power out of a net
+	var/can_escape = FALSE // 'smart' simple animals such as human enemies, or things small, big, sharp or strong enough to power out of a net
 
 	//Temperature effect
 	var/minbodytemp = 250
@@ -43,8 +48,9 @@
 	var/fire_alert = 0
 
 	//Atmos effect - Yes, you can make creatures that require phoron or co2 to survive. N2O is a trace gas and handled separately, hence why it isn't here. It'd be hard to add it. Hard and me don't mix (Yes, yes make all the dick jokes you want with that.) - Errorage
-	var/min_gas = list(GAS_OXYGEN = 5)
-	var/max_gas = list(GAS_PHORON = 1, GAS_CO2 = 5)
+	var/list/min_gas = list(GAS_OXYGEN = 5)
+	var/list/max_gas = list(GAS_PHORON = 1, GAS_CO2 = 5)
+
 	var/unsuitable_atmos_damage = 2	//This damage is taken when atmos doesn't fit all the requirements above
 	var/speed = 0 //LETS SEE IF I CAN SET SPEEDS FOR SIMPLE MOBS WITHOUT DESTROYING EVERYTHING. Higher speed is slower, negative speed is faster
 
@@ -56,8 +62,9 @@
 	var/friendly = "nuzzles"
 	var/environment_smash = 0
 	var/resistance		  = 0	// Damage reduction
-	var/damtype = DAM_BLUNT
-	var/defense = DAM_BLUNT //what armor protects against its attacks
+	var/damtype = BRUTE
+	var/defense = "melee" //what armor protects against its attacks
+	var/armor_type = /datum/extension/armor
 	var/list/natural_armor //what armor animal has
 	var/flash_vulnerability = 1 // whether or not the mob can be flashed; 0 = no, 1 = yes, 2 = very yes
 
@@ -72,25 +79,18 @@
 	// contained in a cage
 	var/in_stasis = 0
 
-	//Grabbing up 
-	holder_type = /obj/item/weapon/holder
+	//for simple animals with abilities, mostly megafauna
+	var/ability_cooldown
+	var/time_last_used_ability
 
-/mob/living/simple_animal/New()
-	. = ..()
-	ADD_SAVED_VAR(name) //For renamed pets
-	ADD_SAVED_VAR(desc)
-	ADD_SAVED_VAR(bleed_ticks)
-	ADD_SAVED_VAR(meat_amount) //for mess-ups subtracting from the meat amount
+	//for simple animals that reflect damage when attacked in melee
+	var/return_damage_min
+	var/return_damage_max
 
 /mob/living/simple_animal/Initialize()
 	. = ..()
 	if(LAZYLEN(natural_armor))
-		set_extension(src, /datum/extension/armor, /datum/extension/armor, natural_armor)
-
-/mob/living/simple_animal/after_load()
-	..()
-	if(stat == DEAD)
-		death()
+		set_extension(src, armor_type, natural_armor)
 
 /mob/living/simple_animal/Life()
 	. = ..()
@@ -221,15 +221,20 @@
 	if(!Proj || Proj.nodamage)
 		return
 
-	var/damage = Proj.force
+	var/damage = Proj.damage
 	if(Proj.damtype == STUN)
-		damage = Proj.force / 6
+		damage = Proj.damage / 6
+	if(Proj.damtype == BRUTE)
+		damage = Proj.damage / 2
+	if(Proj.damtype == BURN)
+		damage = Proj.damage / 1.5
 	if(Proj.agony)
 		damage += Proj.agony / 6
 		if(health < Proj.agony * 3)
 			Paralyse(Proj.agony / 20)
 			visible_message("<span class='warning'>[src] is stunned momentarily!</span>")
 
+	bullet_impact_visuals(Proj)
 	adjustBruteLoss(damage)
 	Proj.on_hit(src)
 	return 0
@@ -256,7 +261,7 @@
 				var/datum/unarmed_attack/attack = M.get_unarmed_attack(src)
 				dealt_damage = attack.damage <= dealt_damage ? dealt_damage : attack.damage
 				harm_verb = pick(attack.attack_verb)
-				if(attack.sharpness)
+				if(attack.sharp || attack.edge)
 					adjustBleedTicks(dealt_damage)
 
 			adjustBruteLoss(dealt_damage)
@@ -287,7 +292,7 @@
 			return
 
 	if(meat_type && (stat == DEAD) && meat_amount)
-		if(O.sharpness >= 2 || istype(O, /obj/item/weapon/material/knife/kitchen/cleaver))
+		if(istype(O, /obj/item/weapon/material/knife/kitchen/cleaver))
 			var/victim_turf = get_turf(src)
 			if(!locate(/obj/structure/table, victim_turf))
 				to_chat(user, SPAN_NOTICE("You need to place \the [src] on a table to butcher it."))
@@ -322,15 +327,15 @@
 		return 0
 
 	var/damage = O.force
-	if (ISDAMTYPE(O.damtype, DAM_PAIN))
+	if (O.damtype == PAIN)
 		damage = 0
-	if (ISDAMTYPE(O.damtype, DAM_STUN))
+	if (O.damtype == STUN)
 		damage = (O.force / 8)
 	if(supernatural && istype(O,/obj/item/weapon/nullrod))
 		damage *= 2
 		purge = 3
 	adjustBruteLoss(damage)
-	if(O.sharpness)
+	if(O.edge || O.sharp)
 		adjustBleedTicks(damage)
 
 	return 1
@@ -375,7 +380,7 @@
 		if(3)
 			damage = 30
 
-	apply_damage(damage, DAM_BOMB)
+	apply_damage(damage, BRUTE, damage_flags = DAM_EXPLODE)
 
 /mob/living/simple_animal/adjustBruteLoss(damage)
 	..()
@@ -393,16 +398,10 @@
 	..()
 	updatehealth()
 
-/mob/living/simple_animal/proc/SA_attackable(var/atom/movable/target_mob)
-	if(target_mob.loc)
-		return 0
+/mob/living/simple_animal/proc/SA_attackable(target_mob)
 	if (isliving(target_mob))
 		var/mob/living/L = target_mob
 		if(!L.stat && L.health >= 0)
-			return (0)
-	if (istype(target_mob,/obj/mecha))
-		var/obj/mecha/M = target_mob
-		if (M.occupant)
 			return (0)
 	return 1
 
@@ -424,7 +423,6 @@
 
 // Harvest an animal's delicious byproducts
 /mob/living/simple_animal/proc/harvest(var/mob/user, var/skill_level)
-	var/success = FALSE
 	var/actual_meat_amount = round(max(1,(meat_amount / 2) + skill_level / 2))
 	user.visible_message("<span class='danger'>\The [user] chops up \the [src]!</span>")
 	if(meat_type && actual_meat_amount > 0 && (stat == DEAD))
@@ -436,21 +434,25 @@
 				splat.basecolor = bleed_colour
 				splat.update_icon()
 			qdel(src)
-		success = TRUE
-
-	//Get some hide too
-	if(hide_type && hide_amount && (stat == DEAD))
-		for(var/i = 0; i < hide_amount; i++)
-			new hide_type(get_turf(src))
-			success = TRUE
-
-	if(stat == DEAD && success)
-		qdel(src)
 
 /mob/living/simple_animal/proc/subtract_meat(var/mob/user)
 	meat_amount--
 	if(meat_amount <= 0)
 		to_chat(user, SPAN_NOTICE("\The [src] carcass is ruined beyond use."))
+
+/mob/living/simple_animal/bullet_impact_visuals(var/obj/item/projectile/P, var/def_zone)
+	..()
+	switch(get_bullet_impact_effect_type(def_zone))
+		if(BULLET_IMPACT_MEAT)
+			if(P.damtype == BRUTE)
+				var/hit_dir = get_dir(P.starting, src)
+				var/obj/effect/decal/cleanable/blood/B = blood_splatter(get_step(src, hit_dir), src, 1, hit_dir)
+				B.icon_state = pick("dir_splatter_1","dir_splatter_2")
+				B.basecolor = bleed_colour
+				var/scale = min(1, round(mob_size / MOB_MEDIUM, 0.1))
+				var/matrix/M = new()
+				B.transform = M.Scale(scale)
+				B.update_icon()
 
 /mob/living/simple_animal/handle_fire()
 	return
@@ -497,3 +499,14 @@
 			return FLASH_PROTECTION_MAJOR
 		else 
 			return FLASH_PROTECTION_MAJOR
+
+/mob/living/simple_animal/proc/reflect_unarmed_damage(var/mob/living/carbon/human/attacker, var/damage_type, var/description)
+	if(attacker.a_intent == I_HURT)
+		var/hand_hurtie
+		if(attacker.hand)
+			hand_hurtie = BP_L_HAND
+		else
+			hand_hurtie = BP_R_HAND
+		attacker.apply_damage(rand(return_damage_min, return_damage_max), damage_type, hand_hurtie, used_weapon = description)
+		if(rand(25))
+			to_chat(attacker, SPAN_WARNING("Your attack has no obvious effect on \the [src]'s [description]!"))

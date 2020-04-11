@@ -6,9 +6,10 @@
 	randpixel = 8
 	force = 1
 	throwforce = 1
+	max_force = 5
+	force_divisor = 0.1
+	thrown_force_divisor = 0.1
 	w_class = 1
-	damtype = DAM_BLUNT
-	mass = 0.2
 	slot_flags = SLOT_EARS
 	var/string_colour
 

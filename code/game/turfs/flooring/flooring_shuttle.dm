@@ -29,7 +29,3 @@
 /turf/simulated/floor/shuttle/black
 	icon_state = "floor7"
 	initial_flooring = /decl/flooring/reinforced/shuttle/black
-
-/turf/simulated/floor/shuttle/plates
-	icon_state = "vfloor"
-	initial_flooring = /decl/flooring/reinforced/shuttle/plates

@@ -33,12 +33,11 @@
 	passive_temp_gain = 5  // This should cause IPCs to stabilize at ~80 C in a 20 C environment.
 
 	species_flags = SPECIES_FLAG_NO_SCAN | SPECIES_FLAG_NO_PAIN | SPECIES_FLAG_NO_POISON
-	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_LACE
+	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION
 	appearance_flags = HAS_UNDERWEAR | HAS_EYE_COLOR //IPCs can wear undies too :(
 
 	blood_color = "#1f181f"
 	flesh_color = "#575757"
-	virus_immune = 1
 
 	has_organ = list(
 		BP_POSIBRAIN = /obj/item/organ/internal/posibrain,
@@ -75,11 +74,6 @@
 			FACTION_XYNERGY,
 			FACTION_EXPEDITIONARY,
 			FACTION_OTHER
-		),
-		TAG_AMBITION = list(
-			AMBITION_FREEDOM,
-			AMBITION_OPPORTUNITY,
-			AMBITION_KNOWLEDGE
 		)
 	)
 
@@ -88,8 +82,6 @@
 		TAG_HOMEWORLD = HOME_SYSTEM_ROOT,
 		TAG_FACTION = FACTION_POSITRONICS
 	)
-	spawns_with_stack = TRUE
-	spawn_flags =   SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED
 
 /datum/species/machine/handle_death(var/mob/living/carbon/human/H)
 	..()

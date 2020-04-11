@@ -7,19 +7,9 @@
 	icon_state = "guard"
 	item_state = "w_suit"
 	worn_state = "guard"
-	armor  = list(
-		DAM_BLUNT 	= 10,
-		DAM_PIERCE 	= 5,
-		DAM_CUT 	= 10,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 0,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 5,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_SMALL
+		)
 	siemens_coefficient = 0.9
 	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	gender_icons = 1
@@ -34,19 +24,9 @@
 	item_state = "w_suit"
 	worn_state = "smock"
 	permeability_coefficient = 0.50
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 0,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 0,
-		DAM_BOMB 	= 10,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 10,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		bio = ARMOR_BIO_MINOR
+		)
 	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	gender_icons = 1
 	sprite_sheets = list(
@@ -57,7 +37,6 @@
 /obj/item/clothing/under/rank/scientist/executive
 	name = "\improper EXO polo and pants"
 	desc = "A fashionable polo and pair of trousers made from expensive biohazard-resistant fabrics. The colors denote the wearer as a Expeditionary Corps Organisation higher-up."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smockexec"
 	worn_state = "smockexec"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/exec)
@@ -68,19 +47,10 @@
 	icon_state = "work"
 	item_state = "lb_suit"
 	worn_state = "work"
-	armor  = list(
-		DAM_BLUNT 	= 5,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 5,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 0,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 5,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor = list(
+		melee = ARMOR_MELEE_MINOR, 
+		bio = ARMOR_BIO_MINOR
+		)
 	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	gender_icons = 1
 	sprite_sheets = list(
@@ -114,16 +84,14 @@
 
 //NanoTrasen
 /obj/item/clothing/under/rank/guard/nanotrasen
-	name = "security guard uniform"
+	name = "red security guard uniform"
 	desc = "A durable uniform worn by subcontracted NanoTrasen security."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "guard_nt"
 	worn_state = "guard_nt"
 
 /obj/item/clothing/under/rank/scientist/nanotrasen
 	name = "\improper NanoTrasen polo and pants"
 	desc = "A fashionable polo and pair of trousers belonging to NanoTrasen, a megacorporation primarily concerned with the research of new and dangerous technologies."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smock_nt"
 	worn_state = "smock_nt"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/nanotrasen)
@@ -131,14 +99,12 @@
 /obj/item/clothing/under/rank/scientist/executive/nanotrasen
 	name = "\improper NanoTrasen polo and pants"
 	desc = "A fashionable polo and pair of trousers made from expensive biohazard-resistant fabrics. The colors denote the wearer as a NanoTrasen higher-up."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smockexec_nt"
 	worn_state = "smockexec_nt"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/exec/nanotrasen)
 
 /obj/item/clothing/under/rank/ntwork/nanotrasen
 	name = "beige and red coveralls"
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "work_nt"
 	worn_state = "work_nt"
 
@@ -156,7 +122,6 @@
 /obj/item/clothing/under/suit_jacket/corp/nanotrasen
 	name = "\improper NanoTrasen executive suit"
 	desc = "A set of NanoTrasen-issued suit pants and shirt that particularly enthusiastic company executives tend to wear."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "suit_nt"
 	worn_state = "suit_nt"
 	starting_accessories = list(/obj/item/clothing/accessory/toggleable/corpjacket/nanotrasen, /obj/item/clothing/accessory/corptie/nanotrasen)
@@ -165,14 +130,12 @@
 /obj/item/clothing/under/rank/guard/heph
 	name = "cyan security guard uniform"
 	desc = "A durable uniform worn by subcontracted Hephaestus Industries security."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "guard_heph"
 	worn_state = "guard_heph"
 
 /obj/item/clothing/under/rank/scientist/heph
 	name = "\improper Hephaestus polo and pants"
 	desc = "A fashionable polo and pair of trousers belonging to Hephaestus Industries, a megacorporation primarily concerned with the research and production of weapon systems."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smock_heph"
 	worn_state = "smock_heph"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/heph)
@@ -180,14 +143,12 @@
 /obj/item/clothing/under/rank/scientist/executive/heph
 	name = "\improper Hephaestus polo and pants"
 	desc = "A fashionable polo and pair of trousers made from expensive biohazard-resistant fabrics. The colors denote the wearer as a Hephaestus Industries higher-up."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smockexec_heph"
 	worn_state = "smockexec_heph"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/exec/heph)
 
 /obj/item/clothing/under/rank/ntwork/heph
 	name = "grey and cyan coveralls"
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "work_heph"
 	worn_state = "work_heph"
 
@@ -204,7 +165,6 @@
 /obj/item/clothing/under/suit_jacket/corp/heph
 	name = "\improper Hephaestus executive suit"
 	desc = "A set of Hephaestus Industries-issued suit pants and shirt that particularly enthusiastic company executives tend to wear."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "suit_heph"
 	worn_state = "suit_heph"
 	starting_accessories = list(/obj/item/clothing/accessory/toggleable/corpjacket/heph, /obj/item/clothing/accessory/corptie/heph)
@@ -213,7 +173,6 @@
 /obj/item/clothing/under/rank/scientist/zeng
 	name = "\improper Zeng-Hu polo and pants"
 	desc = "A fashionable polo and pair of trousers belonging to Zeng-Hu Pharmaceuticals, a megacorporation primarily concerned with the research and production of medical equipment and pharmaceuticals."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smock_zeng"
 	worn_state = "smock_zeng"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/zeng)
@@ -221,21 +180,18 @@
 /obj/item/clothing/under/rank/scientist/executive/zeng
 	name = "\improper Zeng-Hu polo and pants"
 	desc = "A fashionable polo and pair of trousers made from expensive biohazard-resistant fabrics. The colors denote the wearer as a Zeng-Hu Pharmaceuticals higher-up."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "smockexec_zeng"
 	worn_state = "smockexec_zeng"
 	starting_accessories = list(/obj/item/clothing/accessory/tunic/exec/zeng)
 
 /obj/item/clothing/under/rank/ntwork/zeng
 	name = "beige and gold coveralls"
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "work_zeng"
 	worn_state = "work_zeng"
 
 /obj/item/clothing/under/suit_jacket/corp/zeng
 	name = "\improper Zeng-Hu executive suit"
 	desc = "A set of Zeng-Hu Pharmaceuticals-issued suit pants and shirt that particularly enthusiastic company executives tend to wear."
-	item_icons = list(slot_w_uniform_str = 'icons/mob/onmob/onmob_under_corporate.dmi')
 	icon_state = "suit_zeng"
 	worn_state = "suit_zeng"
 	starting_accessories = list(/obj/item/clothing/accessory/toggleable/corpjacket/zeng, /obj/item/clothing/accessory/corptie/zeng)

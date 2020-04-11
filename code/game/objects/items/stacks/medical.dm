@@ -12,7 +12,6 @@
 	var/heal_burn = 0
 	var/animal_heal = 3
 	var/apply_sounds
-	var/damage_amount
 
 /obj/item/stack/medical/proc/check_limb_state(var/mob/user, var/obj/item/organ/external/limb)
 	. = FALSE
@@ -66,7 +65,6 @@
 		use(1)
 
 	M.updatehealth()
-
 /obj/item/stack/medical/bruise_pack
 	name = "roll of gauze"
 	singular_name = "gauze length"
@@ -76,18 +74,6 @@
 	animal_heal = 5
 	apply_sounds = list('sound/effects/rip1.ogg','sound/effects/rip2.ogg')
 	amount = 10
-	materials_per_unit = list(MATERIAL_CLOTH = 2000)
-/obj/item/stack/medical/bruise_pack/makeshift
-	name = "makeshift bandage"
-	singular_name = "bandage length"
-	desc = "Some non-sterilized cloth to dress bleeding wounds."
-	color = COLOR_GRAY
-	heal_brute = 1
-	animal_heal = 1
-	amount = 1
-	max_amount = 5
-	materials_per_unit = list(MATERIAL_CLOTH = 1000)
-	germ_level = 200
 
 /obj/item/stack/medical/bruise_pack/attack(var/mob/living/carbon/M, var/mob/user)
 	if(..())
@@ -117,7 +103,7 @@
 					user.visible_message(SPAN_NOTICE("\The [user] bandages \a [W.desc] on [M]'s [affecting.name]."), \
 					                              SPAN_NOTICE("You bandage \a [W.desc] on [M]'s [affecting.name]."))
 					//H.add_side_effect("Itch")
-				else if (ISDAMTYPE(W.damage_type, DAM_BLUNT))
+				else if (W.damage_type == BRUISE)
 					user.visible_message(SPAN_NOTICE("\The [user] places a bruise patch over \a [W.desc] on [M]'s [affecting.name]."), \
 					                              SPAN_NOTICE("You place a bruise patch over \a [W.desc] on [M]'s [affecting.name].") )
 				else
@@ -206,7 +192,7 @@
 				if (W.current_stage <= W.max_bleeding_stage)
 					user.visible_message(SPAN_NOTICE("\The [user] cleans \a [W.desc] on [M]'s [affecting.name] and seals the edges with bioglue."), \
 					                     SPAN_NOTICE("You clean and seal \a [W.desc] on [M]'s [affecting.name].") )
-				else if (ISDAMTYPE(W.damage_type, DAM_BLUNT))
+				else if (W.damage_type == BRUISE)
 					user.visible_message(SPAN_NOTICE("\The [user] places a medical patch over \a [W.desc] on [M]'s [affecting.name]."), \
 					                              SPAN_NOTICE("You place a medical patch over \a [W.desc] on [M]'s [affecting.name].") )
 				else
@@ -307,6 +293,7 @@
 			var/obj/item/stack/medical/splint/S = split(1, TRUE)
 			if(S)
 				if(affecting.apply_splint(S))
+					M.verbs += /mob/living/carbon/human/proc/remove_splints
 					S.forceMove(affecting)
 					if (M != user)
 						user.visible_message(SPAN_DANGER("\The [user] finishes applying [src] to [M]'s [limb]."), SPAN_DANGER("You finish applying \the [src] to [M]'s [limb]."), SPAN_DANGER("You hear something being wrapped."))
@@ -333,6 +320,10 @@
 	icon_state = "resin-pack"
 	heal_brute = 10
 	heal_burn =  10
+
+/obj/item/stack/medical/resin/drone
+	amount = 25
+	max_amount = 25
 
 /obj/item/stack/medical/resin/handmade
 	name = "resin globules"

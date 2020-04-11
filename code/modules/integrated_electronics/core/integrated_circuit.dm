@@ -32,9 +32,13 @@ a creative player the means to solve many problems.  Circuits are held inside an
 
 /obj/item/integrated_circuit/examine(mob/user)
 	. = ..()
-	if(.)
+	external_examine(user)
+
+/obj/item/integrated_circuit/ShiftClick(mob/living/user)
+	if(istype(user))
 		interact(user)
-		external_examine(user)
+	else
+		..()
 
 // This should be used when someone is examining while the case is opened.
 /obj/item/integrated_circuit/proc/internal_examine(mob/user)
@@ -280,7 +284,7 @@ a creative player the means to solve many problems.  Circuits are held inside an
 		. = IC_TOPIC_REFRESH
 
 	else if(href_list["remove"] && assembly)
-		if(istype(held_item, /obj/item/weapon/tool/screwdriver))
+		if(istype(held_item, /obj/item/weapon/screwdriver))
 			disconnect_all()
 			dropInto(loc)
 			playsound(src, 'sound/items/Crowbar.ogg', 50, 1)

@@ -1,3 +1,5 @@
+var/global/list/empty_playable_ai_cores = list()
+
 /obj/structure/AIcore
 	density = 1
 	anchored = 0
@@ -6,7 +8,7 @@
 	icon_state = "0"
 	var/state = 0
 	var/datum/ai_laws/laws = new /datum/ai_laws/nanotrasen
-	var/obj/item/weapon/circuitboard/circuit = null
+	var/obj/item/weapon/stock_parts/circuitboard/circuit = null
 	var/obj/item/device/mmi/brain = null
 	var/authorized
 
@@ -31,9 +33,13 @@
 					anchored = 1
 					state = 1
 			if(isWelder(P))
-				var/obj/item/weapon/tool/weldingtool/WT = P
-				if(WT.use_tool(user, src, 2 SECONDS))
-					if(!src) return
+				var/obj/item/weapon/weldingtool/WT = P
+				if(!WT.isOn())
+					to_chat(user, "The welder must be on for this task.")
+					return
+				playsound(loc, 'sound/items/Welder.ogg', 50, 1)
+				if(do_after(user, 20, src))
+					if(!src || !WT.remove_fuel(0, user)) return
 					to_chat(user, "<span class='notice'>You deconstruct the frame.</span>")
 					new /obj/item/stack/material/plasteel( loc, 4)
 					qdel(src)
@@ -45,7 +51,7 @@
 					to_chat(user, "<span class='notice'>You unfasten the frame.</span>")
 					anchored = 0
 					state = 0
-			if(istype(P, /obj/item/weapon/circuitboard/aicore) && !circuit && user.unEquip(P, src))
+			if(istype(P, /obj/item/weapon/stock_parts/circuitboard/aicore) && !circuit && user.unEquip(P, src))
 				playsound(loc, 'sound/items/Deconstruct.ogg', 50, 1)
 				to_chat(user, "<span class='notice'>You place the circuit board inside the frame.</span>")
 				icon_state = "1"
@@ -140,7 +146,7 @@
 				if(!B)
 					to_chat(user, "<span class='warning'>Sticking an empty [P] into the frame would sort of defeat the purpose.</span>")
 					return
-				if(B.stat == DEAD)
+				if(B.stat == 2)
 					to_chat(user, "<span class='warning'>Sticking a dead [P] into the frame would sort of defeat the purpose.</span>")
 					return
 
@@ -241,7 +247,7 @@
 		else
 			to_chat(user, "<span class='danger'>ERROR:</span> Unable to locate artificial intelligence.")
 		return
-	else if(isWrench(W))
+	else if(istype(W, /obj/item/weapon/wrench))
 		if(anchored)
 			user.visible_message("<span class='notice'>\The [user] starts to unbolt \the [src] from the plating...</span>")
 			if(!do_after(user,40,src))

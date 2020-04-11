@@ -1,7 +1,7 @@
 /obj/item/weapon/gun/projectile
 	name = "gun"
 	desc = "A gun that fires bullets."
-	icon = 'icons/obj/weapons/guns/pistol.dmi'
+	icon = 'icons/obj/guns/pistol.dmi'
 	icon_state = "secguncomp"
 	origin_tech = list(TECH_COMBAT = 2, TECH_MATERIAL = 2)
 	w_class = ITEM_SIZE_NORMAL
@@ -37,15 +37,6 @@
 	//var/list/icon_keys = list()		//keys
 	//var/list/ammo_states = list()	//values
 
-/obj/item/weapon/gun/projectile/New()
-	..()
-	ADD_SAVED_VAR(chambered)
-	ADD_SAVED_VAR(ammo_magazine)
-	ADD_SAVED_VAR(is_jammed)
-
-	ADD_SKIP_EMPTY(chambered)
-	ADD_SKIP_EMPTY(ammo_magazine)
-
 /obj/item/weapon/gun/projectile/Initialize()
 	. = ..()
 	if(!map_storage_loaded)
@@ -58,7 +49,7 @@
 	queue_icon_update()
 
 /obj/item/weapon/gun/projectile/consume_next_projectile()
-	if(!is_jammed && prob(jam_chance/5))
+	if(!is_jammed && prob(jam_chance))
 		src.visible_message("<span class='danger'>\The [src] jams!</span>")
 		is_jammed = 1
 		var/mob/user = loc
@@ -101,7 +92,7 @@
 		var/obj/item/organ/external/E = H.get_organ(zone)
 		if(E)
 			chambered.put_residue_on(E)
-			H.apply_damage(3, DAM_BURN, used_weapon = "Gunpowder Burn", given_organ = E)
+			H.apply_damage(3, BURN, used_weapon = "Gunpowder Burn", given_organ = E)
 
 /obj/item/weapon/gun/projectile/handle_click_empty()
 	..()
@@ -113,6 +104,7 @@
 	switch(handle_casings)
 		if(EJECT_CASINGS) //eject casing onto ground.
 			chambered.dropInto(loc)
+			chambered.throw_at(get_ranged_target_turf(get_turf(src),turn(loc.dir,270),1), rand(0,1), 5)
 			if(LAZYLEN(chambered.fall_sounds))
 				playsound(loc, pick(chambered.fall_sounds), 50, 1)
 		if(CYCLE_CASINGS) //cycle the casing back to the end.
@@ -249,14 +241,13 @@
 		update_icon() //make sure to do this after unsetting ammo_magazine
 
 /obj/item/weapon/gun/projectile/examine(mob/user)
-	. = ..(user)
+	. = ..()
 	if(is_jammed && user.skill_check(SKILL_WEAPONS, SKILL_BASIC))
 		to_chat(user, "<span class='warning'>It looks jammed.</span>")
 	if(ammo_magazine)
 		to_chat(user, "It has \a [ammo_magazine] loaded.")
 	if(user.skill_check(SKILL_WEAPONS, SKILL_ADEPT))
 		to_chat(user, "Has [getAmmo()] round\s remaining.")
-	return
 
 /obj/item/weapon/gun/projectile/proc/getAmmo()
 	var/bullets = 0

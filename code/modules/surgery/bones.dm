@@ -2,8 +2,6 @@
 //////////////////////////////////////////////////////////////////
 //						BONE SURGERY							//
 //////////////////////////////////////////////////////////////////
-#define DUCTTAPE_NEEDED_BONEGELLING 30
-#define DUCTTAPE_NEEDED_POST_BONEGELLING 15
 
 /decl/surgery_step/bone
 	surgery_candidate_flags = SURGERY_NO_ROBOTIC | SURGERY_NO_CRYSTAL | SURGERY_NEEDS_ENCASEMENT
@@ -45,9 +43,6 @@
 		"<span class='notice'>You apply some [tool.name] to [bone].</span>")
 	if(affected.stage == 0)
 		affected.stage = 1
-	if(istype(tool, /obj/item/weapon/tape_roll))
-		var/obj/item/weapon/tape_roll/thetape = tool
-		thetape.use_tape(DUCTTAPE_NEEDED_BONEGELLING)
 	affected.status &= ~ORGAN_BRITTLE
 
 /decl/surgery_step/bone/glue/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
@@ -63,7 +58,7 @@
 	name = "Set bone"
 	allowed_tools = list(
 		/obj/item/weapon/bonesetter = 100,
-		/obj/item/weapon/tool/wrench = 75
+		/obj/item/weapon/wrench = 75
 	)
 	min_duration = 60
 	max_duration = 70
@@ -105,7 +100,7 @@
 	user.visible_message("<span class='warning'>\The [user]'s hand slips, damaging the [affected.encased ? affected.encased : "bones"] in \the [target]'s [affected.name] with \the [tool]!</span>" , \
 		"<span class='warning'>Your hand slips, damaging the [affected.encased ? affected.encased : "bones"] in \the [target]'s [affected.name] with \the [tool]!</span>")
 	affected.fracture()
-	affected.take_damage(5, DAM_BLUNT, used_weapon = tool)
+	affected.take_external_damage(5, used_weapon = tool)
 
 //////////////////////////////////////////////////////////////////
 //	post setting bone-gelling surgery step
@@ -138,14 +133,8 @@
 	affected.status &= ~ORGAN_BROKEN
 	affected.stage = 0
 	affected.update_wounds()
-	if(istype(tool, /obj/item/weapon/tape_roll))
-		var/obj/item/weapon/tape_roll/thetape = tool
-		thetape.use_tape(DUCTTAPE_NEEDED_POST_BONEGELLING)
 
 /decl/surgery_step/bone/finish/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
 	var/obj/item/organ/external/affected = target.get_organ(target_zone)
 	user.visible_message("<span class='warning'>[user]'s hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>" , \
 	"<span class='warning'>Your hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>")
-
-#undef DUCTTAPE_NEEDED_BONEGELLING
-#undef DUCTTAPE_NEEDED_POST_BONEGELLING

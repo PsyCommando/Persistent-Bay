@@ -7,7 +7,6 @@
 	gauge_icon = null
 	w_class = ITEM_SIZE_HUGE
 	item_state = "jetpack"
-	matter = list(MATERIAL_STEEL = 6000)
 	distribute_pressure = ONE_ATMOSPHERE*O2STANDARD
 	var/datum/effect/effect/system/trail/ion/ion_trail
 	var/on = 0.0
@@ -100,8 +99,7 @@
 
 /obj/item/weapon/tank/jetpack/rig/examine()
 	. = ..()
-	to_chat(usr, "It's a jetpack. If you can see this, report it on the bug tracker.")
-	return 0
+	CRASH("A [name] was examined")
 
 /obj/item/weapon/tank/jetpack/rig/allow_thrust(num, mob/living/user as mob)
 

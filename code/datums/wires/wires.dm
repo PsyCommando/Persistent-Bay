@@ -10,7 +10,7 @@ var/list/same_wires = list()
 var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown", "gold", "gray", "cyan", "navy", "purple", "pink", "black", "yellow")
 
 /datum/wires
-	should_save = FALSE
+
 	var/random = 0 // Will the wires be different for every single instance.
 	var/atom/holder = null // The holder
 	var/holder_type = null // The holder type; used to make sure that the holder is the correct type.
@@ -31,8 +31,8 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 /datum/wires/New(var/atom/holder)
 	..()
 	src.holder = holder
-	if(!istype(holder, holder_type) && !ispath(holder, holder_type) ) //Check for inheritance too
-		CRASH("Our holder is null/the wrong type [holder_type] != [holder? holder.type : "null"]!")
+	if(!istype(holder, holder_type))
+		CRASH("Our holder is null/the wrong type!")
 		return
 
 	// Generate new wires
@@ -83,13 +83,14 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 	else
 		user.unset_machine()
 		// No content means no window.
-		user << browse(null, "window=wires")
+		close_browser(user, "window=wires")
 		return
 
 	var/datum/browser/popup = new(user, "wires", holder.name, window_x, window_y)
 	popup.set_content(html)
 	popup.set_title_image(user.browse_rsc_icon(holder.icon, holder.icon_state))
 	popup.open()
+	return TRUE
 
 /datum/wires/proc/GetInteractWindow(mob/user)
 	var/html = list()
@@ -125,10 +126,17 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 
 		var/mob/living/L = usr
 		if(CanUse(L) && href_list["action"])
+
 			var/obj/item/I = L.get_active_hand()
+
+			var/obj/item/offhand_item
+			if(ishuman(usr))
+				var/mob/living/carbon/human/H = usr
+				offhand_item = H.wearing_rig && H.wearing_rig.selected_module
+
 			holder.add_hiddenprint(L)
 			if(href_list["cut"]) // Toggles the cut/mend status
-				if(isWirecutter(I))
+				if(isWirecutter(I) || isWirecutter(offhand_item))
 					var/colour = href_list["cut"]
 					CutWireColour(colour)
 					if(prob(L.skill_fail_chance(SKILL_ELECTRICAL, 20, SKILL_ADEPT)))
@@ -140,7 +148,7 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 				else
 					to_chat(L, "<span class='error'>You need wirecutters!</span>")
 			else if(href_list["pulse"])
-				if(isMultitool(I))
+				if(isMultitool(I) || isMultitool(offhand_item))
 					var/colour = href_list["pulse"]
 					if(prob(L.skill_fail_chance(SKILL_ELECTRICAL, 30, SKILL_ADEPT)))
 						RandomPulse()
@@ -180,7 +188,7 @@ var/list/wireColours = list("red", "blue", "green", "darkred", "orange", "brown"
 			Interact(usr)
 
 	if(href_list["close"])
-		usr << browse(null, "window=wires")
+		close_browser(usr, "window=wires")
 		usr.unset_machine(holder)
 
 //

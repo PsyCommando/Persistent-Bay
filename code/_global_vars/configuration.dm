@@ -8,15 +8,11 @@ var/changelog_hash      = ""
 var/game_year           = (text2num(time2text(world.realtime, "YYYY")) + config.year_skip)
 var/join_motd = null
 
-var/master_mode       = "extended" // "extended"
-var/secondary_mode    = "extended"
-var/tertiary_mode     = "extended"
 var/secret_force_mode = "secret"   // if this is anything but "secret", the secret rotation will forceably choose this mode.
 
 var/Debug2 = 0
 
 var/gravity_is_on = 1
-var/round_progressing = 1
 
 // Database connections. A connection is established on world creation.
 // Ideally, the connection dies when the server restarts (After feedback logging.).

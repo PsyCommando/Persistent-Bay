@@ -2,14 +2,11 @@
 //node2, air2, network2 correspond to output
 
 /obj/machinery/atmospherics/binary/circulator
-	name 			= "circulator"
-	desc 			= "A gas circulator turbine and heat exchanger."
-	icon 			= 'icons/obj/pipes.dmi'
-	icon_state 		= "circ-off"
-	anchored 		= FALSE
-	density 		= TRUE
-	mass			= 50.0 //kg
-	circuit_type 	= /obj/item/weapon/circuitboard/circulator
+	name = "circulator"
+	desc = "A gas circulator turbine and heat exchanger."
+	icon = 'icons/obj/power.dmi'
+	icon_state = "circ-unassembled"
+	anchored = 0
 
 	var/kinetic_efficiency = 0.04 //combined kinetic and kinetic-to-electric efficiency
 	var/volume_ratio = 0.2
@@ -22,22 +19,14 @@
 	var/last_stored_energy_transferred = 0
 	var/volume_capacity_used = 0
 	var/stored_energy = 0
+	var/temperature_overlay
 
-/obj/machinery/atmospherics/binary/circulator/New()
-	..()
-	air1.volume = 400
-	ADD_SAVED_VAR(recent_moles_transferred)
-	ADD_SAVED_VAR(last_heat_capacity)
-	ADD_SAVED_VAR(last_temperature)
-	ADD_SAVED_VAR(last_pressure_delta)
-	ADD_SAVED_VAR(last_worldtime_transfer)
-	ADD_SAVED_VAR(last_stored_energy_transferred)
-	ADD_SAVED_VAR(volume_capacity_used)
-	ADD_SAVED_VAR(stored_energy)
+	density = 1
 
 /obj/machinery/atmospherics/binary/circulator/Initialize()
 	. = ..()
 	desc = initial(desc) + " Its outlet port is to the [dir2text(dir)]."
+	air1.volume = 400
 
 /obj/machinery/atmospherics/binary/circulator/proc/return_transfer_air()
 	var/datum/gas_mixture/removed
@@ -47,7 +36,7 @@
 		last_pressure_delta = max(input_starting_pressure - output_starting_pressure - 5, 0)
 
 		//only circulate air if there is a pressure difference (plus 5kPa kinetic, 10kPa static friction)
-		if(air1.temperature > 0 && last_pressure_delta > 5 && input_starting_pressure != output_starting_pressure)
+		if(air1.temperature > 0 && last_pressure_delta > 5)
 
 			//Calculate necessary moles to transfer using PV = nRT
 			recent_moles_transferred = (last_pressure_delta*network1.volume/(air1.temperature * R_IDEAL_GAS_EQUATION))/3 //uses the volume of the whole network, not just itself
@@ -78,22 +67,26 @@
 	return last_stored_energy_transferred
 
 /obj/machinery/atmospherics/binary/circulator/Process()
-	. = ..()
+	..()
 
 	if(last_worldtime_transfer < world.time - 50)
 		recent_moles_transferred = 0
-		queue_icon_update()
+		update_icon()
 
 /obj/machinery/atmospherics/binary/circulator/on_update_icon()
-	if(stat & (BROKEN|NOPOWER) || !anchored)
-		icon_state = "circ-p"
-	else if(last_pressure_delta > 0 && recent_moles_transferred > 0)
-		if(last_pressure_delta > 5*ONE_ATMOSPHERE)
-			icon_state = "circ-run"
+	icon_state = anchored ? "circ-assembled" : "circ-unassembled"
+	overlays.Cut()
+	if (stat & (BROKEN|NOPOWER) || !anchored)
+		return 1
+	if (last_pressure_delta > 0 && recent_moles_transferred > 0)
+		if (temperature_overlay)
+			overlays += image('icons/obj/power.dmi', temperature_overlay)
+		if (last_pressure_delta > 5*ONE_ATMOSPHERE)
+			overlays += image('icons/obj/power.dmi', "circ-run")
 		else
-			icon_state = "circ-slow"
+			overlays += image('icons/obj/power.dmi', "circ-slow")
 	else
-		icon_state = "circ-off"
+		overlays += image('icons/obj/power.dmi', "circ-off")
 
 	return 1
 
@@ -106,6 +99,7 @@
 					"You hear a ratchet")
 
 		if(anchored)
+			temperature_overlay = null
 			if(dir & (NORTH|SOUTH))
 				initialize_directions = NORTH|SOUTH
 			else if(dir & (EAST|WEST))
@@ -129,6 +123,7 @@
 
 			node1 = null
 			node2 = null
+		update_icon()
 
 	else
 		..()

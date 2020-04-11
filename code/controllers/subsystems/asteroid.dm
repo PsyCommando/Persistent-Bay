@@ -303,3 +303,51 @@ SUBSYSTEM_DEF(asteroid)
 	anchored = 1
 	layer = -10
 	blend_mode = BLEND_SUBTRACT
+
+
+/turf/simulated/floor/asteroid/Entered(atom/movable/M)
+	. = ..()
+	if(istype(M, /mob/living/carbon) || istype(M, /mob/living/silicon))
+		SSasteroid.agitate(M)
+
+/turf/simulated/floor/asteroid/after_load()
+	updateMineralOverlays(1)
+	..()
+
+/turf/simulated/floor/asteroid/ReplaceWithLattice()
+	new /obj/structure/lattice(src)
+
+/turf/simulated/floor/asteroid/can_build_cable(var/mob/user)
+	return 1
+
+/turf/simulated/floor/asteroid/is_plating()
+	return density
+
+/turf/simulated/floor/asteroid/attackby(obj/item/weapon/W as obj, mob/user as mob)
+	if (istype(W, /obj/item/stack/material/rods))
+		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
+		if(L)
+			return L.attackby(W, user)
+		var/obj/item/stack/material/rods/R = W
+		if (R.use(1))
+			to_chat(user, "<span class='notice'>Constructing support lattice ...</span>")
+			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
+			ReplaceWithLattice()
+		return 1
+
+	else if (istype(W, /obj/item/stack/tile/floor))
+		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
+		if(L)
+			var/obj/item/stack/tile/floor/S = W
+			if (S.get_amount() < 1)
+				return
+			qdel(L)
+			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
+			S.use(1)
+			ChangeTurf(/turf/simulated/floor/airless)
+			return 1
+		else
+			to_chat(user, "<span class='warning'>The plating is going to need some support.</span>")
+			return 0
+	return ..()
+

@@ -12,7 +12,6 @@ var/list/artefact_feedback = list(/obj/structure/closet/wizard/armor = 		"HS",
 								/obj/item/weapon/magic_rock = 				"RA",
 								/obj/item/weapon/contract/apprentice = 		"CP",
 								/obj/structure/closet/wizard/souls = 		"SS",
-								/obj/item/weapon/contract/wizard/tk = 		"TK",
 								/obj/structure/closet/wizard/scrying = 		"SO",
 								/obj/item/weapon/teleportation_scroll = 	"TS",
 								/obj/item/weapon/gun/energy/staff = 		"ST",
@@ -115,7 +114,7 @@ var/list/artefact_feedback = list(/obj/structure/closet/wizard/armor = 		"HS",
 				info = "<font color='#ff33cc'>[initial(S.max_uses)] Spell Slots</font>"
 			else if(ispath(spellbook.spells[i],/obj))
 				var/obj/O = spellbook.spells[i]
-				name = "Artefact: [capitalize(initial(O.name))]" //because 99.99% of objects dont have capitals in them and it makes it look weird.
+				name = "Artefact: [capitalize(initial(O.name))]" //because 99.99% of objects don't have capitals in them and it makes it look weird.
 				desc = initial(O.desc)
 			else if(ispath(spellbook.spells[i],/spell))
 				var/spell/S = spellbook.spells[i]
@@ -150,7 +149,7 @@ var/list/artefact_feedback = list(/obj/structure/closet/wizard/armor = 		"HS",
 			dat += "<center><A href='byond://?src=\ref[src];book=1'>Choose different spellbook.</a></center>"
 		if(!(spellbook.book_flags & NO_LOCKING))
 			dat += "<center><A href='byond://?src=\ref[src];lock=1'>[spellbook.book_flags & LOCKED ? "Unlock" : "Lock"] the spellbook.</a></center>"
-	user << browse(dat,"window=spellbook")
+	show_browser(user, dat,"window=spellbook")
 
 /obj/item/weapon/spellbook/CanUseTopic(var/mob/living/carbon/human/H)
 	if(!istype(H))
@@ -219,7 +218,7 @@ var/list/artefact_feedback = list(/obj/structure/closet/wizard/armor = 		"HS",
 		. = TOPIC_REFRESH
 
 	else if(href_list["reset"] && !(spellbook.book_flags & NOREVERT))
-		var/area/wizard_station/A = get_area(user)
+		var/area/map_template/wizard_station/A = get_area(user)
 		if(istype(A))
 			uses = spellbook.max_uses
 			investing_time = 0
@@ -241,7 +240,7 @@ var/list/artefact_feedback = list(/obj/structure/closet/wizard/armor = 		"HS",
 	uses--
 	START_PROCESSING(SSobj, src)
 	investing_time = world.time + (15 MINUTES)
-	return "You invest a spellslot and will recieve two in return in 15 minutes."
+	return "You invest a spellslot and will receive two in return in 15 minutes."
 
 /obj/item/weapon/spellbook/Process()
 	if(investing_time && investing_time <= world.time)

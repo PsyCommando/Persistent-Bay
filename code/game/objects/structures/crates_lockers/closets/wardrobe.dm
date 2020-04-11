@@ -7,19 +7,14 @@
 	name = "security wardrobe"
 	closet_appearance = /decl/closet_appearance/wardrobe/red
 
-/obj/structure/closet/wardrobe/empty/red
-	name = "security wardrobe"
-	closet_appearance = /decl/closet_appearance/wardrobe/red
-
-
 /obj/structure/closet/wardrobe/red/New()
 	..()
 	new /obj/item/clothing/under/rank/security(src)
 	new /obj/item/clothing/under/rank/security(src)
 	new /obj/item/clothing/under/rank/security(src)
-	new /obj/item/clothing/under/rank/securitytwo(src)
-	new /obj/item/clothing/under/rank/securitytwo(src)
-	new /obj/item/clothing/under/rank/securitytwo(src)
+	new /obj/item/clothing/under/rank/security2(src)
+	new /obj/item/clothing/under/rank/security2(src)
+	new /obj/item/clothing/under/rank/security2(src)
 	new /obj/item/clothing/shoes/jackboots(src)
 	new /obj/item/clothing/shoes/jackboots(src)
 	new /obj/item/clothing/shoes/jackboots(src)
@@ -37,11 +32,6 @@
 	name = "pink wardrobe"
 	closet_appearance = /decl/closet_appearance/wardrobe/pink
 
-/obj/structure/closet/wardrobe/empty/pink
-	name = "pink wardrobe"
-	closet_appearance = /decl/closet_appearance/wardrobe/pink
-
-
 
 /obj/structure/closet/wardrobe/pink/New()
 	..()
@@ -55,11 +45,6 @@
 /obj/structure/closet/wardrobe/black
 	name = "black wardrobe"
 	closet_appearance = /decl/closet_appearance/wardrobe/black
-
-/obj/structure/closet/wardrobe/empty/black
-	name = "black wardrobe"
-	closet_appearance = /decl/closet_appearance/wardrobe/black
-
 
 /obj/structure/closet/wardrobe/black/New()
 	..()
@@ -80,13 +65,6 @@
 	name = "chapel wardrobe"
 	desc = "It's a storage unit for approved religious attire."
 	closet_appearance = /decl/closet_appearance/wardrobe/black
-	
-/obj/structure/closet/wardrobe/empty/chaplain_black
-	name = "chapel wardrobe"
-	desc = "It's a storage unit for approved religious attire."
-	closet_appearance = /decl/closet_appearance/wardrobe/black
-	
-	
 
 /obj/structure/closet/wardrobe/chaplain_black/New()
 	..()
@@ -102,12 +80,6 @@
 	new /obj/item/weapon/storage/candle_box(src)
 	new /obj/item/weapon/storage/candle_box(src)
 	new /obj/item/weapon/deck/tarot(src)
-
-
-/obj/structure/closet/wardrobe/empty/green
-	name = "green wardrobe"
-	closet_appearance = /decl/closet_appearance/wardrobe/green
-
 
 /obj/structure/closet/wardrobe/green
 	name = "green wardrobe"
@@ -133,12 +105,6 @@
 	new /obj/item/clothing/shoes/sandal(src)
 	new /obj/item/clothing/shoes/sandal(src)
 	new /obj/item/clothing/shoes/sandal(src)
-
-/obj/structure/closet/wardrobe/empty/orange
-	name = "prison wardrobe"
-	desc = "It's a storage unit for regulation prisoner attire."
-	closet_appearance = /decl/closet_appearance/wardrobe/orange
-
 
 /obj/structure/closet/wardrobe/orange
 	name = "prison wardrobe"

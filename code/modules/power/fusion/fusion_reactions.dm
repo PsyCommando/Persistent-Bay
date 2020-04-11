@@ -52,6 +52,7 @@ proc/get_fusion_reaction(var/p_react, var/s_react, var/m_energy)
 	energy_consumption = 1
 	energy_production = 2
 	products = list(GAS_HELIUM = 1)
+	priority = 10
 
 /decl/fusion_reaction/deuterium_deuterium
 	p_react = GAS_DEUTERIUM
@@ -79,7 +80,7 @@ proc/get_fusion_reaction(var/p_react, var/s_react, var/m_energy)
 
 /decl/fusion_reaction/deuterium_lithium
 	p_react = GAS_DEUTERIUM
-	s_react = GAS_LITHIUM
+	s_react = "lithium"
 	energy_consumption = 2
 	energy_production = 0
 	radiation = 3
@@ -97,9 +98,9 @@ proc/get_fusion_reaction(var/p_react, var/s_react, var/m_energy)
 	products = list("silicon"= 1)
 
 /decl/fusion_reaction/iron_iron
-	p_react = MATERIAL_IRON
-	s_react = MATERIAL_IRON
-	products = list(MATERIAL_SILVER = 1, MATERIAL_GOLD = 1, MATERIAL_PLATINUM = 1) // Not realistic but w/e
+	p_react = "iron"
+	s_react = "iron"
+	products = list("silver" = 10, "gold" = 10, "platinum" = 10) // Not realistic but w/e
 	energy_consumption = 10
 	energy_production = 0
 	instability = 2
@@ -111,7 +112,7 @@ proc/get_fusion_reaction(var/p_react, var/s_react, var/m_energy)
 	energy_consumption = 10
 	energy_production = 0
 	instability = 5
-	products = list("mydrogen" = 1)
+	products = list("mhydrogen" = 1)
 	minimum_reaction_temperature = 8000
 
 // VERY UNIDEAL REACTIONS.
@@ -120,12 +121,12 @@ proc/get_fusion_reaction(var/p_react, var/s_react, var/m_energy)
 	s_react = GAS_PHORON
 	energy_consumption = 0
 	energy_production = 5
-	radiation = 20
+	radiation = 40
 	instability = 20
 
 /decl/fusion_reaction/phoron_supermatter/handle_reaction_special(var/obj/effect/fusion_em_field/holder)
 
-	wormhole_event()
+	wormhole_event(GetConnectedZlevels(holder))
 
 	var/turf/origin = get_turf(holder)
 	holder.Rupture()
@@ -157,7 +158,7 @@ proc/get_fusion_reaction(var/p_react, var/s_react, var/m_energy)
 
 // High end reactions.
 /decl/fusion_reaction/boron_hydrogen
-	p_react = GAS_BORON
+	p_react = "boron"
 	s_react = GAS_HYDROGEN
 	minimum_energy_level = FUSION_HEAT_CAP * 0.5
 	energy_consumption = 3

@@ -3,15 +3,14 @@
 /obj/item/weapon/arrow
 	name = "bolt"
 	desc = "It's got a tip for you - get the point?"
-	icon = 'icons/obj/guns/crossbow.dmi'
+	icon = 'icons/obj/weapons.dmi'
 	icon_state = "bolt"
 	item_state = "bolt"
 	throwforce = 8
 	w_class = ITEM_SIZE_NORMAL
-	sharpness = 1
+	sharp = 1
+	edge = 0
 	lock_picking_level = 3
-	mass = 0.150
-	damtype = DAM_PIERCE
 
 /obj/item/weapon/arrow/proc/removed() //Helper for metal rods falling apart.
 	return
@@ -19,11 +18,10 @@
 /obj/item/weapon/spike
 	name = "alloy spike"
 	desc = "It's about a foot of weird silver metal with a wicked point."
-	sharpness = 1
+	sharp = 1
+	edge = 0
 	throwforce = 5
 	w_class = ITEM_SIZE_SMALL
-	mass = 0.750
-	damtype = DAM_PIERCE
 	icon = 'icons/obj/weapons.dmi'
 	icon_state = "metal-rod"
 	item_state = "bolt"
@@ -31,18 +29,15 @@
 /obj/item/weapon/arrow/quill
 	name = "vox quill"
 	desc = "A wickedly barbed quill from some bizarre animal."
-	icon = 'icons/obj/guns/crossbow.dmi'
+	icon = 'icons/obj/weapons.dmi'
 	icon_state = "quill"
 	item_state = "quill"
 	throwforce = 5
-	mass = 0.050
 
 /obj/item/weapon/arrow/rod
 	name = "metal rod"
 	desc = "Don't cry for me, Orithena."
-	icon = 'icons/obj/weapons.dmi'
 	icon_state = "metal-rod"
-	mass = 0.200
 
 /obj/item/weapon/arrow/rod/removed(mob/user)
 	if(throwforce == 15) // The rod has been superheated - we don't want it to be useable when removed from the bow.
@@ -53,8 +48,8 @@
 
 /obj/item/weapon/gun/launcher/crossbow
 	name = "powered crossbow"
-	desc = "A 2557AD twist on an old classic. Pick up that can."
-	icon = 'icons/obj/weapons/guns/crossbow.dmi'
+	desc = "A modern twist on an old classic. Pick up that can."
+	icon = 'icons/obj/guns/crossbow.dmi'
 	icon_state = "crossbow"
 	item_state = "crossbow-solid"
 	fire_sound = 'sound/weapons/punchmiss.ogg' // TODO: Decent THWOK noise.
@@ -62,7 +57,6 @@
 	fire_delay = 25
 	slot_flags = SLOT_BACK
 	has_safety = FALSE
-	mass = 2.26
 
 	var/obj/item/bolt
 	var/tension = 0                         // Current draw on the bow.
@@ -71,14 +65,6 @@
 	var/obj/item/weapon/cell/cell = null    // Used for firing superheated rods.
 	var/current_user                        // Used to check if the crossbow has changed hands since being drawn.
 	var/draw_time = 20						// Time needed to draw the bow back by one "tension"
-
-/obj/item/weapon/gun/launcher/crossbow/New()
-	..()
-	ADD_SAVED_VAR(bolt)
-	ADD_SAVED_VAR(cell)
-
-	ADD_SKIP_EMPTY(bolt)
-	ADD_SKIP_EMPTY(cell)
 
 /obj/item/weapon/gun/launcher/crossbow/toggle_safety(var/mob/user)
 	to_chat(user, "<span class='warning'>There's no safety on \the [src]!</span>")
@@ -153,7 +139,18 @@
 		return
 
 
-/obj/item/weapon/gun/launcher/crossbow/attackby(obj/item/W as obj, mob/user as mob)
+/obj/item/weapon/gun/launcher/crossbow/attackby(obj/item/W, mob/user)
+	
+	if(istype(W, /obj/item/weapon/rcd))
+		var/obj/item/weapon/rcd/rcd = W
+		if(rcd.crafting && user.unEquip(rcd) && user.unEquip(src))
+			new /obj/item/weapon/gun/launcher/crossbow/rapidcrossbowdevice(get_turf(src))
+			qdel(rcd)
+			qdel_self()
+		else
+			to_chat(user, SPAN_WARNING("\The [rcd] is not prepared for installation in \the [src]."))
+		return
+
 	if(!bolt)
 		if (istype(W,/obj/item/weapon/arrow) && user.unEquip(W, src))
 			bolt = W
@@ -211,88 +208,6 @@
 		icon_state = "crossbow-nocked"
 	else
 		icon_state = "crossbow"
-
-
-// Crossbow construction.
-/obj/item/weapon/crossbowframe
-	name = "crossbow frame"
-	desc = "A half-finished crossbow."
-	icon = 'icons/obj/weapons/guns/crossbow.dmi'
-	icon_state = "crossbowframe0"
-	item_state = "crossbow-solid"
-	mass = 2
-
-	var/buildstate = 0
-
-/obj/item/weapon/crossbowframe/on_update_icon()
-	icon_state = "crossbowframe[buildstate]"
-
-/obj/item/weapon/crossbowframe/examine(mob/user)
-	. = ..(user)
-	switch(buildstate)
-		if(1) to_chat(user, "It has a loose rod frame in place.")
-		if(2) to_chat(user, "It has a steel backbone welded in place.")
-		if(3) to_chat(user, "It has a steel backbone and a cell mount installed.")
-		if(4) to_chat(user, "It has a steel backbone, plastic lath and a cell mount installed.")
-		if(5) to_chat(user, "It has a steel cable loosely strung across the lath.")
-
-/obj/item/weapon/crossbowframe/attackby(obj/item/W as obj, mob/user as mob)
-	if(istype(W,/obj/item/stack/material/rods))
-		if(buildstate == 0)
-			var/obj/item/stack/material/rods/R = W
-			if(R.use(3))
-				to_chat(user, "<span class='notice'>You assemble a backbone of rods around the wooden stock.</span>")
-				buildstate++
-				update_icon()
-			else
-				to_chat(user, "<span class='notice'>You need at least three rods to complete this task.</span>")
-			return
-	else if(isWelder(W))
-		if(buildstate == 1)
-			var/obj/item/weapon/tool/weldingtool/T = W
-			if(T.remove_fuel(0,user))
-				if(!src || !T.isOn()) return
-				playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
-				to_chat(user, "<span class='notice'>You weld the rods into place.</span>")
-			buildstate++
-			update_icon()
-		return
-	else if(isCoil(W))
-		var/obj/item/stack/cable_coil/C = W
-		if(buildstate == 2)
-			if(C.use(5))
-				to_chat(user, "<span class='notice'>You wire a crude cell mount into the top of the crossbow.</span>")
-				buildstate++
-				update_icon()
-			else
-				to_chat(user, "<span class='notice'>You need at least five segments of cable coil to complete this task.</span>")
-			return
-		else if(buildstate == 4)
-			if(C.use(5))
-				to_chat(user, "<span class='notice'>You string a steel cable across the crossbow's lath.</span>")
-				buildstate++
-				update_icon()
-			else
-				to_chat(user, "<span class='notice'>You need at least five segments of cable coil to complete this task.</span>")
-			return
-	else if(istype(W,/obj/item/stack/material) && W.get_material_name() == MATERIAL_PLASTIC)
-		if(buildstate == 3)
-			var/obj/item/stack/material/P = W
-			if(P.use(3))
-				to_chat(user, "<span class='notice'>You assemble and install a heavy plastic lath onto the crossbow.</span>")
-				buildstate++
-				update_icon()
-			else
-				to_chat(user, "<span class='notice'>You need at least three plastic sheets to complete this task.</span>")
-			return
-	else if(isScrewdriver(W))
-		if(buildstate == 5)
-			to_chat(user, "<span class='notice'>You secure the crossbow's various parts.</span>")
-			new /obj/item/weapon/gun/launcher/crossbow(get_turf(src))
-			qdel(src)
-		return
-	else
-		..()
 
 /*////////////////////////////
 //	Rapid Crossbow Device	//
@@ -375,7 +290,6 @@
 	else
 		icon_state = "rxb"
 
-/obj/item/weapon/gun/launcher/crossbow/rapidcrossbowdevice/examine(var/user)
+/obj/item/weapon/gun/launcher/crossbow/rapidcrossbowdevice/examine(mob/user)
 	. = ..()
-	if(.)
-		to_chat(user, "It currently holds [stored_matter]/[max_stored_matter] matter-units.")
+	to_chat(user, "It currently holds [stored_matter]/[max_stored_matter] matter-units.")

@@ -128,6 +128,7 @@ SUBSYSTEM_DEF(air)
 	..(out.Join())
 
 /datum/controller/subsystem/air/Initialize(timeofday, simulate = TRUE)
+
 	var/starttime = REALTIMEOFDAY
 	report_progress("Processing Geometry...")
 

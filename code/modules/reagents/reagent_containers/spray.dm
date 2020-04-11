@@ -18,10 +18,9 @@
 	var/list/spray_sizes = list(1,3)
 	var/step_delay = 10 // lower is faster
 	volume = 250
-	matter = list(MATERIAL_GLASS = 60)
 
-/obj/item/weapon/reagent_containers/spray/Initialize()
-	. = ..()
+/obj/item/weapon/reagent_containers/spray/New()
+	..()
 	src.verbs -= /obj/item/weapon/reagent_containers/verb/set_amount_per_transfer_from_this
 
 /obj/item/weapon/reagent_containers/spray/afterattack(atom/A as mob|obj, mob/user as mob, proximity)
@@ -44,14 +43,11 @@
 	user.setClickCooldown(DEFAULT_QUICK_COOLDOWN)
 
 	if(reagents.has_reagent(/datum/reagent/acid))
-		message_admins("[key_name_admin(user)] fired sulphuric acid from \a [src].")
-		log_game("[key_name(user)] fired sulphuric acid from \a [src].")
+		log_and_message_admins("fired sulphuric acid from \a [src].", user)
 	if(reagents.has_reagent(/datum/reagent/acid/polyacid))
-		message_admins("[key_name_admin(user)] fired Polyacid from \a [src].")
-		log_game("[key_name(user)] fired Polyacid from \a [src].")
+		log_and_message_admins("fired Polyacid from \a [src].", user)
 	if(reagents.has_reagent(/datum/reagent/lube))
-		message_admins("[key_name_admin(user)] fired Space lube from \a [src].")
-		log_game("[key_name(user)] fired Space lube from \a [src].")
+		log_and_message_admins("fired Space lube from \a [src].", user)
 	return
 
 /obj/item/weapon/reagent_containers/spray/proc/Spray_at(atom/A as mob|obj, mob/user as mob, proximity)
@@ -81,10 +77,10 @@
 	spray_size = next_in_list(spray_size, spray_sizes)
 	to_chat(user, "<span class='notice'>You adjusted the pressure nozzle. You'll now use [amount_per_transfer_from_this] units per spray.</span>")
 
-/obj/item/weapon/reagent_containers/spray/examine(mob/user)
-	if(..(user, 0) && loc == user)
+/obj/item/weapon/reagent_containers/spray/examine(mob/user, distance)
+	. = ..()
+	if(distance == 0 && loc == user)
 		to_chat(user, "[round(reagents.total_volume)] unit\s left.")
-	return
 
 /obj/item/weapon/reagent_containers/spray/verb/empty()
 
@@ -103,17 +99,26 @@
 	name = "space cleaner"
 	desc = "BLAM!-brand non-foaming space cleaner!"
 	step_delay = 6
-	starts_with = list(/datum/reagent/space_cleaner = 250)
+
+/obj/item/weapon/reagent_containers/spray/cleaner/New()
+	..()
+	reagents.add_reagent(/datum/reagent/space_cleaner, volume)
 
 /obj/item/weapon/reagent_containers/spray/sterilizine
 	name = "sterilizine"
 	desc = "Great for hiding incriminating bloodstains and sterilizing scalpels."
-	starts_with = list(/datum/reagent/sterilizine = 250)
+
+/obj/item/weapon/reagent_containers/spray/sterilizine/New()
+	..()
+	reagents.add_reagent(/datum/reagent/sterilizine, volume)
 
 /obj/item/weapon/reagent_containers/spray/hair_remover
 	name = "hair remover"
 	desc = "Very effective at removing hair, feathers, spines and horns."
-	starts_with = list(/datum/reagent/toxin/hair_remover = 250)
+
+/obj/item/weapon/reagent_containers/spray/hair_remover/New()
+	..()
+	reagents.add_reagent(/datum/reagent/toxin/hair_remover, volume)
 
 /obj/item/weapon/reagent_containers/spray/pepper
 	name = "pepperspray"
@@ -126,8 +131,13 @@
 	var/safety = 1
 	step_delay = 1
 
-/obj/item/weapon/reagent_containers/spray/pepper/examine(mob/user)
-	if(..(user, 1))
+/obj/item/weapon/reagent_containers/spray/pepper/New()
+	..()
+	reagents.add_reagent(/datum/reagent/capsaicin/condensed, 60)
+
+/obj/item/weapon/reagent_containers/spray/pepper/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1)
 		to_chat(user, "The safety is [safety ? "on" : "off"].")
 
 /obj/item/weapon/reagent_containers/spray/pepper/attack_self(var/mob/user)
@@ -149,6 +159,10 @@
 	amount_per_transfer_from_this = 1
 	possible_transfer_amounts = null
 	volume = 10
+
+/obj/item/weapon/reagent_containers/spray/waterflower/New()
+	..()
+	reagents.add_reagent(/datum/reagent/water, 10)
 
 /obj/item/weapon/reagent_containers/spray/chemsprayer
 	name = "chem sprayer"
@@ -191,13 +205,17 @@
 	item_state = "plantbgone"
 	volume = 100
 
+/obj/item/weapon/reagent_containers/spray/plantbgone/New()
+	..()
+	reagents.add_reagent(/datum/reagent/toxin/plantbgone, 100)
+
 /obj/item/weapon/reagent_containers/spray/plantbgone/afterattack(atom/A as mob|obj, mob/user as mob, proximity)
 	if(!proximity) return
 
 	if(istype(A, /obj/effect/blob)) // blob damage in blob code
 		return
 
-	return ..()
+	..()
 
 /obj/item/weapon/reagent_containers/spray/cleaner/deodorant
 	name = "deodorant"

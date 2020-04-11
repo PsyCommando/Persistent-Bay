@@ -23,7 +23,7 @@
 		return "This subject is too far away..."
 	if (issilicon(M))
 		return "This subject does not have an edible life energy..."
-	if (M.get_blocked_ratio(null, DAM_BIO, damage_flags = DAM_DISPERSED) >= 1)
+	if (M.get_blocked_ratio(null, TOX, damage_flags = DAM_DISPERSED | DAM_BIO) >= 1)
 		return "This subject is protected..."
 	if (ishuman(M))
 		var/mob/living/carbon/human/H = M
@@ -52,7 +52,7 @@
 		if(Adjacent(M))
 			UpdateFeed()
 
-			var/hazmat = 1 - M.get_blocked_ratio(null, DAM_BIO, damage_flags = DAM_DISPERSED) //scale feeding rate by overall bio protection
+			var/hazmat = 1 - M.get_blocked_ratio(null, TOX, damage_flags = DAM_DISPERSED | DAM_BIO) //scale feeding rate by overall bio protection
 			if(istype(M, /mob/living/carbon))
 				Victim.adjustCloneLoss(5 * hazmat)
 				Victim.adjustToxLoss(1 * hazmat)
@@ -142,7 +142,7 @@
 
 /mob/living/carbon/slime/verb/Reproduce()
 	set category = "Slime"
-	set desc = "This will make you split into two slimes."
+	set desc = "This will make you split into four slimes."
 
 	if(stat)
 		to_chat(src, "<span class='notice'>I must be conscious to do this...</span>")
@@ -156,7 +156,7 @@
 
 			var/list/babies = list()
 			var/list/mutations = GetMutations()
-			for(var/i = 1 to 2)
+			for(var/i = 1 to 4)
 				var/t = colour
 				if(prob(mutation_chance))
 					t = pick(mutations)

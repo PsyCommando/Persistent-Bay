@@ -15,11 +15,6 @@
 	var/created_name = ""
 	var/product = /mob/living/silicon/robot
 
-/obj/item/robot_parts/robot_suit/New(newloc, model)
-	. = ..()
-	ADD_SAVED_VAR(parts)
-	ADD_SAVED_VAR(created_name)
-
 /obj/item/robot_parts/robot_suit/Initialize()
 	. = ..()
 	update_icon()
@@ -39,21 +34,8 @@
 
 /obj/item/robot_parts/robot_suit/attackby(obj/item/W as obj, mob/user as mob)
 
-	// Prepare the frame for ED209 construction.
-	if(istype(W, /obj/item/stack/material) && W.get_material_name() == MATERIAL_STEEL && !LAZYLEN(parts))
-		var/obj/item/stack/material/M = W
-		if (M.use(1))
-			var/obj/item/weapon/secbot_assembly/ed209_assembly/B = new /obj/item/weapon/secbot_assembly/ed209_assembly(get_turf(src))
-			to_chat(user, SPAN_WARNING("You armed the robot frame."))
-			if (user.get_inactive_hand()==src)
-				user.drop_from_inventory(src) //clears inactive hand; item will be deleted anyway.
-				user.put_in_inactive_hand(B)
-			qdel(src)
-		else
-			to_chat(user, SPAN_WARNING("You need one sheet of metal to arm the robot frame."))
-
 	// Uninstall a robotic part.
-	else if(isCrowbar(W))
+	if(isCrowbar(W))
 		if(!parts.len)
 			to_chat(user, SPAN_WARNING("\The [src] has no parts to remove."))
 			return
@@ -79,8 +61,8 @@
 			update_icon()
 
 	// Install an MMI/brain.
-	else if(istype(W, /obj/item/device/mmi) || istype(W, /obj/item/organ/internal/posibrain) || istype(W, /obj/item/device/lmi))
-		var/islace = istype(W, /obj/item/device/lmi)
+	else if(istype(W, /obj/item/device/mmi) || istype(W, /obj/item/organ/internal/posibrain))
+
 		if(!istype(loc,/turf))
 			to_chat(user, SPAN_WARNING("You can't put \the [W] in without the frame being on the ground."))
 			return
@@ -93,9 +75,6 @@
 		if(istype(W, /obj/item/device/mmi))
 			var/obj/item/device/mmi/M = W
 			B = M.brainmob
-		else if(islace)
-			var/obj/item/device/lmi/L = W
-			B = L.brainmob
 		else
 			var/obj/item/organ/internal/posibrain/P = W
 			B = P.brainmob
@@ -133,14 +112,7 @@
 		if(!O)
 			return
 
-		if(islace)
-			O.lmi = W //For some reasons we need to set the lace here as well
 		O.mmi = W
-		O.real_name = B.real_name
-		if(islace)
-			O.add_lace_action()
-			O.spawn_loc = B.spawn_loc
-			O.spawn_loc_2 = B.spawn_loc_2
 		O.set_invisibility(0)
 		O.custom_name = created_name
 		O.updatename("Default")

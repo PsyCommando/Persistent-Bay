@@ -6,8 +6,10 @@
 	desc = "Made of nothing. How does this even exist?" // set based on material, if this desc is visible it's a bug (shards default to being made of glass)
 	icon_state = "large"
 	randpixel = 8
-	sharpness = 1
+	sharp = 1
+	edge = 1
 	w_class = ITEM_SIZE_SMALL
+	max_force = 8
 	force_divisor = 0.12 // 6 with hardness 30 (glass)
 	thrown_force_divisor = 0.4 // 4 with weight 15 (glass)
 	item_state = "shard-glass"
@@ -15,8 +17,7 @@
 	default_material = MATERIAL_GLASS
 	unbreakable = 1 //It's already broken.
 	drops_debris = 0
-	damtype = DAM_CUT
-	mass = 0.250
+	item_flags = ITEM_FLAG_CAN_HIDE_IN_SHOES
 
 /obj/item/weapon/material/shard/set_material(var/new_material)
 	..(new_material)
@@ -48,7 +49,7 @@
 
 /obj/item/weapon/material/shard/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(isWelder(W) && material.shard_can_repair)
-		var/obj/item/weapon/tool/weldingtool/WT = W
+		var/obj/item/weapon/weldingtool/WT = W
 		if(WT.remove_fuel(0, user))
 			material.place_sheet(loc)
 			qdel(src)
@@ -82,7 +83,7 @@
 				if(affecting)
 					if(BP_IS_ROBOTIC(affecting))
 						return
-					affecting.take_damage(5, DAM_CUT)
+					affecting.take_external_damage(5, 0)
 					H.updatehealth()
 					if(affecting.can_feel_pain())
 						H.Weaken(3)
@@ -98,9 +99,3 @@
 	name = "shrapnel"
 	default_material = MATERIAL_STEEL
 	w_class = ITEM_SIZE_TINY	//it's real small
-
-/obj/item/weapon/material/shard/shrapnel/New(loc)
-	..(loc, MATERIAL_STEEL)
-
-/obj/item/weapon/material/shard/fiberglass/New(loc)
-	..(loc, "fiberglass")

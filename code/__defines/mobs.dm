@@ -8,12 +8,10 @@
 #define CANWEAKEN   0x2
 #define CANPARALYSE 0x4
 #define CANPUSH     0x8
-#define LEAPING     0x10
-#define PASSEMOTES  0x20    // Mob has a cortical borer or holders inside of it that need to see emotes.
+#define PASSEMOTES  0x10    // Mob has a cortical borer or holders inside of it that need to see emotes.
 #define GODMODE     0x1000
 #define FAKEDEATH   0x2000  // Replaces stuff like changeling.changeling_fakedeath.
 #define NO_ANTAG    0x4000  // Players are restricted from gaining antag roles when occupying this mob
-#define XENO_HOST   0x8000  // Tracks whether we're gonna be a baby alien's mummy.
 
 // Grab Types
 #define GRAB_NORMAL			"normal"
@@ -128,7 +126,6 @@
 #define STR_VLOW       -2
 
 // Gluttony levels.
-#define GLUT_NONE 0       // Eat nothing, meant for phorosians
 #define GLUT_TINY 1       // Eat anything tiny and smaller
 #define GLUT_SMALLER 2    // Eat anything smaller than we are
 #define GLUT_ANYTHING 4   // Eat anything, ever
@@ -150,8 +147,9 @@
 #define FLASH_PROTECTION_VULNERABLE -2
 #define FLASH_PROTECTION_REDUCED -1
 #define FLASH_PROTECTION_NONE 0
-#define FLASH_PROTECTION_MODERATE 1
-#define FLASH_PROTECTION_MAJOR 2
+#define FLASH_PROTECTION_MINOR 1
+#define FLASH_PROTECTION_MODERATE 2
+#define FLASH_PROTECTION_MAJOR 3
 
 #define ANIMAL_SPAWN_DELAY round(config.respawn_delay / 6)
 #define DRONE_SPAWN_DELAY  round(config.respawn_delay / 3)
@@ -203,12 +201,14 @@
 #define BP_HINDTONGUE "hindtongue"
 
 // Robo Organs.
-#define BP_POSIBRAIN	"posibrain"
-#define BP_VOICE		"vocal synthesiser"
-#define BP_STACK		"stack"
-#define BP_FLOAT		"floatation disc"
-#define BP_JETS			"maneuvering jets"
-#define BP_COOLING_FINS "cooling fins"
+#define BP_POSIBRAIN         "posibrain"
+#define BP_VOICE             "vocal synthesiser"
+#define BP_STACK             "stack"
+#define BP_OPTICS            "optics"
+#define BP_FLOAT             "floatation disc"
+#define BP_JETS              "maneuvering jets"
+#define BP_COOLING_FINS      "cooling fins"
+#define BP_SYSTEM_CONTROLLER "system controller"
 
 //Augmetations
 #define BP_AUGMENT_R_ARM         "right arm augment"
@@ -246,6 +246,9 @@
 #define BP_IS_BRITTLE(org)  (org.status & ORGAN_BRITTLE)
 #define BP_IS_CRYSTAL(org)  (org.status & ORGAN_CRYSTAL)
 
+// Limb flag helpers
+#define BP_IS_DEFORMED(org) (org.limb_flags & ORGAN_FLAG_DEFORMED)
+
 #define SYNTH_BLOOD_COLOUR "#030303"
 #define SYNTH_FLESH_COLOUR "#575757"
 
@@ -281,6 +284,9 @@
 #define SYNTH_HEAT_LEVEL_2 1000
 #define SYNTH_HEAT_LEVEL_3 2000
 
+#define CORPSE_CAN_REENTER 1
+#define CORPSE_CAN_REENTER_AND_RESPAWN 2
+
 #define SPECIES_HUMAN       "Human"
 #define SPECIES_DIONA       "Diona"
 #define SPECIES_VOX         "Vox"
@@ -288,9 +294,7 @@
 #define SPECIES_IPC         "Machine"
 #define SPECIES_UNATHI      "Unathi"
 #define SPECIES_SKRELL      "Skrell"
-#define SPECIES_NABBER      "giant armoured serpentid"
 #define SPECIES_PROMETHEAN  "Promethean"
-#define SPECIES_XENO        "Xenophage"
 #define SPECIES_ALIEN       "Humanoid"
 #define SPECIES_ADHERENT    "Adherent"
 #define SPECIES_GOLEM       "Golem"
@@ -299,19 +303,17 @@
 #define SPECIES_SPACER      "Space-Adapted Human"
 #define SPECIES_TRITONIAN   "Tritonian"
 #define SPECIES_GRAVWORLDER "Grav-Adapted Human"
-#define SPECIES_PHOROSIAN   "Phorosian"
-#define SPECIES_BOGANI      "Bogani"
-#define SPECIES_EGYNO       "Egyno"
-#define SPECIES_RESOMI		"Resomi"
+#define SPECIES_MULE        "Mule"
+#define SPECIES_BOOSTER     "Booster"
 
-//Primitives
-#define SPECIES_MONKEY      "Monkey"
-#define SPECIES_FARWA       "Farwa"
-#define SPECIES_NEAERA      "Neaera"
-#define SPECIES_STOK        "Stok"
+#define UNRESTRICTED_SPECIES list(SPECIES_HUMAN, SPECIES_DIONA, SPECIES_IPC, SPECIES_UNATHI, SPECIES_SKRELL, SPECIES_TRITONIAN, SPECIES_SPACER, SPECIES_VATGROWN, SPECIES_GRAVWORLDER, SPECIES_BOOSTER, SPECIES_MULE)
+#define RESTRICTED_SPECIES   list(SPECIES_VOX, SPECIES_ALIEN, SPECIES_GOLEM, SPECIES_MANTID_GYNE, SPECIES_MANTID_ALATE, SPECIES_MONARCH_WORKER, SPECIES_MONARCH_QUEEN)
 
-#define STATION_SPECIES list(SPECIES_HUMAN, SPECIES_DIONA, SPECIES_IPC, SPECIES_UNATHI, SPECIES_SKRELL, SPECIES_TRITONIAN, SPECIES_SPACER, SPECIES_VATGROWN, SPECIES_GRAVWORLDER, SPECIES_RESOMI)
-#define RESTRICTED_SPECIES list(SPECIES_VOX, SPECIES_XENO, SPECIES_ALIEN, SPECIES_GOLEM)
+#define SPECIES_NABBER         "giant armoured serpentid"
+#define SPECIES_MONARCH_WORKER "Monarch Serpentid Worker"
+#define SPECIES_MONARCH_QUEEN  "Monarch Serpentid Queen"
+#define SPECIES_MANTID_ALATE   "Kharmaan Alate"
+#define SPECIES_MANTID_GYNE    "Kharmaan Gyne"
 
 #define SURGERY_CLOSED 0
 #define SURGERY_OPEN 1
@@ -331,7 +333,7 @@
 
 #define SPECIES_BLOOD_DEFAULT 560
 
-#define SLIME_EVOLUTION_THRESHOLD 30
+#define SLIME_EVOLUTION_THRESHOLD 10
 
 //Used in mob/proc/get_input
 #define MOB_INPUT_TEXT "text"
@@ -348,10 +350,12 @@
 
 #define RADIO_INTERRUPT_DEFAULT 30
 
-//Spawn types for characters
-#define CHARACTER_SPAWN_TYPE_CRYONET         1 //Will spawn at a cryopod of the last network and faction stored in the character
-#define CHARACTER_SPAWN_TYPE_FRONTIER_BEACON 2 //Will spawn at a frontier beacon of the same faction as the character's default faction
-#define CHARACTER_SPAWN_TYPE_LACE_STORAGE    3 //Will spawn at the lace storage
-#define CHARACTER_SPAWN_TYPE_IMPORT          4 //frontier beacon
-#define CHARACTER_SPAWN_TYPE_PERSONAL        5 //Same as cryonet, but for personal cryonets
+#define MOB_FLAG_HOLY_BAD                0x001  // If this mob is allergic to holiness
 
+#define MARKING_TARGET_SKIN 0 // Draw a datum/sprite_accessory/marking to the mob's body, eg. tattoos
+#define MARKING_TARGET_HAIR 1 // Draw a datum/sprite_accessory/marking to the mob's hair, eg. ears & horns
+
+// used in /mob/living/carbon/human/can_inject, and by various callers of that proc
+#define CAN_INJECT 1
+#define INJECTION_PORT 2
+#define INJECTION_PORT_DELAY 3 SECONDS // used by injectors to apply delay due to searching for a port on the injectee's suit

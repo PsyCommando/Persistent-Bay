@@ -1,26 +1,23 @@
 /obj/machinery/pipelayer
+
 	name = "automatic pipe layer"
-	icon = 'icons/obj/machines/pipedispenser.dmi'
+	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "pipe_d"
 	density = 1
-	circuit_type = /obj/item/weapon/circuitboard/pipe_layer
 	var/turf/old_turf
 	var/old_dir
 	var/on = 0
 	var/a_dis = 0
 	var/P_type = 0
 	var/P_type_t = ""
-	var/max_metal = 100
-	var/metal = 0
+	var/max_metal = 50
+	var/metal = 10
+	var/obj/item/weapon/wrench/W
 	var/list/Pipes = list("regular pipes"=0,"scrubbers pipes"=31,"supply pipes"=29,"heat exchange pipes"=2, "fuel pipes"=45)
 
 /obj/machinery/pipelayer/New()
+	W = new(src)
 	..()
-	ADD_SAVED_VAR(on)
-	ADD_SAVED_VAR(a_dis)
-	ADD_SAVED_VAR(P_type)
-	ADD_SAVED_VAR(P_type_t)
-	ADD_SAVED_VAR(metal)
 
 /obj/machinery/pipelayer/Move(new_turf,M_Dir)
 	..()
@@ -32,13 +29,13 @@
 	old_turf = new_turf
 	old_dir = turn(M_Dir,180)
 
-/obj/machinery/pipelayer/attack_hand(mob/user as mob)
+/obj/machinery/pipelayer/interface_interact(mob/user)
 	if(!metal&&!on)
 		to_chat(user, "<span class='warning'>\The [src] doesn't work without metal.</span>")
-		return
+		return TRUE
 	on=!on
 	user.visible_message("<span class='notice'>[user] has [!on?"de":""]activated \the [src].</span>", "<span class='notice'>You [!on?"de":""]activate \the [src].</span>")
-	return
+	return TRUE
 
 /obj/machinery/pipelayer/attackby(var/obj/item/W as obj, var/mob/user as mob)
 
@@ -67,8 +64,8 @@
 
 	if(isScrewdriver(W))
 		if(metal)
-			var/m = round(input(usr,"Please specify the amount of metal to remove","Remove metal",min(round(metal),max_metal)) as num, 1)
-			m = min(m, max_metal)
+			var/m = round(input(usr,"Please specify the amount of metal to remove","Remove metal",min(round(metal),50)) as num, 1)
+			m = min(m, 50)
 			m = min(m, round(metal))
 			m = round(m)
 			if(m)
@@ -117,22 +114,20 @@
 	return new_turf.is_plating()
 
 /obj/machinery/pipelayer/proc/layPipe(var/turf/w_turf,var/M_Dir,var/old_dir)
-	if(!on || !(M_Dir in GLOB.cardinal) || M_Dir==old_dir)
+	if(!on || !(M_Dir in list(1, 2, 4, 8)) || M_Dir==old_dir)
 		return reset()
 	if(!use_metal(0.25))
 		return reset()
 	var/fdirn = turn(M_Dir,180)
-	var/p_type
 	var/p_dir
 
 	if (fdirn!=old_dir)
-		p_type=1+P_type
 		p_dir=old_dir+M_Dir
 	else
-		p_type=0+P_type
 		p_dir=M_Dir
 
-	var/obj/item/pipe/P = new (w_turf, pipe_type=p_type, dir=p_dir)
-	P.wrench_down(src)
+	var/obj/item/pipe/P = new(w_turf)
+	P.set_dir(p_dir)
+	P.attackby(W , src)
 
 	return 1

@@ -5,39 +5,19 @@ GLOBAL_DATUM_INIT(temp_reagents_holder, /obj, new)
 	var/total_volume = 0
 	var/maximum_volume = 120
 	var/atom/my_atom = null
-	//Saving
-	var/atom/saved_atom
 
 /datum/reagents/New(var/maximum_volume = 120, var/atom/my_atom)
-	//Have to comment this CRASH, because on mapload it breaks everything
-	// if(!istype(my_atom))
-	// 	log_debug("Invalid reagents holder: [log_info_line(my_atom)]")
+	if(!istype(my_atom))
+		CRASH("Invalid reagents holder: [log_info_line(my_atom)]")
+	..()
 	src.my_atom = my_atom
 	src.maximum_volume = maximum_volume
-	..()
-	ADD_SAVED_VAR(reagent_list)
-	ADD_SAVED_VAR(saved_atom)
-	ADD_SAVED_VAR(maximum_volume)
-	ADD_SAVED_VAR(total_volume)
 
-	ADD_SKIP_EMPTY(reagent_list)
-	ADD_SKIP_EMPTY(saved_atom)
-
-/datum/reagents/before_save()
-	. = ..()
-	saved_atom = my_atom
-
-/datum/reagents/after_load()
-	. = ..()
-	my_atom = saved_atom
-	saved_atom = null // clear it
-	
 /datum/reagents/Destroy()
 	. = ..()
 	UNQUEUE_REACTIONS(src) // While marking for reactions should be avoided just before deleting if possible, the async nature means it might be impossible.
 	QDEL_NULL_LIST(reagent_list)
 	my_atom = null
-	saved_atom = null
 
 /* Internal procs */
 /datum/reagents/proc/get_free_space() // Returns free space.
@@ -268,6 +248,12 @@ GLOBAL_DATUM_INIT(temp_reagents_holder, /obj, new)
 		del_reagent(current.type)
 	return
 
+/datum/reagents/proc/get_reagent(var/reagent_type)
+	for(var/datum/reagent/current in reagent_list)
+		if(current.type == reagent_type)
+			return current
+	return
+
 /datum/reagents/proc/get_reagent_amount(var/reagent_type)
 	for(var/datum/reagent/current in reagent_list)
 		if(current.type == reagent_type)
@@ -334,6 +320,13 @@ GLOBAL_DATUM_INIT(temp_reagents_holder, /obj, new)
 		target.add_reagent(current.type, amount_to_transfer * multiplier, current.get_data(), safety = 1) // We don't react until everything is in place
 		if(!copy)
 			remove_reagent(current.type, amount_to_transfer, 1)
+		if (current.color_transfer)
+			var/datum/reagent/added = target.get_reagent(current.type)
+			if (added)
+				added.color = current.color
+				if (target.my_atom)
+					target.my_atom.on_color_transfer_reagent_change()
+					target.my_atom.update_icon()
 
 	if(!copy)
 		HANDLE_REACTIONS(src)

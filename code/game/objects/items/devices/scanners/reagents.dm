@@ -3,7 +3,6 @@
 	desc = "A hand-held reagent scanner which identifies chemical agents."
 	icon_state = "spectrometer"
 	item_state = "analyzer"
-	matter = list(MATERIAL_ALUMINIUM = 30,MATERIAL_GLASS = 20)
 
 	origin_tech = list(TECH_MAGNET = 2, TECH_BIO = 2)
 	scan_sound = 'sound/effects/scanbeep.ogg'

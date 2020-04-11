@@ -43,20 +43,14 @@
 /obj/item/weapon/material/twohanded/update_force()
 	..()
 	base_name = name
-	if(ISDAMTYPE(damtype, DAM_CUT))
-		force_wielded = material.get_edge_damage()
-	else
-		force_wielded = material.get_blunt_damage()
-	force_wielded = round(force_wielded*force_divisor)
-	force_unwielded = round(force_wielded*unwielded_force_divisor)
+	force_unwielded = round(force*unwielded_force_divisor)
+	force_wielded = force
 	force = force_unwielded
-	throwforce = round(force*thrown_force_divisor)
-//	log_debug("[src] has unwielded force [force_unwielded], wielded force [force_wielded] and throwforce [throwforce] when made from default material [material.name]")
 
 
 /obj/item/weapon/material/twohanded/New()
 	..()
-	queue_icon_update()
+	update_icon()
 
 /obj/item/weapon/material/twohanded/get_parry_chance(mob/user)
 	. = ..()
@@ -79,15 +73,14 @@
 	name = "fire axe"
 	desc = "Truly, the weapon of a madman. Who would think to fight fire with an axe?"
 
-	force_divisor = 0.27
-	unwielded_force_divisor = 0.15
-	sharpness = 2
-	attack_cooldown_modifier = 2
-	force_wielded = 15
+	max_force = 60	//for wielded
+	force_divisor = 0.6
+	unwielded_force_divisor = 0.3
+	sharp = 1
+	edge = 1
 	attack_verb = list("attacked", "chopped", "cleaved", "torn", "cut")
 	applies_material_colour = 0
-	damtype = DAM_CUT
-	mass = 3
+	worth_multiplier = 31
 
 /obj/item/weapon/material/twohanded/fireaxe/afterattack(atom/A as mob|obj|turf|area, mob/user as mob, proximity)
 	if(!proximity) return
@@ -95,7 +88,7 @@
 	if(A && wielded)
 		if(istype(A,/obj/structure/window))
 			var/obj/structure/window/W = A
-			W.kill()
+			W.shatter()
 		else if(istype(A,/obj/structure/grille))
 			qdel(A)
 		else if(istype(A,/obj/effect/vine))
@@ -111,23 +104,55 @@
 	base_icon = "spearglass"
 	name = "spear"
 	desc = "A haphazardly-constructed yet still deadly weapon of ancient design."
-	force = 10
+	max_force = 20	//for wielded
 	applies_material_colour = 0
-
-	// 12/19 with hardness 60 (steel) or 10/16 with hardness 50 (glass)
-	force_divisor = 0.33
+	force_divisor = 0.33 // 12/19 with hardness 60 (steel) or 10/16 with hardness 50 (glass)
 	unwielded_force_divisor = 0.20
 	thrown_force_divisor = 1.5 // 20 when thrown with weight 15 (glass)
 	throw_speed = 3
-	sharpness = 1
-	sound_hit = 'sound/weapons/bladeslice.ogg'
+	edge = 0
+	sharp = 1
+	hitsound = 'sound/weapons/bladeslice.ogg'
 	attack_verb = list("attacked", "poked", "jabbed", "torn", "gored")
 	default_material = MATERIAL_GLASS
 	does_spin = FALSE
-	damtype = DAM_PIERCE
-	mass = 2
+	worth_multiplier = 7
 
-/obj/item/weapon/material/twohanded/spear/destroyed(var/damtype, var/user, var/consumed)
+/obj/item/weapon/material/twohanded/spear/shatter(var/consumed)
 	if(!consumed)
-		new /obj/item/weapon/material/wirerod(get_turf(src)) //give back the wired rod
+		new /obj/item/stack/material/rods(get_turf(src), 1)
+		new /obj/item/stack/cable_coil(get_turf(src), 3)
 	..()
+
+/obj/item/weapon/material/twohanded/baseballbat
+	name = "bat"
+	desc = "HOME RUN!"
+	icon_state = "metalbat0"
+	base_icon = "metalbat"
+	item_state = "metalbat"
+	w_class = ITEM_SIZE_LARGE
+	throwforce = 7
+	attack_verb = list("smashed", "beaten", "slammed", "smacked", "struck", "battered", "bonked")
+	hitsound = 'sound/weapons/genhit3.ogg'
+	default_material = MATERIAL_MAPLE
+	max_force = 40	//for wielded
+	force_divisor = 1.1           // 22 when wielded with weight 20 (steel)
+	unwielded_force_divisor = 0.7 // 15 when unwielded based on above.
+	attack_cooldown_modifier = 1
+	melee_accuracy_bonus = -10
+
+//Predefined materials go here.
+/obj/item/weapon/material/twohanded/baseballbat/metal/New(var/newloc)
+	..(newloc,MATERIAL_ALUMINIUM)
+
+/obj/item/weapon/material/twohanded/baseballbat/uranium/New(var/newloc)
+	..(newloc,MATERIAL_URANIUM)
+
+/obj/item/weapon/material/twohanded/baseballbat/gold/New(var/newloc)
+	..(newloc,MATERIAL_GOLD)
+
+/obj/item/weapon/material/twohanded/baseballbat/platinum/New(var/newloc)
+	..(newloc,MATERIAL_PLATINUM)
+
+/obj/item/weapon/material/twohanded/baseballbat/diamond/New(var/newloc)
+	..(newloc,MATERIAL_DIAMOND)

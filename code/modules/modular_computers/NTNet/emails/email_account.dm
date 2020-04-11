@@ -4,15 +4,14 @@
 	var/list/spam = list()
 	var/list/deleted = list()
 
-
 	var/login = ""
 	var/password = ""
 	var/can_login = TRUE	// Whether you can log in with this account. Set to false for system accounts
 	var/suspended = FALSE	// Whether the account is banned by the SA.
 	var/connected_clients = list()
 
-	var/list/blocked = list()
-
+	var/fullname	= "N/A"
+	var/assignment	= "N/A"
 
 /datum/computer_file/data/email_account/calculate_size()
 	size = 1
@@ -20,18 +19,14 @@
 		stored_message.calculate_size()
 		size += stored_message.size
 
-/datum/computer_file/data/email_account/New()
-	ntnet_global.email_accounts.Add(src)
+/datum/computer_file/data/email_account/New(_login, _fullname, _assignment)
+	login = _login
+	if(_fullname)
+		fullname = _fullname
+	if(_assignment)
+		assignment = _assignment
+	ADD_SORTED(ntnet_global.email_accounts, src, /proc/cmp_emails_asc)
 	..()
-	ADD_SAVED_VAR(inbox)
-	ADD_SAVED_VAR(outbox)
-	ADD_SAVED_VAR(spam)
-	ADD_SAVED_VAR(deleted)
-	ADD_SAVED_VAR(login)
-	ADD_SAVED_VAR(password)
-	ADD_SAVED_VAR(can_login)
-	ADD_SAVED_VAR(suspended)
-	ADD_SAVED_VAR(blocked)
 
 /datum/computer_file/data/email_account/Destroy()
 	ntnet_global.email_accounts.Remove(src)
@@ -40,16 +35,12 @@
 /datum/computer_file/data/email_account/proc/all_emails()
 	return (inbox | spam | deleted | outbox)
 
-/datum/computer_file/data/email_account/proc/unread()
-	var/count = 0
-	for(var/datum/computer_file/data/email_message/stored_message in inbox)
-		if(stored_message.unread)
-			count++
-	return count
-
 /datum/computer_file/data/email_account/proc/send_mail(var/recipient_address, var/datum/computer_file/data/email_message/message, var/relayed = 0)
 	var/datum/computer_file/data/email_account/recipient
-	recipient = Get_Email_Account(recipient_address)
+	for(var/datum/computer_file/data/email_account/account in ntnet_global.email_accounts)
+		if(account.login == recipient_address)
+			recipient = account
+			break
 
 	if(!istype(recipient))
 		return 0
@@ -63,7 +54,6 @@
 
 /datum/computer_file/data/email_account/proc/receive_mail(var/datum/computer_file/data/email_message/received_message, var/relayed)
 	received_message.set_timestamp()
-	GLOB.discord_api.mail(src.login, received_message)
 	if(!ntnet_global.intrusion_detection_enabled)
 		inbox.Add(received_message)
 		return 1
@@ -82,6 +72,7 @@
 		inbox.Add(received_message)
 		for(var/datum/nano_module/email_client/ec in connected_clients)
 			ec.mail_received(received_message)
+
 	return 1
 
 // Address namespace (@internal-services.net) for email addresses with special purpose only!.

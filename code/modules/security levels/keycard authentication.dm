@@ -3,11 +3,6 @@
 	desc = "This device is used to trigger functions which require more than one ID card to authenticate."
 	icon = 'icons/obj/monitors.dmi'
 	icon_state = "auth_off"
-	anchored = TRUE
-	use_power = POWER_USE_IDLE
-	idle_power_usage = 2
-	active_power_usage = 6
-	power_channel = ENVIRON
 	var/active = 0 //This gets set to 1 on all devices except the one where the initial request was made.
 	var/event = ""
 	var/screen = 1
@@ -19,15 +14,17 @@
 	var/mob/event_confirmed_by
 	//1 = select event
 	//2 = authenticate
+	anchored = 1.0
+	idle_power_usage = 2
+	active_power_usage = 6
+	power_channel = ENVIRON
 
 /obj/machinery/keycard_auth/attack_ai(mob/user as mob)
-	to_chat(user, SPAN_WARNING("A firewall prevents you from interfacing with this device!"))
+	to_chat(user, "<span class='warning'>A firewall prevents you from interfacing with this device!</span>")
 	return
 
 /obj/machinery/keycard_auth/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(default_wrench_floor_bolts(user, 2 SECONDS))
-		return 
-	if(inoperable())
+	if(stat & (NOPOWER|BROKEN))
 		to_chat(user, "This device is not powered.")
 		return
 	if(istype(W,/obj/item/weapon/card/id))
@@ -39,26 +36,24 @@
 					event_source.confirmed = 1
 					event_source.event_confirmed_by = usr
 				else
-					to_chat(user, SPAN_WARNING("Unable to confirm, DNA matches that of origin."))
+					to_chat(user, "<span class='warning'>Unable to confirm, DNA matches that of origin.</span>")
 			else if(screen == 2)
 				event_triggered_by = usr
 				broadcast_request() //This is the device making the initial event request. It needs to broadcast to other devices
 
 //icon_state gets set everwhere besides here, that needs to be fixed sometime
 /obj/machinery/keycard_auth/on_update_icon()
-	if(!ispowered())
+	if(stat &NOPOWER)
 		icon_state = "auth_off"
 
-/obj/machinery/keycard_auth/attack_hand(mob/user as mob)
-	if(user.stat || inoperable())
-		to_chat(user, "This device is not powered.")
-		return
-	if(!user.IsAdvancedToolUser())
-		return 0
+/obj/machinery/keycard_auth/interface_interact(mob/user)
 	if(busy)
 		to_chat(user, "This device is busy.")
-		return
+		return TRUE
+	interact(user)
+	return TRUE
 
+/obj/machinery/keycard_auth/interact(mob/user)
 	user.set_machine(src)
 
 	var/dat = "<h1>Keycard Authentication Device</h1>"
@@ -85,11 +80,11 @@
 		dat += "<li><A href='?src=\ref[src];triggerevent=Revoke Emergency Maintenance Access'>Revoke Emergency Maintenance Access</A></li>"
 		dat += "<li><A href='?src=\ref[src];triggerevent=Grant Nuclear Authorization Code'>Grant Nuclear Authorization Code</A></li>"
 		dat += "</ul>"
-		user << browse(dat, "window=keycard_auth;size=500x250")
+		show_browser(user, dat, "window=keycard_auth;size=500x250")
 	if(screen == 2)
 		dat += "Please swipe your card to authorize the following event: <b>[event]</b>"
 		dat += "<p><A href='?src=\ref[src];reset=1'>Back</A>"
-		user << browse(dat, "window=keycard_auth;size=500x250")
+		show_browser(user, dat, "window=keycard_auth;size=500x250")
 	return
 
 /obj/machinery/keycard_auth/CanUseTopic(var/mob/user, href_list)
@@ -135,12 +130,11 @@
 	if(confirmed)
 		confirmed = 0
 		trigger_event(event)
-		log_game("[key_name(event_triggered_by)] triggered and [key_name(event_confirmed_by)] confirmed event [event]")
-		message_admins("[key_name(event_triggered_by)] triggered and [key_name(event_confirmed_by)] confirmed event [event]", 1)
+		log_and_message_admins("triggered and [key_name(event_confirmed_by)] confirmed event [event]", event_triggered_by || usr)
 	reset()
 
 /obj/machinery/keycard_auth/proc/receive_request(var/obj/machinery/keycard_auth/source)
-	if(inoperable())
+	if(stat & (BROKEN|NOPOWER))
 		return
 	event_source = source
 	busy = 1
@@ -172,9 +166,11 @@
 			GLOB.using_map.revoke_maint_all_access()
 			SSstatistics.add_field("alert_keycard_auth_maintRevoke",1)
 		if("Emergency Response Team")
-			//No emergency teams in persistence
-			to_chat(usr, "<span class='warning'>All emergency response teams are dispatched and can not be called at this time.</span>")
-			//trigger_armed_response_team(1)
+			if(is_ert_blocked())
+				to_chat(usr, "<span class='warning'>All emergency response teams are dispatched and can not be called at this time.</span>")
+				return
+
+			trigger_armed_response_team(1)
 			SSstatistics.add_field("alert_keycard_auth_ert",1)
 		if("Grant Nuclear Authorization Code")
 			var/obj/machinery/nuclearbomb/nuke = locate(/obj/machinery/nuclearbomb/station) in world
@@ -185,21 +181,7 @@
 			SSstatistics.add_field("alert_keycard_auth_nukecode",1)
 
 /obj/machinery/keycard_auth/proc/is_ert_blocked()
-	return 1
+	if(config.ert_admin_call_only) return 1
+	return SSticker.mode && SSticker.mode.ert_disabled
 
 var/global/maint_all_access = 0
-
-/proc/make_maint_all_access()
-	maint_all_access = 1
-	to_world("<font size=4 color='red'>Attention!</font>")
-	to_world("<font color='red'>The maintenance access requirement has been revoked on all airlocks.</font>")
-
-/proc/revoke_maint_all_access()
-	maint_all_access = 0
-	to_world("<font size=4 color='red'>Attention!</font>")
-	to_world("<font color='red'>The maintenance access requirement has been readded on all maintenance airlocks.</font>")
-
-/obj/machinery/door/airlock/allowed(mob/M)
-	if(maint_all_access && src.check_access_list(list(access_maint_tunnels)))
-		return 1
-	return ..(M)

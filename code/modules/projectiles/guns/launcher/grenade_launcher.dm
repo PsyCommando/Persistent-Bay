@@ -1,5 +1,5 @@
 /obj/item/weapon/gun/launcher/grenade
-	name = "pump-action grenade launcher"
+	name = "grenade launcher"
 	desc = "A bulky pump-action grenade launcher. Holds up to 6 grenades in a revolving magazine."
 	icon_state = "riotgun"
 	item_state = "riotgun"
@@ -26,13 +26,6 @@
 
 	matter = list(MATERIAL_STEEL = 2000)
 
-/obj/item/weapon/gun/launcher/grenade/New()
-	..()
-	ADD_SAVED_VAR(chambered)
-	ADD_SAVED_VAR(grenades)
-	ADD_SKIP_EMPTY(chambered)
-	ADD_SKIP_EMPTY(grenades)
-
 //revolves the magazine, allowing players to choose between multiple grenade types
 /obj/item/weapon/gun/launcher/grenade/proc/pump(mob/M as mob)
 	playsound(M, 'sound/weapons/shotgunpump.ogg', 60, 1)
@@ -51,8 +44,9 @@
 		to_chat(M, "<span class='warning'>You pump [src], but the magazine is empty.</span>")
 	update_icon()
 
-/obj/item/weapon/gun/launcher/grenade/examine(mob/user)
-	if(..(user, 2))
+/obj/item/weapon/gun/launcher/grenade/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 2)
 		var/grenade_count = grenades.len + (chambered? 1 : 0)
 		to_chat(user, "Has [grenade_count] grenade\s remaining.")
 		if(chambered)
@@ -101,8 +95,8 @@
 	return chambered
 
 /obj/item/weapon/gun/launcher/grenade/handle_post_fire(mob/user)
-	message_admins("[key_name_admin(user)] fired a grenade ([chambered.name]) from a grenade launcher ([src.name]).")
-	log_game("[key_name_admin(user)] used a grenade ([chambered.name]).")
+	log_and_message_admins("fired a grenade ([chambered.name]) from a grenade launcher.")
+
 	chambered = null
 	..()
 

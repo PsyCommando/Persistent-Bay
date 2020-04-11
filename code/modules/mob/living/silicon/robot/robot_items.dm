@@ -37,8 +37,7 @@
 						M.death()
 					if(istype(I,/obj/item/stack/material))//Only deconstructs one sheet at a time instead of the entire stack
 						var/obj/item/stack/material/S = I
-						if(S.get_amount() > 1)
-							S.use(1)
+						if(S.use(1))
 							loaded_item = S
 						else
 							qdel(S)
@@ -323,7 +322,7 @@
 /obj/item/weapon/form_printer
 	//name = "paperwork printer"
 	name = "paper dispenser"
-	icon = 'icons/obj/items/paper.dmi'
+	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "paper_bin1"
 	item_state = "sheet-metal"
 
@@ -372,7 +371,7 @@
 /obj/item/weapon/inflatable_dispenser
 	name = "inflatables dispenser"
 	desc = "Hand-held device which allows rapid deployment and removal of inflatables."
-	icon = 'icons/obj/items/storage/toolboxes.dmi'
+	icon = 'icons/obj/storage.dmi'
 	icon_state = "inf_deployer"
 	w_class = ITEM_SIZE_LARGE
 
@@ -389,9 +388,8 @@
 	max_walls = 10
 	max_doors = 5
 
-/obj/item/weapon/inflatable_dispenser/examine(var/mob/user)
-	if(!..(user))
-		return
+/obj/item/weapon/inflatable_dispenser/examine(mob/user)
+	. = ..()
 	to_chat(user, "It has [stored_walls] wall segment\s and [stored_doors] door segment\s stored.")
 	to_chat(user, "It is set to deploy [mode ? "doors" : "walls"]")
 
@@ -404,9 +402,13 @@
 	if(!user)
 		return
 	if(!user.Adjacent(A))
-		to_chat(user, "You can't reach!")
 		return
-	if(istype(A, /turf))
+	if (isturf(A))
+		var/turf/T = A
+		var/obstruction = T.get_obstruction()
+		if (obstruction)
+			to_chat(user, "\The [english_list(obstruction)] is blocking that spot.")
+			return
 		try_deploy_inflatable(A, user)
 	if(istype(A, /obj/item/inflatable) || istype(A, /obj/structure/inflatable))
 		pick_up(A, user)

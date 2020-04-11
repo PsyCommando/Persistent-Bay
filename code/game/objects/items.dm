@@ -3,15 +3,17 @@
 	icon = 'icons/obj/items.dmi'
 	w_class = ITEM_SIZE_NORMAL
 	mouse_drag_pointer = MOUSE_ACTIVE_POINTER
-	pass_flags = PASS_FLAG_TABLE
 
 	var/image/blood_overlay = null //this saves our blood splatter overlay, which will be processed not to go over the edges of the sprite
-	var/randpixel = 9
+	var/randpixel = 6
 	var/r_speed = 1.0
-	// var/burn_point = null
-	// var/burning = null
+	var/health = null
+	var/burn_point = null
+	var/burning = null
+	var/hitsound = null
 	var/slot_flags = 0		//This is used to determine on which slots an item can fit.
 	var/no_attack_log = 0			//If it's an item we don't want to log attack_logs with, set this to 1
+	pass_flags = PASS_FLAG_TABLE
 //	causeerrorheresoifixthis
 	var/obj/item/master = null
 	var/list/origin_tech = null	//Used by R&D to determine what research bonuses it grants.
@@ -25,13 +27,12 @@
 	var/cold_protection = 0 //flags which determine which body parts are protected from cold. Use the HEAD, UPPER_TORSO, LOWER_TORSO, etc. flags. See setup.dm
 	var/max_heat_protection_temperature //Set this variable to determine up to which temperature (IN KELVIN) the item protects against heat damage. Keep at null to disable protection. Only protects areas set by heat_protection flags
 	var/min_cold_protection_temperature //Set this variable to determine down to which temperature (IN KELVIN) the item protects against cold damage. 0 is NOT an acceptable number due to if(varname) tests!! Keep at null to disable protection. Only protects areas set by cold_protection flags
+	var/max_pressure_protection // Set this variable if the item protects its wearer against high pressures below an upper bound. Keep at null to disable protection.
+	var/min_pressure_protection // Set this variable if the item protects its wearer against low pressures above a lower bound. Keep at null to disable protection. 0 represents protection against hard vacuum.
 
 	var/datum/action/item_action/action = null
 	var/action_button_name //It is also the text which gets displayed on the action button. If not set it defaults to 'Use [name]'. If it's not set, there'll be no button.
 	var/default_action_type = /datum/action/item_action // Specify the default type and behavior of the action button for this atom.
-	var/action_button_is_hands_free = 0 //If 1, bypass the restrained, lying, and stunned checks action buttons normally test for
-	var/action_button_icon
-	var/action_button_state
 
 	//This flag is used to determine when items in someone's inventory cover others. IE helmets making it so you can't see glasses, etc.
 	//It should be used purely for appearance. For gameplay effects caused by items covering body parts, use body_parts_covered.
@@ -48,6 +49,9 @@
 	var/slowdown_per_slot[slot_last] // How much clothing is slowing you down. This is an associative list: item slot - slowdown
 	var/slowdown_accessory // How much an accessory will slow you down when attached to a worn article of clothing.
 	var/canremove = 1 //Mostly for Ninja code at this point but basically will not allow the item to be removed if set to 0. /N
+	var/armor_type = /datum/extension/armor
+	var/list/armor
+	var/armor_degradation_speed //How fast armor will degrade, multiplier to blocked damage to get armor damage value.
 	var/list/allowed = null //suit storage stuff.
 	var/obj/item/device/uplink/hidden_uplink = null // All items can have an uplink hidden inside, just remember to add the triggers.
 	var/zoomdevicename = null //name used for message when binoculars/scope is used
@@ -84,26 +88,16 @@
 
 /obj/item/New()
 	..()
-	if((!pixel_x && !pixel_y) && isturf(loc)) //hopefully this will prevent us from messing with mapper-set pixel_x/y
-		randomize_pixel_offset()
-
-	ADD_SAVED_VAR(master)
-	ADD_SAVED_VAR(hidden_uplink)
-
-/obj/item/proc/randomize_pixel_offset(var/reset = 0)
-	if(!reset && randpixel)
+	if(randpixel && (!pixel_x && !pixel_y) && isturf(loc)) //hopefully this will prevent us from messing with mapper-set pixel_x/y
 		pixel_x = rand(-randpixel, randpixel)
 		pixel_y = rand(-randpixel, randpixel)
-	if(reset)
-		pixel_x = 0
-		pixel_y = 0
 
 /obj/item/Initialize()
 	. = ..()
 	if(islist(armor))
 		for(var/type in armor)
 			if(armor[type]) // Don't set it if it gives no armor anyway, which is many items.
-				set_extension(src, /datum/extension/armor, /datum/extension/armor, armor)
+				set_extension(src, armor_type, armor, armor_degradation_speed)
 				break
 
 /obj/item/Destroy()
@@ -113,8 +107,12 @@
 		m.drop_from_inventory(src)
 	var/obj/item/weapon/storage/storage = loc
 	if(istype(storage))
-		storage.on_item_deletion()
-	return ..()
+		// some ui cleanup needs to be done
+		storage.on_item_pre_deletion(src) // must be done before deletion
+		. = ..()
+		storage.on_item_post_deletion(src) // must be done after deletion
+	else
+		return ..()
 
 /obj/item/device
 	icon = 'icons/obj/device.dmi'
@@ -132,6 +130,10 @@
 			M.update_inv_r_hand()
 
 /obj/item/proc/is_held_twohanded(mob/living/M)
+
+	if(istype(loc, /obj/item/rig_module) || istype(loc, /obj/item/weapon/rig))
+		return TRUE
+
 	var/check_hand
 	if(M.l_hand == src && !M.r_hand)
 		check_hand = BP_R_HAND //item in left hand, check right hand
@@ -160,21 +162,7 @@
 			if (prob(5))
 				qdel(src)
 
-/obj/item/verb/move_to_top()
-	set name = "Move To Top"
-	set category = "Object"
-	set src in oview(1)
-
-	if(!istype(src.loc, /turf) || usr.stat || usr.restrained() )
-		return
-
-	var/turf/T = src.loc
-
-	src.loc = null
-
-	src.loc = T
-
-/obj/item/examine(mob/user, var/distance = -1)
+/obj/item/examine(mob/user, distance)
 	var/size
 	switch(src.w_class)
 		if(ITEM_SIZE_TINY)
@@ -229,27 +217,37 @@
 			to_chat(user, "<span class='notice'>You try to use your hand, but realize it is no longer attached!</span>")
 			return
 
-	var/old_loc = src.loc
+	var/old_loc = loc
 
-	src.pickup(user)
-	if (istype(src.loc, /obj/item/weapon/storage))
-		var/obj/item/weapon/storage/S = src.loc
+	pickup(user)
+	if (istype(loc, /obj/item/weapon/storage))
+		var/obj/item/weapon/storage/S = loc
 		S.remove_from_storage(src)
 
-	src.throwing = 0
-	if (src.loc == user)
+	if(!QDELETED(throwing))
+		throwing.finalize(hit=TRUE)
+
+	if (loc == user)
 		if(!user.unEquip(src))
 			return
 	else
-		if(isliving(src.loc))
+		if(isliving(loc))
 			return
+
+	if(QDELETED(src))
+		return // Unequipping changes our state, so must check here.
 
 	if(user.put_in_active_hand(src))
 		if (isturf(old_loc))
 			var/obj/effect/temporary/item_pickup_ghost/ghost = new(old_loc, src)
 			ghost.animate_towards(user)
-		randomize_pixel_offset(1)
-	return
+		if(randpixel)
+			pixel_x = rand(-randpixel, randpixel)
+			pixel_y = rand(-randpixel/2, randpixel/2)
+			pixel_z = 0
+		else if(randpixel == 0)
+			pixel_x = 0
+			pixel_y = 0
 
 /obj/item/attack_ai(mob/user as mob)
 	if (istype(src.loc, /obj/item/weapon/robot_module))
@@ -260,7 +258,10 @@
 		R.activate_module(src)
 		R.hud_used.update_robot_modules_display()
 
-/obj/item/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/item/attackby(obj/item/weapon/W, mob/user)
+	if((. = SSfabrication.try_craft_with(src, W, user)))
+		return
+
 	if(istype(W, /obj/item/weapon/storage))
 		var/obj/item/weapon/storage/S = W
 		if(S.use_to_pickup)
@@ -277,7 +278,7 @@
 	return
 
 // apparently called whenever an item is removed from a slot, container, or anything else.
-/obj/item/dropped(mob/user as mob)
+/obj/item/proc/dropped(mob/user as mob)
 	if(randpixel)
 		pixel_z = randpixel //an idea borrowed from some of the older pixel_y randomizations. Intended to make items appear to drop at a character
 
@@ -287,8 +288,6 @@
 			user.l_hand.update_twohanding()
 		if(user.r_hand)
 			user.r_hand.update_twohanding()
-	//Call the hook
-	.=..()
 
 // called just as an item is picked up (loc is not yet changed)
 /obj/item/proc/pickup(mob/user)
@@ -311,7 +310,7 @@
 // slot uses the slot_X defines found in setup.dm
 // for items that can be placed in multiple slots
 // note this isn't called during the initial dressing of a player
-/obj/item/equipped(var/mob/user, var/slot)
+/obj/item/proc/equipped(var/mob/user, var/slot)
 	hud_layerise()
 	if(user.client)	user.client.screen |= src
 	if(user.pulling == src) user.stop_pulling()
@@ -324,8 +323,6 @@
 		M.l_hand.update_twohanding()
 	if(M.r_hand)
 		M.r_hand.update_twohanding()
-	//Call the hook
-	.=..()
 
 //Defines which slots correspond to which slot flags
 var/list/global/slot_flags_enumeration = list(
@@ -458,6 +455,9 @@ var/list/global/slot_flags_enumeration = list(
 		return 0
 	return 1
 
+/obj/item/proc/can_be_dropped_by_client(mob/M)
+	return M.canUnEquip(src)
+
 /obj/item/verb/verb_pickup()
 	set src in oview(1)
 	set category = "Object"
@@ -493,9 +493,7 @@ var/list/global/slot_flags_enumeration = list(
 //This proc is executed when someone clicks the on-screen UI button. To make the UI button show, set the 'icon_action_button' to the icon_state of the image of the button in screen1_action.dmi
 //The default action is attack_self().
 //Checks before we get to here are: mob is alive, mob is not restrained, paralyzed, asleep, resting, laying, item is on the mob.
-/obj/proc/ui_action_click()
-	return
-/obj/item/ui_action_click()
+/obj/item/proc/ui_action_click()
 	attack_self(usr)
 
 //RETURN VALUES
@@ -532,7 +530,7 @@ var/list/global/slot_flags_enumeration = list(
 	attacker.apply_damage(force, damtype, attacker.hand ? BP_L_HAND : BP_R_HAND, used_weapon = src)
 	attacker.visible_message("<span class='danger'>[attacker] hurts \his hand on [src]!</span>")
 	playsound(target, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-	playsound(target, sound_hit, 50, 1, -1)
+	playsound(target, hitsound, 50, 1, -1)
 	return 1
 
 /obj/item/proc/get_loc_turf()
@@ -577,8 +575,8 @@ var/list/global/slot_flags_enumeration = list(
 				"<span class='danger'>You stab yourself in the eyes with [src]!</span>" \
 			)
 
-		eyes.rem_health(rand(3,4))
-		if(eyes.get_damages() >= eyes.min_bruised_damage)
+		eyes.damage += rand(3,4)
+		if(eyes.damage >= eyes.min_bruised_damage)
 			if(M.stat != 2)
 				if(!BP_IS_ROBOTIC(eyes)) //robot eyes bleeding might be a bit silly
 					to_chat(M, "<span class='danger'>Your eyes start to bleed profusely!</span>")
@@ -589,14 +587,14 @@ var/list/global/slot_flags_enumeration = list(
 				M.eye_blurry += 10
 				M.Paralyse(1)
 				M.Weaken(4)
-			if (eyes.get_damages() >= eyes.min_broken_damage)
+			if (eyes.damage >= eyes.min_broken_damage)
 				if(M.stat != 2)
 					to_chat(M, "<span class='warning'>You go blind!</span>")
 
 		var/obj/item/organ/external/affecting = H.get_organ(eyes.parent_organ)
-		affecting.take_damage(7)
+		affecting.take_external_damage(7)
 	else
-		M.apply_damage(7)
+		M.take_organ_damage(7)
 	M.eye_blurry += rand(3,4)
 	return
 
@@ -774,12 +772,6 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 		mob_state = icon_state
 	return mob_state
 
-/obj/item/proc/dir_shift(var/icon/given_icon, var/dir_given, var/x = 0, var/y = 0)
-	var/icon/I = new(given_icon, dir = dir_given)
-	I.Shift(EAST, x)
-	I.Shift(NORTH, y)
-	given_icon.Insert(I, dir = dir_given)
-	return given_icon
 
 /obj/item/proc/get_mob_overlay(mob/user_mob, slot)
 	var/bodytype = "Default"
@@ -834,11 +826,36 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 /obj/item/proc/has_embedded()
 	return
 
-//For items that can puncture e.g. thick plastic but aren't necessarily sharp
-//Returns 1 if the given item is capable of popping things like balloons, inflatable barriers, or cutting police tape.
-/obj/item/proc/can_puncture()
-	return src.sharpness || ISDAMTYPE(src.damtype, DAM_PIERCE) || ISDAMTYPE(src.damtype, DAM_CUT)
+/obj/item/proc/get_pressure_weakness(pressure)
+	. = 1
+	if(pressure > ONE_ATMOSPHERE)
+		if(max_pressure_protection != null)
+			if(max_pressure_protection < pressure)
+				return min(1, round((pressure - max_pressure_protection) / max_pressure_protection, 0.01))
+			else
+				return 0
+	if(pressure < ONE_ATMOSPHERE)
+		if(min_pressure_protection != null)
+			if(min_pressure_protection > pressure)
+				return min(1, round((min_pressure_protection - pressure) / min_pressure_protection, 0.01))
+			else
+				return 0
 
-//Whether this item can engrave graffitis on turfs
-/obj/item/proc/can_graffiti()
-	return FALSE
+/obj/item/do_simple_ranged_interaction(var/mob/user)
+	if(user)
+		attack_self(user)
+	return TRUE
+
+/obj/item/proc/inherit_custom_item_data(var/datum/custom_item/citem)
+	. = src
+	if(citem.item_name)
+		SetName(citem.item_name)
+	if(citem.item_desc)
+		desc = citem.item_desc
+	if(citem.item_icon_state)
+		item_state_slots = null
+		item_icons = null
+		icon = CUSTOM_ITEM_OBJ
+		set_icon_state(citem.item_icon_state)
+		item_state = null
+		icon_override = CUSTOM_ITEM_MOB

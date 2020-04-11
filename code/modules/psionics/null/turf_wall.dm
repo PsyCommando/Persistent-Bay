@@ -6,7 +6,7 @@
 	if(. > 0 && disrupts_psionics())
 		var/cap = material.integrity
 		if(reinf_material) cap += reinf_material.integrity
-		var/stress_total = (MaxIntegrity() - integrity) + .
+		var/stress_total = damage + .
 		take_damage(.)
 		. = max(0, -(cap-stress_total))
 

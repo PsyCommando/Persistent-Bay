@@ -164,7 +164,7 @@
 			id.icon_state = "gold"
 			id.access = get_all_accesses()
 		else
-			id = new /obj/item/weapon/card/id/captains_spare(M);
+			id = new/obj/item/weapon/card/id(M);
 			id.icon_state = "gold"
 			id.access = get_all_accesses()
 			id.registered_name = H.real_name
@@ -309,13 +309,13 @@
 		reset_equipment = alert("Do you wish to delete all current equipment first?", "Delete Equipment?","Yes", "No") == "Yes"
 
 	SSstatistics.add_field_details("admin_verb","SEQ")
-	dressup_human(H, outfit)
+	dressup_human(H, outfit, reset_equipment)
 
 /proc/dressup_human(var/mob/living/carbon/human/H, var/decl/hierarchy/outfit/outfit, var/undress = TRUE)
 	if(!H || !outfit)
 		return
 	if(undress)
-		H.delete_inventory(FALSE)
+		H.delete_inventory(TRUE)
 	outfit.equip(H)
 	log_and_message_admins("changed the equipment of [key_name(H)] to [outfit.name].")
 
@@ -451,7 +451,6 @@
 /obj/effect/debugmarker
 	icon = 'icons/effects/lighting_overlay.dmi'
 	icon_state = "transparent"
-	plane = ABOVE_TURF_PLANE
 	layer = HOLOMAP_LAYER
 	alpha = 127
 
@@ -468,7 +467,8 @@
 		var/netcolor = rgb(rand(100,255),rand(100,255),rand(100,255))
 		for(var/obj/structure/cable/C in PN.cables)
 			var/image/I = image('icons/effects/lighting_overlay.dmi', get_turf(C), "transparent")
-			I.plane = ABOVE_TURF_PLANE
+			I.plane = DEFAULT_PLANE
+			I.layer = EXPOSED_WIRE_LAYER
 			I.alpha = 127
 			I.color = netcolor
 			I.maptext = "\ref[PN]"

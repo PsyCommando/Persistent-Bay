@@ -52,7 +52,7 @@ var/list/outfits_decls_by_type_
 	var/id_pda_assignment
 
 	var/list/backpack_overrides
-	var/flags = OUTFIT_RESET_EQUIPMENT|OUTFIT_HAS_BACKPACK
+	var/flags = OUTFIT_RESET_EQUIPMENT
 
 /decl/hierarchy/outfit/New()
 	..()
@@ -102,12 +102,12 @@ var/list/outfits_decls_by_type_
 
 // end of check_and_try_equip_xeno
 
-/decl/hierarchy/outfit/proc/equip(mob/living/carbon/human/H, var/rank, var/assignment, var/equip_adjustments, var/faction_uid = null)
+/decl/hierarchy/outfit/proc/equip(mob/living/carbon/human/H, var/rank, var/assignment, var/equip_adjustments)
 	equip_base(H, equip_adjustments)
 
 	rank = id_pda_assignment || rank
 	assignment = id_pda_assignment || assignment || rank
-	var/obj/item/weapon/card/id/W = equip_id(H, rank, assignment, equip_adjustments, faction_uid)
+	var/obj/item/weapon/card/id/W = equip_id(H, rank, assignment, equip_adjustments)
 	if(W)
 		rank = W.rank
 		assignment = W.assignment
@@ -195,7 +195,7 @@ var/list/outfits_decls_by_type_
 		H.species.equip_survival_gear(H, flags&OUTFIT_EXTENDED_SURVIVAL)
 	check_and_try_equip_xeno(H)
 
-/decl/hierarchy/outfit/proc/equip_id(var/mob/living/carbon/human/H, var/rank, var/assignment, var/equip_adjustments, var/faction_uid)
+/decl/hierarchy/outfit/proc/equip_id(var/mob/living/carbon/human/H, var/rank, var/assignment, var/equip_adjustments)
 	if(!id_slot || !id_type)
 		return
 	if(OUTFIT_ADJUSTMENT_SKIP_ID_PDA & equip_adjustments)
@@ -207,11 +207,7 @@ var/list/outfits_decls_by_type_
 		W.rank = rank
 	if(assignment)
 		W.assignment = assignment
-	if(faction_uid)
-		W.selected_faction = faction_uid
-		W.approved_factions |= faction_uid
-	W.species = H.species?.name
-	//H.set_id_info(W) //We do it later at the end of equip instead since some things might change
+	H.set_id_info(W)
 	if(H.equip_to_slot_or_store_or_drop(W, id_slot))
 		return W
 

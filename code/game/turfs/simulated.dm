@@ -5,9 +5,8 @@
 
 	//Mining resources (for the large drills).
 	var/has_resources
-	var/has_gas_resources
 	var/list/resources
-	var/list/gas_resources
+
 	var/thermite = 0
 	initial_gas = list(GAS_OXYGEN = MOLES_O2STANDARD, GAS_NITROGEN = MOLES_N2STANDARD)
 	var/to_be_destroyed = 0 //Used for fire, if a melting temperature was reached, it will be destroyed
@@ -15,13 +14,6 @@
 	var/dirt = 0
 
 	var/timer_id
-
-/turf/simulated/post_change()
-	..()
-	var/turf/T = GetAbove(src)
-	if(istype(T,/turf/space) || (density && istype(T,/turf/simulated/open)))
-		var/new_turf_type = density ? (istype(T.loc, /area/space) ? /turf/simulated/floor/airless : /turf/simulated/floor/plating) : /turf/simulated/open
-		T.ChangeTurf(new_turf_type)
 
 // This is not great.
 /turf/simulated/proc/wet_floor(var/wet_val = 1, var/overwrite = FALSE)
@@ -55,32 +47,7 @@
 	..()
 	if(istype(loc, /area/chapel))
 		holy = 1
-	ADD_SAVED_VAR(wet)
-	ADD_SAVED_VAR(dirt)
-	ADD_SAVED_VAR(has_resources)
-	ADD_SAVED_VAR(has_gas_resources)
-	ADD_SAVED_VAR(resources)
-	ADD_SAVED_VAR(gas_resources)
-
-	ADD_SKIP_EMPTY(resources)
-	ADD_SKIP_EMPTY(gas_resources)
-
-/turf/simulated/Initialize()
-	. = ..()
-	if(GAME_STATE >= RUNLEVEL_SETUP)
-		fluid_update()
-	return INITIALIZE_HINT_LATELOAD
-
-/turf/simulated/LateInitialize()
-	. = ..()
-	if(map_storage_loaded && wet)
-		wet_floor(wet)
 	levelupdate()
-	queue_icon_update()
-
-/turf/simulated/Destroy()
-	deltimer(timer_id)
-	return ..()
 
 /turf/simulated/proc/AddTracks(var/typepath,var/bloodDNA,var/comingdir,var/goingdir,var/bloodcolor=COLOR_BLOOD_HUMAN)
 	var/obj/effect/decal/cleanable/blood/tracks/tracks = locate(typepath) in src
@@ -176,7 +143,6 @@
 				B.blood_DNA = list()
 			if(!B.blood_DNA[M.dna.unique_enzymes])
 				B.blood_DNA[M.dna.unique_enzymes] = M.dna.b_type
-				B.virus2 = virus_copylist(M.virus2)
 			return 1 //we bloodied the floor
 		blood_splatter(src,M.get_blood(M.vessel),1)
 		return 1 //we bloodied the floor
@@ -200,3 +166,7 @@
 		return
 	return ..()
 
+/turf/simulated/Initialize()
+	if(GAME_STATE >= RUNLEVEL_GAME)
+		fluid_update()
+	. = ..()

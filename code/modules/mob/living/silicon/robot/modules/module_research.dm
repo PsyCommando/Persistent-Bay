@@ -17,23 +17,33 @@
 		/obj/item/weapon/gripper/no_use/loader,
 		/obj/item/device/robotanalyzer,
 		/obj/item/weapon/card/robot,
-		/obj/item/weapon/tool/wrench,
-		/obj/item/weapon/tool/screwdriver,
-		/obj/item/weapon/tool/weldingtool/mini,
-		/obj/item/weapon/tool/wirecutters,
-		/obj/item/weapon/tool/crowbar,
+		/obj/item/weapon/wrench,
+		/obj/item/weapon/screwdriver,
+		/obj/item/weapon/weldingtool/mini,
+		/obj/item/weapon/wirecutters,
+		/obj/item/weapon/crowbar,
 		/obj/item/weapon/scalpel/laser3,
 		/obj/item/weapon/circular_saw,
 		/obj/item/weapon/extinguisher/mini,
 		/obj/item/weapon/reagent_containers/syringe,
 		/obj/item/weapon/gripper/chemistry,
-		/obj/item/stack/nanopaste,
+		/obj/item/stack/nanopaste
 	)
 	synths = list(
 		/datum/matter_synth/nanite = 10000
 	)
-	//emag = /obj/prefab/hand_teleporter
-
+	emag = /obj/prefab/hand_teleporter
+	skills = list(
+		SKILL_BUREAUCRACY         = SKILL_EXPERT,
+		SKILL_FINANCE             = SKILL_EXPERT,
+		SKILL_COMPUTER            = SKILL_PROF,
+		SKILL_SCIENCE             = SKILL_PROF,
+		SKILL_DEVICES             = SKILL_PROF,
+		SKILL_ANATOMY             = SKILL_ADEPT,
+		SKILL_CHEMISTRY           = SKILL_ADEPT,
+		SKILL_BOTANY              = SKILL_EXPERT,
+		SKILL_ELECTRICAL          = SKILL_EXPERT
+	)
 /obj/item/weapon/robot_module/research/finalize_equipment()
 	. = ..()
 	var/obj/item/stack/nanopaste/N = locate() in equipment

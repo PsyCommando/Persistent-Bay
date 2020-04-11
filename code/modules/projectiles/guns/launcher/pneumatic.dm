@@ -1,7 +1,7 @@
 /obj/item/weapon/gun/launcher/pneumatic
 	name = "pneumatic cannon"
 	desc = "A large gas-powered cannon."
-	icon = 'icons/obj/weapons/guns/pneumatic.dmi'
+	icon = 'icons/obj/guns/pneumatic.dmi'
 	icon_state = "pneumatic"
 	item_state = "pneumatic"
 	origin_tech = list(TECH_COMBAT = 4, TECH_MATERIAL = 3)
@@ -23,16 +23,9 @@
 	var/force_divisor = 400                             // Force equates to speed. Speed/5 equates to a damage multiplier for whoever you hit.
 	                                                    // For reference, a fully pressurized oxy tank at 50% gas release firing a health
 	                                                    // analyzer with a force_divisor of 10 hit with a damage multiplier of 3000+.
-
-/obj/item/weapon/gun/launcher/pneumatic/New()
-	. = ..()
-	ADD_SAVED_VAR(tank)
-	ADD_SAVED_VAR(item_storage)
-	ADD_SAVED_VAR(fire_pressure)
-
 /obj/item/weapon/gun/launcher/pneumatic/Initialize()
 	. = ..()
-	if(!map_storage_loaded)
+	if(!item_storage)
 		item_storage = new(src)
 		item_storage.SetName("hopper")
 		item_storage.max_w_class = max_w_class
@@ -107,8 +100,9 @@
 	item_storage.remove_from_storage(launched, src)
 	return launched
 
-/obj/item/weapon/gun/launcher/pneumatic/examine(mob/user)
-	if(!..(user, 2))
+/obj/item/weapon/gun/launcher/pneumatic/examine(mob/user, distance)
+	. = ..()
+	if(distance > 2)
 		return
 	to_chat(user, "The valve is dialed to [pressure_setting]%.")
 	if(tank)
@@ -142,85 +136,8 @@
 
 	update_held_icon()
 
-//Constructable pneumatic cannon.
-
-/obj/item/weapon/cannonframe
-	name = "pneumatic cannon frame"
-	desc = "A half-finished pneumatic cannon."
-	icon = 'icons/obj/weapons/guns/pneumatic.dmi'
-	icon_state = "pneumatic0"
-	item_state = "pneumatic"
-
-	var/buildstate = 0
-
-/obj/item/weapon/cannonframe/New()
-	. = ..()
-	ADD_SAVED_VAR(buildstate)
-
-/obj/item/weapon/cannonframe/on_update_icon()
-	icon_state = "pneumatic[buildstate]"
-
-/obj/item/weapon/cannonframe/examine(mob/user)
-	. = ..(user)
-	switch(buildstate)
-		if(1) to_chat(user, "It has a pipe segment installed.")
-		if(2) to_chat(user, "It has a pipe segment welded in place.")
-		if(3) to_chat(user, "It has an outer chassis installed.")
-		if(4) to_chat(user, "It has an outer chassis welded in place.")
-		if(5) to_chat(user, "It has a valve installed.")
-
-/obj/item/weapon/cannonframe/attackby(obj/item/W as obj, mob/user as mob)
-	if(istype(W,/obj/item/pipe))
-		if(buildstate == 0)
-			user.drop_from_inventory(W)
-			qdel(W)
-			to_chat(user, "<span class='notice'>You secure the piping inside the frame.</span>")
-			buildstate++
-			update_icon()
-			return
-	else if(istype(W,/obj/item/stack/material) && W.get_material_name() == MATERIAL_STEEL)
-		if(buildstate == 2)
-			var/obj/item/stack/material/M = W
-			if(M.use(5))
-				to_chat(user, "<span class='notice'>You assemble a chassis around the cannon frame.</span>")
-				buildstate++
-				update_icon()
-			else
-				to_chat(user, "<span class='notice'>You need at least five metal sheets to complete this task.</span>")
-			return
-	else if(istype(W,/obj/item/clamp))
-		if(buildstate == 4)
-			user.drop_from_inventory(W)
-			qdel(W)
-			to_chat(user, "<span class='notice'>You install \the [W] and connect it to the piping.</span>")
-			buildstate++
-			update_icon()
-			return
-	else if(isWelder(W))
-		if(buildstate == 1)
-			var/obj/item/weapon/tool/weldingtool/T = W
-			if(T.remove_fuel(0,user))
-				if(!src || !T.isOn()) return
-				playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
-				to_chat(user, "<span class='notice'>You weld the pipe into place.</span>")
-				buildstate++
-				update_icon()
-		if(buildstate == 3)
-			var/obj/item/weapon/tool/weldingtool/T = W
-			if(T.remove_fuel(0,user))
-				if(!src || !T.isOn()) return
-				playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
-				to_chat(user, "<span class='notice'>You weld the metal chassis together.</span>")
-				buildstate++
-				update_icon()
-		if(buildstate == 5)
-			var/obj/item/weapon/tool/weldingtool/T = W
-			if(T.remove_fuel(0,user))
-				if(!src || !T.isOn()) return
-				playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
-				to_chat(user, "<span class='notice'>You weld the valve into place.</span>")
-				new /obj/item/weapon/gun/launcher/pneumatic(get_turf(src))
-				qdel(src)
-		return
-	else
-		..()
+/obj/item/weapon/gun/launcher/pneumatic/small
+	name = "small pneumatic cannon"
+	desc = "It looks smaller than your garden variety cannon"
+	max_w_class = ITEM_SIZE_TINY
+	w_class = ITEM_SIZE_NORMAL

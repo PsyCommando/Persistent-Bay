@@ -42,27 +42,7 @@
 		log_and_message_admins("sent [key_name_admin(M)] to the prison station.")
 		SSstatistics.add_field_details("admin_verb","PRISON") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/client/proc/cmd_admin_subtle_message(mob/M as mob in SSmobs.mob_list)
-	set category = "Special Verbs"
-	set name = "Subtle Message"
-
-	if(!ismob(M))	return
-	if (!holder)
-		to_chat(src, "Only administrators may use this command.")
-		return
-
-	var/msg = sanitize(input("Message:", text("Subtle PM to [M.key]")) as text)
-
-	if (!msg)
-		return
-	if(usr)
-		if (usr.client)
-			if(usr.client.holder)
-				to_chat(M, "<b>You hear a voice in your head... <i>[msg]</i></b>")
-	log_and_message_staff(" - SubtleMessage -> [key_name_admin(M)] : [msg]")
-	SSstatistics.add_field_details("admin_verb","SMS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-
-/client/proc/cmd_mentor_check_new_players()	//Allows mentors / admins to determine who the newer players are.
+/client/proc/cmd_check_new_players()	//Allows admins to determine who the newer players are.
 	set category = "Admin"
 	set name = "Check new Players"
 	if(!holder)
@@ -78,22 +58,18 @@
 	var/missing_ages = 0
 	var/msg = ""
 
-	var/highlight_special_characters = 1
-	if(is_mentor(usr.client))
-		highlight_special_characters = 0
-
 	for(var/client/C in GLOB.clients)
 		if(C.player_age == "Requires database")
 			missing_ages = 1
 			continue
 		if(C.player_age < age)
-			msg += "[key_name(C, 1, 1, highlight_special_characters)]: account is [C.player_age] days old<br>"
+			msg += "[key_name(C, 1, 1, 1)]: account is [C.player_age] days old<br>"
 
 	if(missing_ages)
 		to_chat(src, "Some accounts did not have proper ages set in their clients.  This function requires database to be present")
 
 	if(msg != "")
-		src << browse(msg, "window=Player_age_check")
+		show_browser(src, msg, "window=Player_age_check")
 	else
 		to_chat(src, "No matches for that age range found.")
 
@@ -114,27 +90,6 @@
 
 	log_and_message_admins(" - GlobalNarrate [result[2]]/[result[3]]: [result[4]]")
 	SSstatistics.add_field_details("admin_verb","GLN") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-
-/client/proc/cmd_admin_nexus_narrate() // Allows administrators to fluff events a little easier -- TLE
-	set category = "Special Verbs"
-	set name = "NEX Speak"
-	set desc = "Narrate to everyone."
-
-	if(!check_rights(R_ADMIN))
-		return
-	var/static/list/beepsounds = list('sound/effects/compbeep1.ogg','sound/effects/compbeep2.ogg','sound/effects/compbeep3.ogg','sound/effects/compbeep4.ogg','sound/effects/compbeep5.ogg')	
-	var/result
-	var/message = input("Message:", text("Enter the text you want NEX to say. This will be broadcast to both the entire server and the discord.")) as null|text
-	if (!message)
-		return
-	result = FONT_LARGE(SPAN_WARNING(sanitize(message)))
-	to_world(result)
-	for(var/mob/M in GLOB.player_list)
-		sound_to(M, pick(beepsounds))
-	GLOB.discord_api.broadcast(message)
-	log_and_message_admins(" - GlobalNarrate [result[2]]/[result[3]]: [result[4]]")
-	SSstatistics.add_field_details("admin_verb","GLN") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-
 
 
 /proc/cmd_admin_narrate_helper(var/user, var/style, var/size, var/message)
@@ -169,14 +124,14 @@
 			)
 		if (!size)
 			return
-	
+
 	if (!message)
 		message = input("Message:", text("Enter the text you wish to appear to your target:")) as null|text
 		if (style != "unsafe")
 			message = sanitize(message)
 	if (!message)
 		return
-	
+
 	var/result = message
 	if (style != "unsafe")
 		switch (style)
@@ -194,7 +149,7 @@
 			if ("giant")  result = FONT_GIANT(result)
 
 	return list(result, style, size, message)
-	
+
 
 // Targetted narrate: will narrate to one specific mob
 /client/proc/cmd_admin_direct_narrate(var/mob/M)
@@ -209,14 +164,14 @@
 		M = input("Direct narrate to who?", "Active Players") as null|anything in get_mob_with_client_list()
 	if (!M)
 		return
-	
+
 	var/style
 	var/size
 
 	if (!check_rights(R_ADMIN, FALSE))
 		style = "subtle"
 		size = "normal"
-	
+
 	var/result = cmd_admin_narrate_helper(src, style, size)
 	if (!result)
 		return
@@ -233,7 +188,7 @@
 
 	if(!check_rights(R_ADMIN))
 		return
-	
+
 	var/result = cmd_admin_narrate_helper(src)
 	if (!result)
 		return
@@ -418,6 +373,7 @@ Ccomp's first proc.
 									   there won't be an autopsy.
 									*/
 	G.has_enabled_antagHUD = 2
+	G.can_reenter_corpse = CORPSE_CAN_REENTER_AND_RESPAWN
 
 	G.show_message("<span class=notice><b>You may now respawn.  You should roleplay as if you learned nothing about the round during your time with the dead.</b></span>", 1)
 	log_and_message_admins("has allowed [key_name(G)] to bypass the [config.respawn_delay] minute respawn limit.")
@@ -660,7 +616,13 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		log_admin("[key_name(usr)] deleted [O] at ([O.x],[O.y],[O.z])")
 		message_admins("[key_name_admin(usr)] deleted [O] at ([O.x],[O.y],[O.z])", 1)
 		SSstatistics.add_field_details("admin_verb","DEL") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-		qdel(O)
+
+		// turfs are special snowflakes that'll explode if qdel'd
+		if (isturf(O))
+			var/turf/T = O
+			T.ChangeTurf(world.turf)
+		else
+			qdel(O)
 
 /client/proc/cmd_admin_list_open_jobs()
 	set category = "Admin"
@@ -825,12 +787,16 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	set category = "Admin"
 	set name = "Call Evacuation"
 
-	if(!evacuation_controller)
+	if(!SSticker.mode || !evacuation_controller)
 		return
 
 	if(!check_rights(R_ADMIN))	return
 
 	if(alert(src, "Are you sure?", "Confirm", "Yes", "No") != "Yes") return
+
+	if(SSticker.mode.auto_recall_shuttle)
+		if(input("The evacuation will just be cancelled if you call it. Call anyway?") in list("Confirm", "Cancel") != "Confirm")
+			return
 
 	var/choice = input("Is this an emergency evacuation or a crew transfer?") in list("Emergency", "Crew Transfer")
 	evacuation_controller.call_evacuation(usr, (choice == "Emergency"))
@@ -877,6 +843,40 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	for(var/t in M.attack_logs_)
 		to_chat(usr, t)
 	SSstatistics.add_field_details("admin_verb","ATTL") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
+
+/client/proc/everyone_random()
+	set category = "Fun"
+	set name = "Make Everyone Random"
+	set desc = "Make everyone have a random appearance. You can only use this before rounds!"
+
+	if(!check_rights(R_FUN))	return
+
+	if (GAME_STATE >= RUNLEVEL_GAME)
+		to_chat(usr, "Nope you can't do this, the game's already started. This only works before rounds!")
+		return
+
+	if(GLOB.random_players)
+		GLOB.random_players = 0
+		message_admins("Admin [key_name_admin(usr)] has disabled \"Everyone is Special\" mode.", 1)
+		to_chat(usr, "Disabled.")
+		return
+
+
+	var/notifyplayers = alert(src, "Do you want to notify the players?", "Options", "Yes", "No", "Cancel")
+	if(notifyplayers == "Cancel")
+		return
+
+	log_admin("Admin [key_name(src)] has forced the players to have random appearances.")
+	message_admins("Admin [key_name_admin(usr)] has forced the players to have random appearances.", 1)
+
+	if(notifyplayers == "Yes")
+		to_world("<span class='notice'><b>Admin [usr.key] has forced the players to have completely random identities!</b></span>")
+
+	to_chat(usr, "<i>Remember: you can always disable the randomness by using the verb again, assuming the round hasn't started yet</i>.")
+	GLOB.random_players = 1
+	SSstatistics.add_field_details("admin_verb","MER") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
 
 /client/proc/toggle_random_events()
 	set category = "Server"

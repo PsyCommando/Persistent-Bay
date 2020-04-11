@@ -26,7 +26,7 @@
 //transfer_moles - Limits the amount of moles to transfer. The actual amount of gas moved may also be limited by available_power, if given.
 //available_power - the maximum amount of power that may be used when moving gas. If null then the transfer is not limited by power.
 /proc/pump_gas(var/obj/machinery/M, var/datum/gas_mixture/source, var/datum/gas_mixture/sink, var/transfer_moles = null, var/available_power = null)
-	if (source.total_moles < MINIMUM_MOLES_TO_PUMP) //if we cant transfer enough gas just stop to avoid further processing
+	if (source.total_moles < MINIMUM_MOLES_TO_PUMP) //if we can't transfer enough gas just stop to avoid further processing
 		return -1
 
 	if (isnull(transfer_moles))
@@ -39,7 +39,7 @@
 	if (!isnull(available_power) && specific_power > 0)
 		transfer_moles = min(transfer_moles, available_power / specific_power)
 
-	if (transfer_moles < MINIMUM_MOLES_TO_PUMP) //if we cant transfer enough gas just stop to avoid further processing
+	if (transfer_moles < MINIMUM_MOLES_TO_PUMP) //if we can't transfer enough gas just stop to avoid further processing
 		return -1
 
 	//Update flow rate meter
@@ -69,7 +69,7 @@
 
 //Gas 'pumping' proc for the case where the gas flow is passive and driven entirely by pressure differences (but still one-way).
 /proc/pump_gas_passive(var/obj/machinery/M, var/datum/gas_mixture/source, var/datum/gas_mixture/sink, var/transfer_moles = null)
-	if (source.total_moles < MINIMUM_MOLES_TO_PUMP) //if we cant transfer enough gas just stop to avoid further processing
+	if (source.total_moles < MINIMUM_MOLES_TO_PUMP) //if we can't transfer enough gas just stop to avoid further processing
 		return -1
 
 	if (isnull(transfer_moles))
@@ -481,7 +481,6 @@
 	var/carbondioxide = 0
 	var/nitrousoxide = 0
 	var/hydrogen = 0
-	var/reagent = 0
 	if(atmosphere.total_moles) // Division by zero prevention
 		oxygen = (atmosphere.gas[GAS_OXYGEN] / atmosphere.total_moles) * 100 // Percentage of the gas
 		phoron = (atmosphere.gas[GAS_PHORON] / atmosphere.total_moles) * 100
@@ -489,9 +488,6 @@
 		nitrousoxide = (atmosphere.gas[GAS_N2O] / atmosphere.total_moles) * 100
 		hydrogen = (atmosphere.gas[GAS_HYDROGEN] / atmosphere.total_moles) * 100
 
-		for(var/g in atmosphere.gas)
-			if(gas_data.flags[g] & XGM_GAS_REAGENT_GAS)
-				reagent += (atmosphere.gas[g]/atmosphere.total_moles) * 100
 	if(!oxygen)
 		status.Add("No oxygen.")
 	else if((oxygen > 30) || (oxygen < 17))
@@ -501,8 +497,6 @@
 
 	if(phoron > 0.1)		// Toxic even in small amounts.
 		status.Add("Phoron contamination.")
-	if(reagent > 3)
-		status.Add("Airborne Reagents detected.")
 	if(nitrousoxide > 0.1)	// Probably slightly less dangerous but still.
 		status.Add("N2O contamination.")
 	if(hydrogen > 2.5)	// Not too dangerous, but flammable.
@@ -515,3 +509,25 @@
 		return jointext(status, " ")
 	else
 		return status.len
+
+/decl/public_access/public_variable/power_draw
+	expected_type = /obj/machinery/atmospherics
+	name = "last power draw"
+	desc = "The most recent data on the amount of power the machine used."
+	can_write = FALSE
+	has_updates = FALSE
+	var_type = IC_FORMAT_NUMBER
+
+/decl/public_access/public_variable/power_draw/access_var(obj/machinery/atmospherics/machine)
+	return machine.last_power_draw
+
+/decl/public_access/public_variable/flow_rate
+	expected_type = /obj/machinery/atmospherics
+	name = "last flow_rate"
+	desc = "The most recent data on the volume of air the machine moved."
+	can_write = FALSE
+	has_updates = FALSE
+	var_type = IC_FORMAT_NUMBER
+
+/decl/public_access/public_variable/flow_rate/access_var(obj/machinery/atmospherics/machine)
+	return machine.last_flow_rate

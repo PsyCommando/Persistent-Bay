@@ -4,6 +4,7 @@
 	icon_keyboard = "tech_key"
 	icon_screen = "shuttle"
 	light_color = "#00ffff"
+	construct_state = null
 	var/auth_need = 3.0
 	var/list/authorized = list(  )
 
@@ -31,7 +32,7 @@
 				to_chat(user, "The access level of [W:registered_name]\'s card is not high enough. ")
 				return
 
-			if(!(access_heads in W:access)) //doesn't have this access
+			if(!(access_bridge in W:access)) //doesn't have this access
 				to_chat(user, "The access level of [W:registered_name]\'s card is not high enough. ")
 				return 0
 

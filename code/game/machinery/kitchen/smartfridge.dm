@@ -11,7 +11,6 @@
 	idle_power_usage = 5
 	active_power_usage = 100
 	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_NO_REACT
-	circuit_type = /obj/item/weapon/circuitboard/smartfridge
 	var/global/max_n_of_items = 999 // Sorry but the BYOND infinite loop detector doesn't look things over 1000.
 	var/icon_base = "fridge_sci"
 	var/icon_contents = "chem"
@@ -22,7 +21,6 @@
 	var/locked = 0
 	var/scan_id = 1
 	var/is_secure = 0
-	var/datum/wires/smartfridge/wires = null
 
 /obj/machinery/smartfridge/secure
 	is_secure = 1
@@ -33,38 +31,17 @@
 		wires = new/datum/wires/smartfridge/secure(src)
 	else
 		wires = new/datum/wires/smartfridge(src)
-	ADD_SAVED_VAR(item_records)
-	ADD_SAVED_VAR(locked)
-	ADD_SAVED_VAR(is_secure)
-	ADD_SAVED_VAR(scan_id)
-	
-/obj/machinery/smartfridge/Initialize()
-	. = ..()
-	queue_icon_update()
-
-/obj/machinery/smartfridge/SetupParts()
-	. = ..()
-	var/obj/item/weapon/circuitboard/smartfridge/V = locate(/obj/item/weapon/circuitboard/smartfridge) in component_parts
-	if(V) 
-		V.set_type(type)
-
-/obj/machinery/smartfridge/proc/DumpInstances()
-	for(var/datum/stored_items/S in item_records)
-		for(var/obj/item/I in S.instances)
-			I.dropInto(loc)
-			S.instances -= I
-
-/obj/machinery/smartfridge/dismantle()
-	DumpInstances()
-	. = ..()
+	update_icon()
 
 /obj/machinery/smartfridge/Destroy()
-	qdel(wires)
-	wires = null
-	DumpInstances()
 	for(var/datum/stored_items/S in item_records)
 		qdel(S)
 	item_records = null
+	return ..()
+
+/obj/machinery/smartfridge/get_req_access()
+	if(!scan_id)
+		return list()
 	return ..()
 
 /obj/machinery/smartfridge/proc/accept_check(var/obj/item/O as obj)
@@ -85,7 +62,7 @@
 	name = "\improper Slime Extract Storage"
 	desc = "A refrigerated storage unit for slime extracts."
 	icon_contents = "slime"
-	req_access = list(core_access_science_programs)
+	req_access = list(access_research)
 
 /obj/machinery/smartfridge/secure/extract/accept_check(var/obj/item/O as obj)
 	if(istype(O,/obj/item/slime_extract))
@@ -96,7 +73,7 @@
 	name = "\improper Refrigerated Medicine Storage"
 	desc = "A refrigerated storage unit for storing medicine and chemicals."
 	icon_contents = "chem"
-	req_access = list(core_access_medical_programs)
+	req_access = list(list(access_medical,access_chemistry))
 
 /obj/machinery/smartfridge/secure/medbay/accept_check(var/obj/item/O as obj)
 	if(istype(O,/obj/item/weapon/reagent_containers/glass/))
@@ -110,13 +87,11 @@
 /obj/machinery/smartfridge/secure/virology
 	name = "\improper Refrigerated Virus Storage"
 	desc = "A refrigerated storage unit for storing viral material."
-	req_access = list(core_access_medical_programs)
+	req_access = list(access_virology)
 	icon_contents = "chem"
 
 /obj/machinery/smartfridge/secure/virology/accept_check(var/obj/item/O as obj)
 	if(istype(O,/obj/item/weapon/reagent_containers/glass/beaker/vial/))
-		return 1
-	if(istype(O,/obj/item/weapon/virusdish/))
 		return 1
 	return 0
 
@@ -158,15 +133,18 @@
 		return 1
 
 /obj/machinery/smartfridge/drying_rack
-	name = "\improper Drying Rack"
+	name = "drying rack"
 	desc = "A machine for drying plants."
 	icon_state = "drying_rack"
 
 /obj/machinery/smartfridge/drying_rack/accept_check(var/obj/item/O as obj)
 	if(istype(O, /obj/item/weapon/reagent_containers/food/snacks/))
 		var/obj/item/weapon/reagent_containers/food/snacks/S = O
-		if (S.dried_type)
-			return 1
+		return S.dried_type
+	else if(istype(O, /obj/item/stack/material))
+		var/obj/item/stack/material/mat = O
+		var/material/skin/skin_mat = mat.material
+		return istype(skin_mat)
 	return 0
 
 /obj/machinery/smartfridge/drying_rack/Process()
@@ -185,7 +163,7 @@
 		else
 			icon_state = "drying_rack-off"
 	else
-		icon_state = "dring_rack"
+		icon_state = "drying_rack"
 	if(contents.len)
 		icon_state = "drying_rack-plant"
 		if(!inoperable())
@@ -193,18 +171,40 @@
 
 /obj/machinery/smartfridge/drying_rack/proc/dry()
 	for(var/datum/stored_items/I in item_records)
-		for(var/obj/item/weapon/reagent_containers/food/snacks/S in I.instances)
-			if(S.dry || !I.get_specific_product(get_turf(src), S)) continue
-			if(S.dried_type == S.type)
-				S.dry = 1
-				S.SetName("dried [S.name]")
-				S.color = "#a38463"
-				stock_item(S)
-			else
-				var/D = S.dried_type
-				new D(get_turf(src))
-				qdel(S)
-			return
+		for(var/thing in I.instances)
+			var/remove_thing = FALSE
+			if(istype(thing, /obj/item/weapon/reagent_containers/food/snacks))
+				var/obj/item/weapon/reagent_containers/food/snacks/S = thing
+				if(S.dry || !I.get_specific_product(get_turf(src), S))
+					continue
+				if(S.dried_type == S.type)
+					S.dry = 1
+					S.SetName("dried [S.name]")
+					S.color = "#a38463"
+					stock_item(S)
+					remove_thing = TRUE
+				else
+					var/D = S.dried_type
+					new D(get_turf(src))
+					remove_thing = TRUE
+
+			else if(istype(thing, /obj/item/stack/material))
+				var/obj/item/stack/material/skin = thing
+				if(!istype(skin.material, /material/skin))
+					continue
+				var/material/skin/skin_mat = skin.material
+				if(!skin_mat.tans_to)
+					continue
+				var/material/leather_mat = SSmaterials.get_material_by_name(skin_mat.tans_to)
+				stock_item(new leather_mat.stack_type(get_turf(src), skin.amount, skin_mat.tans_to))
+				remove_thing = TRUE
+
+			if(remove_thing)
+				I.instances -= thing
+				I.amount--
+				qdel(thing)
+				return
+
 
 /obj/machinery/smartfridge/Process()
 	if(stat & (BROKEN|NOPOWER))
@@ -257,12 +257,11 @@
 ********************/
 
 /obj/machinery/smartfridge/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	if(default_deconstruction_screwdriver(user, O))
+	if(isScrewdriver(O))
+		panel_open = !panel_open
+		user.visible_message("[user] [panel_open ? "opens" : "closes"] the maintenance panel of \the [src].", "You [panel_open ? "open" : "close"] the maintenance panel of \the [src].")
+		update_icon()
 		SSnano.update_uis(src)
-		return
-	if(default_deconstruction_crowbar(user, O))
-		return
-	if(default_part_replacement(user, O))
 		return
 
 	if(isMultitool(O) || isWirecutter(O))
@@ -303,6 +302,7 @@
 	if(!emagged)
 		emagged = 1
 		locked = -1
+		req_access.Cut()
 		to_chat(user, "You short out the product lock on [src].")
 		return 1
 
@@ -320,14 +320,9 @@
 	I.add_product(O)
 	SSnano.update_uis(src)
 
-/obj/machinery/smartfridge/attack_ai(mob/user as mob)
-	attack_hand(user)
-
-/obj/machinery/smartfridge/attack_hand(mob/user as mob)
-	if(stat & (NOPOWER|BROKEN))
-		return
-	wires.Interact(user)
+/obj/machinery/smartfridge/interface_interact(mob/user)
 	ui_interact(user)
+	return TRUE
 
 /*******************
 *   SmartFridge Menu
@@ -402,7 +397,7 @@
 	if(!throw_item)
 		return 0
 	spawn(0)
-		throw_item.throw_at(target,16,3,src)
+		throw_item.throw_at(target,16,3)
 	src.visible_message("<span class='warning'>[src] launches [throw_item.name] at [target.name]!</span>")
 	update_icon()
 	return 1
@@ -411,10 +406,8 @@
 *   Secure SmartFridges
 *************************/
 
-/obj/machinery/smartfridge/secure/Topic(href, href_list)
-	if(stat & (NOPOWER|BROKEN)) return 0
-	if(usr.contents.Find(src) || (in_range(src, usr) && istype(loc, /turf)))
-		if(!allowed(usr) && !emagged && locked != -1 && href_list["vend"] && scan_id)
-			to_chat(usr, "<span class='warning'>Access denied.</span>")
-			return 0
+/obj/machinery/smartfridge/secure/CanUseTopic(mob/user, datum/topic_state/state, href_list)
+	if(!allowed(user) && !emagged && locked != -1 && href_list && href_list["vend"] && scan_id)
+		to_chat(user, "<span class='warning'>Access denied.</span>")
+		return STATUS_CLOSE
 	return ..()

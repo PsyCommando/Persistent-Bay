@@ -77,8 +77,6 @@ obj/item/var/list/trace_DNA
 
 /atom/proc/add_partial_print(full_print, bonus)
 	LAZYINITLIST(fingerprints)
-	if(fingerprints.len >= 50)
-		fingerprints.Cut(50)
 	if(!fingerprints[full_print])
 		fingerprints[full_print] = stars(full_print, rand(0 + bonus, 20 + bonus))	//Initial touch, not leaving much evidence the first time.
 	else
@@ -195,7 +193,7 @@ atom/proc/add_fibers(mob/living/carbon/human/M)
 
 //on examination get hints of evidence
 /mob/examinate(atom/A as mob|obj|turf in view())
-	if(..())
+	if(UNLINT(..()))
 		return 1 //I'll admit I am just imitating examine.dm
 
 
@@ -203,17 +201,17 @@ atom/proc/add_fibers(mob/living/carbon/human/M)
 	if(get_skill_value(SKILL_FORENSICS) >= SKILL_EXPERT && get_dist(src, A) <= (get_skill_value(SKILL_FORENSICS) - SKILL_ADEPT))
 		var/clue
 		if(LAZYLEN(A.suit_fibers))
-			to_chat(src, "<span class='notice'>You notice some fibers embedded in \the [A]</span>")
+			to_chat(src, "<span class='notice'>You notice some fibers embedded in \the [A].</span>")
 			clue = 1
 		if(LAZYLEN(A.fingerprints))
-			to_chat(src, "<span class='notice'>You notice a partial print on \the [A]</span>")
+			to_chat(src, "<span class='notice'>You notice a partial print on \the [A].</span>")
 			clue = 1
 		if(LAZYLEN(A.gunshot_residue))
-			to_chat(src, "<span class='notice'>You notice a faint acrid smell coming from \the [A]</span>")
+			to_chat(src, "<span class='notice'>You notice a faint acrid smell coming from \the [A].</span>")
 			clue = 1
 		//Noticing wiped blood is a bit harder
 		if((get_skill_value(SKILL_FORENSICS) >= SKILL_PROF) && LAZYLEN(A.blood_DNA))
-			to_chat(src, "<span class='warning'>You notice faint blood traces on \The [A]</span>")
+			to_chat(src, "<span class='warning'>You notice faint blood traces on \The [A].</span>")
 			clue = 1
 		if(clue && has_client_color(/datum/client_color/noir))
 			playsound_local(null, pick('sound/effects/clue1.ogg','sound/effects/clue2.ogg'), 60, is_global = TRUE)

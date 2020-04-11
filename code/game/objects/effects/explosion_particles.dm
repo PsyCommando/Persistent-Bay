@@ -5,7 +5,6 @@
 	opacity = 1
 	anchored = 1
 	mouse_opacity = 0
-	should_save = 0
 
 /obj/effect/expl_particles/New()
 	..()
@@ -40,7 +39,6 @@
 	mouse_opacity = 0
 	pixel_x = -32
 	pixel_y = -32
-	should_save = 0
 
 /obj/effect/explosion/New()
 	..()

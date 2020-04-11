@@ -23,8 +23,7 @@
 	break_chance_table = list(5, 20, 40, 80, 100)
 /datum/grab/normal/aggressive/process_effect(var/obj/item/grab/G)
 	var/mob/living/carbon/human/affecting = G.affecting
-	if(!istype(affecting))
-		return
+
 	if(G.target_zone in list(BP_L_HAND, BP_R_HAND))
 		affecting.drop_l_hand()
 		affecting.drop_r_hand()
@@ -39,7 +38,7 @@
 		return FALSE
 	var/obj/item/clothing/C = G.affecting.head
 	if(istype(C)) //hardsuit helmets etc
-		if((C.item_flags & ITEM_FLAG_STOPPRESSUREDAMAGE) && C.armor[DAM_BLUNT] > 20)
+		if((C.max_pressure_protection) && C.armor["melee"] > 20)
 			to_chat(G.assailant, "<span class='warning'>\The [C] is in the way!</span>")
 			return FALSE
 	return TRUE

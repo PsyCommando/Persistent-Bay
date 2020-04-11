@@ -8,7 +8,7 @@
 /obj/machinery/atm
 	name = "automatic teller machine"
 	desc = "For all your monetary needs!"
-	icon = 'icons/obj/machines/terminals/atm.dmi'
+	icon = 'icons/obj/terminals.dmi'
 	icon_state = "atm"
 	anchored = 1
 	idle_power_usage = 10
@@ -19,120 +19,21 @@
 	var/ticks_left_locked_down = 0
 	var/ticks_left_timeout = 0
 	var/machine_id = ""
-	var/obj/item/weapon/card/held_card
+	var/obj/item/weapon/card/id/held_card
 	var/editing_security_level = 0
 	var/view_screen = NO_SCREEN
 	var/datum/effect/effect/system/spark_spread/spark_system
 	var/account_security_level = 0
-	var/buildstage = 2	// 2 = complete, 1 = no wires,  0 = circuit gone
-	var/wiresexposed = 0
-	frame_type = /obj/item/frame/atm
-	circuit_type = /obj/item/weapon/circuitboard/atm
 
-/obj/machinery/atm/New(loc, dir, atom/frame, var/ndir)	//ATM is created from frame
-	..(loc)
-	if(istype(frame))
-		buildstage = 0
-		wiresexposed = 1
-		frame.transfer_fingerprints_to(src)
-
+/obj/machinery/atm/New()
+	..()
 	machine_id = "[station_name()] ATM #[num_financial_terminals++]"
 	spark_system = new /datum/effect/effect/system/spark_spread
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
 
-	if(ndir)
-		set_dir(ndir)
-		update_icon()
-
-/obj/machinery/atm/Initialize(mapload, d)
-	. = ..()
-	queue_icon_update()
-
-/obj/machinery/atm/update_icon()	//Sprites for each build stage
-	overlays.Cut()
-	//ATMs can only exist on walls. So its better to just do it like this.
-	switch(dir)
-		if(NORTH)
-			src.pixel_x = 0
-			src.pixel_y = -32
-		if(SOUTH)
-			src.pixel_x = 0
-			src.pixel_y = 40
-		if(EAST)
-			src.pixel_x = -36
-			src.pixel_y = 0
-		if(WEST)
-			src.pixel_x = 36
-			src.pixel_y = 0
-
-	if(wiresexposed)
-		switch(buildstage)
-			if(2)
-				icon_state="atm_off"
-			if(1)
-				icon_state="atm_off"
-			if(0)
-				icon_state="atm_off"
-		set_light(0)
-		return
-	else
-		icon_state = "atm"
-
-/obj/machinery/atm/attackby(obj/item/W as obj, mob/user as mob)	//Build code
-	src.add_fingerprint(user)
-
-	if(isScrewdriver(W) && buildstage == 2)
-		wiresexposed = !wiresexposed
-		update_icon()
-		return 1
-
-	if(wiresexposed)
-		switch(buildstage)
-			if(2)
-				if(isWirecutter(W))
-					user.visible_message("<span class='notice'>\The [user] has cut the wires inside \the [src]!</span>", "<span class='notice'>You have cut the wires inside \the [src].</span>")
-					new/obj/item/stack/cable_coil(get_turf(src), 5)
-					playsound(src.loc, 'sound/items/Wirecutter.ogg', 50, 1)
-					buildstage = 1
-					update_icon()
-			if(1)
-				if(istype(W, /obj/item/stack/cable_coil))
-					var/obj/item/stack/cable_coil/C = W
-					if (C.use(5))
-						to_chat(user, "<span class='notice'>You wire \the [src].</span>")
-						buildstage = 2
-						return
-					else
-						to_chat(user, "<span class='warning'>You need 5 pieces of cable to wire \the [src].</span>")
-						return
-				else if(isCrowbar(W))
-					to_chat(user, "You pry out the circuit!")
-					playsound(src.loc, 'sound/items/Crowbar.ogg', 50, 1)
-					spawn(20)
-						if(buildstage == 1) //Prevents circuit duplication
-							var/obj/item/weapon/circuitboard/atm/circuit = new /obj/item/weapon/circuitboard/atm()
-							circuit.dropInto(user.loc)
-							buildstage = 0
-							update_icon()
-			if(0)
-				if(istype(W, /obj/item/weapon/circuitboard/atm))
-					to_chat(user, "You insert the circuit!")
-					qdel(W)
-					buildstage = 1
-					update_icon()
-
-				else if(isWrench(W))
-					to_chat(user, "You remove the ATM assembly from the wall!")
-					new /obj/item/frame/atm(get_turf(user))
-					playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-					qdel(src)
-		return 1
-
-	return
-
 /obj/machinery/atm/Process()
-	if(inoperable())
+	if(stat & NOPOWER)
 		return
 
 	if(ticks_left_timeout > 0)
@@ -163,19 +64,8 @@
 
 		//display a message to the user
 		var/response = pick("Initiating withdraw. Have a nice day!", "CRITICAL ERROR: Activating cash chamber panic siphon.","PIN Code accepted! Emptying account balance.", "Jackpot!")
-		to_chat(user, "\icon[src] <span class='warning'>The [src] beeps: \"[response]\"</span>")
+		to_chat(user, "\icon[src] <span class='warning'>[src] beeps: \"[response]\"</span>")
 		return 1
-
-/obj/item/frame/atm/try_build(turf/on_wall)
-	if (get_dist(on_wall,usr)>1)
-		return
-	var/ndir = get_dir(usr,on_wall)
-	if (!(ndir in GLOB.cardinal))
-		return
-	var/turf/loc = get_turf(usr)
-
-	new /obj/machinery/atm(loc, 1, src, ndir)
-	qdel(src)
 
 /obj/machinery/atm/attackby(obj/item/I as obj, mob/user as mob)
 	if(istype(I, /obj/item/weapon/card))
@@ -199,32 +89,29 @@
 	else if(authenticated_account)
 		if(istype(I,/obj/item/weapon/spacecash))
 			var/obj/item/weapon/spacecash/dolla = I
-			if(prob(50))
-				playsound(loc, 'sound/items/polaroid1.ogg', 50, 1)
-			else
-				playsound(loc, 'sound/items/polaroid2.ogg', 50, 1)
 
-			//create a transaction log entry
-			var/datum/transaction/T = new(authenticated_account.owner_name, "Credit deposit", dolla.worth, machine_id)
-			authenticated_account.do_transaction(T)
+			//deposit the cash
+			if(authenticated_account.deposit(dolla.worth, "Credit deposit", machine_id))
+				if(prob(50))
+					playsound(loc, 'sound/items/polaroid1.ogg', 50, 1)
+				else
+					playsound(loc, 'sound/items/polaroid2.ogg', 50, 1)
 
-			to_chat(user, "<span class='info'>You insert [I] into [src].</span>")
-			src.attack_hand(user)
-			qdel(I)
+				to_chat(user, "<span class='info'>You insert [I] into [src].</span>")
+				src.attack_hand(user)
+				qdel(I)
 	else
-		return ..()
+		..()
 
-
-/obj/machinery/atm/attack_hand(mob/user)	//Prevent ATM from being used when under de/construction
-	if(user.stat || stat & (NOPOWER|BROKEN))
-		return
-	if (buildstage != 2)
-		return
-	if(!..())
-		interact(user)
+/obj/machinery/atm/interface_interact(mob/user)
+	interact(user)
+	return TRUE
 
 /obj/machinery/atm/interact(mob/user)
 
+	if(istype(user, /mob/living/silicon))
+		to_chat(user, "\icon[src] <span class='warning'>Artificial unit recognized. Artificial units do not currently receive monetary compensation, as per system banking regulation #1005.</span>")
+		return
 
 	if(get_dist(src,user) <= 1)
 		//make the window the user interacts with, divided out into welcome message, card 'slot', then login/data screen
@@ -280,15 +167,15 @@
 								t += "<tr>"
 								t += "<td>[T.date]</td>"
 								t += "<td>[T.time]</td>"
-								t += "<td>[T.target_name]</td>"
+								t += "<td>[T.get_target_name()]</td>"
 								t += "<td>[T.purpose]</td>"
-								t += "<td>T[T.amount]</td>"
-								t += "<td>[T.source_terminal]</td>"
+								t += "<td>[GLOB.using_map.local_currency_name_short][T.amount]</td>"
+								t += "<td>[T.get_source_name()]</td>"
 								t += "</tr>"
 							t += "</table>"
 							t += "<A href='?src=\ref[src];choice=print_transaction'>Print</a><br>"
 						if(TRANSFER_FUNDS)
-							t += "<b>Account balance:</b> T[authenticated_account.money]<br>"
+							t += "<b>Account balance:</b> [GLOB.using_map.local_currency_name_short][authenticated_account.money]<br>"
 							t += "<form name='transfer' action='?src=\ref[src]' method='get'>"
 							t += "<input type='hidden' name='src' value='\ref[src]'>"
 							t += "<input type='hidden' name='choice' value='transfer'>"
@@ -298,7 +185,7 @@
 							t += "<input type='submit' value='Transfer funds'><br>"
 							t += "</form>"
 						else
-							t += "<b>Account balance:</b> T[authenticated_account.money]"
+							t += "<b>Account balance:</b> [GLOB.using_map.local_currency_name_short][authenticated_account.money]"
 							t += "<form name='withdrawal' action='?src=\ref[src]' method='get'>"
 							t += "<input type='hidden' name='src' value='\ref[src]'>"
 							t += "<input type='radio' name='choice' value='withdrawal' checked> Cash  <input type='radio' name='choice' value='e_withdrawal'> Chargecard<br>"
@@ -341,6 +228,8 @@
 		return
 
 /obj/machinery/atm/Topic(var/href, var/href_list)
+	if((. = ..()))
+		return
 	if(href_list["choice"])
 		switch(href_list["choice"])
 			if("transfer")
@@ -352,11 +241,9 @@
 					else if(transfer_amount <= authenticated_account.money)
 						var/target_account_number = text2num(href_list["target_acc_number"])
 						var/transfer_purpose = href_list["purpose"]
-						if(charge_to_account(target_account_number, authenticated_account.owner_name, transfer_purpose, machine_id, transfer_amount))
+						var/datum/money_account/target_account = get_account(target_account_number)
+						if(target_account && authenticated_account.transfer(target_account, transfer_amount, transfer_purpose))
 							to_chat(usr, "\icon[src]<span class='info'>Funds transfer successful.</span>")
-							//create an entry in the account transaction log
-							var/datum/transaction/T = new("Account #[target_account_number]", transfer_purpose, -transfer_amount, machine_id)
-							authenticated_account.do_transaction(T)
 						else
 							to_chat(usr, "\icon[src]<span class='warning'>Funds transfer failed.</span>")
 
@@ -407,8 +294,7 @@
 								//create an entry in the account transaction log
 								var/datum/money_account/failed_account = get_account(tried_account_num)
 								if(failed_account)
-									var/datum/transaction/T = new(failed_account.owner_name, "Unauthorised login attempt", 0, machine_id)
-									failed_account.do_transaction(T)
+									failed_account.log_msg("Unauthorized login attempt", machine_id)
 							else
 								to_chat(usr, "\icon[src] <span class='warning'>Incorrect pin/account combination entered, [max_pin_attempts - number_incorrect_tries] attempts remaining.</span>")
 								previous_account_number = tried_account_num
@@ -422,8 +308,7 @@
 						view_screen = NO_SCREEN
 
 						//create a transaction log entry
-						var/datum/transaction/T = new(authenticated_account.owner_name, "Remote terminal access", 0, machine_id)
-						authenticated_account.do_transaction(T)
+						authenticated_account.log_msg("Remote terminal access", machine_id)
 
 						to_chat(usr, "\icon[src] <span class='info'>Access granted. Welcome user '[authenticated_account.owner_name].'</span>")
 
@@ -434,13 +319,10 @@
 				if(amount <= 0)
 					alert("That is not a valid amount.")
 				else if(authenticated_account && amount > 0)
-					if(amount <= authenticated_account.money)
+					//create an entry in the account transaction log
+					if(authenticated_account.withdraw(amount, "Credit withdrawal", machine_id))
 						playsound(src, 'sound/machines/chime.ogg', 50, 1)
 						spawn_ewallet(amount,src.loc,usr)
-
-						//create an entry in the account transaction log
-						var/datum/transaction/T = new(authenticated_account.owner_name, "Credit withdrawal", -amount, machine_id)
-						authenticated_account.do_transaction(T)
 					else
 						to_chat(usr, "\icon[src]<span class='warning'>You don't have enough funds to do that!</span>")
 			if("withdrawal")
@@ -449,13 +331,10 @@
 				if(amount <= 0)
 					alert("That is not a valid amount.")
 				else if(authenticated_account && amount > 0)
-					if(amount <= authenticated_account.money)
+					//remove the money
+					if(authenticated_account.withdraw(amount, "Credit withdrawal", machine_id))
 						playsound(src, 'sound/machines/chime.ogg', 50, 1)
 						spawn_money(amount,src.loc,usr)
-
-						//remove the money
-						var/datum/transaction/T = new(authenticated_account.owner_name, "Credit withdrawal", -amount, machine_id)
-						authenticated_account.do_transaction(T)
 					else
 						to_chat(usr, "\icon[src]<span class='warning'>You don't have enough funds to do that!</span>")
 			if("balance_statement")
@@ -465,13 +344,13 @@
 					R.info = "<b>Automated Teller Account Statement</b><br><br>"
 					R.info += "<i>Account holder:</i> [authenticated_account.owner_name]<br>"
 					R.info += "<i>Account number:</i> [authenticated_account.account_number]<br>"
-					R.info += "<i>Balance:</i> T[authenticated_account.money]<br>"
+					R.info += "<i>Balance:</i> [GLOB.using_map.local_currency_name_short][authenticated_account.money]<br>"
 					R.info += "<i>Date and time:</i> [stationtime2text()], [stationdate2text()]<br><br>"
 					R.info += "<i>Service terminal ID:</i> [machine_id]<br>"
 
 					//stamp the paper
-					var/image/stampoverlay = image('icons/obj/items/paper.dmi')
-					stampoverlay.icon_state = "paper_stamp-cent"
+					var/image/stampoverlay = image('icons/obj/bureaucracy.dmi')
+					stampoverlay.icon_state = "paper_stamp-boss"
 					if(!R.stamped)
 						R.stamped = new
 					R.stamped += /obj/item/weapon/stamp
@@ -504,16 +383,16 @@
 						R.info += "<tr>"
 						R.info += "<td>[T.date]</td>"
 						R.info += "<td>[T.time]</td>"
-						R.info += "<td>[T.target_name]</td>"
+						R.info += "<td>[T.get_target_name()]</td>"
 						R.info += "<td>[T.purpose]</td>"
-						R.info += "<td>T[T.amount]</td>"
-						R.info += "<td>[T.source_terminal]</td>"
+						R.info += "<td>[GLOB.using_map.local_currency_name_short][T.amount]</td>"
+						R.info += "<td>[T.get_source_name()]</td>"
 						R.info += "</tr>"
 					R.info += "</table>"
 
 					//stamp the paper
-					var/image/stampoverlay = image('icons/obj/items/paper.dmi')
-					stampoverlay.icon_state = "paper_stamp-cent"
+					var/image/stampoverlay = image('icons/obj/bureaucracy.dmi')
+					stampoverlay.icon_state = "paper_stamp-boss"
 					if(!R.stamped)
 						R.stamped = new
 					R.stamped += /obj/item/weapon/stamp
@@ -542,7 +421,7 @@
 				authenticated_account = null
 				account_security_level = 0
 
-	src.attack_hand(usr)
+	interact(usr)
 
 /obj/machinery/atm/proc/scan_user(mob/living/carbon/human/human_user as mob)
 	if(!authenticated_account)

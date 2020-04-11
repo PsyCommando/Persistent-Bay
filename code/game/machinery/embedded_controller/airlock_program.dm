@@ -281,6 +281,12 @@
 	playsound(master, 'sound/machines/warning-buzzer.ogg', 50)
 	shutAlarm()
 
+/datum/computer/file/embedded_program/airlock/proc/begin_dock_cycle()
+	state = STATE_IDLE
+	target_state = TARGET_INOPEN
+	playsound(master, 'sound/machines/warning-buzzer.ogg', 50)
+	shutAlarm()
+
 /datum/computer/file/embedded_program/airlock/proc/begin_cycle_out()
 	state = STATE_IDLE
 	target_state = TARGET_OUTOPEN
@@ -321,18 +327,19 @@
 	var/datum/signal/signal = new
 	signal.data["alarm_id"] = tag_air_alarm
 	signal.data["command"] = "shutdown"
-	post_signal(signal)
+	post_signal(signal, RADIO_TO_AIRALARM)
 
 /datum/computer/file/embedded_program/airlock/proc/signalPump(var/tag, var/power, var/direction, var/pressure)
 	var/datum/signal/signal = new
 	signal.data = list(
 		"tag" = tag,
 		"sigtype" = "command",
-		"power" = power,
-		"direction" = direction,
-		"set_external_pressure" = pressure
+		"set_power" = power,
+		"set_direction" = direction ? "release" : "siphon",
+		"set_external_pressure" = pressure,
+		"status" = TRUE
 	)
-	post_signal(signal)
+	post_signal(signal, RADIO_FROM_AIRALARM)
 
 //this is called to set the appropriate door state at the end of a cycling process, or for the exterior buttons
 /datum/computer/file/embedded_program/airlock/proc/cycleDoors(var/target)

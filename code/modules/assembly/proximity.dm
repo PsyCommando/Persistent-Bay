@@ -3,7 +3,7 @@
 	desc = "Used for scanning and alerting when someone enters a certain proximity."
 	icon_state = "prox"
 	origin_tech = list(TECH_MAGNET = 1)
-	matter = list(MATERIAL_STEEL = 800, MATERIAL_GLASS = 200)
+	matter = list(MATERIAL_STEEL = 800, MATERIAL_GLASS = 200, MATERIAL_WASTE = 50)
 	movable_flags = MOVABLE_FLAG_PROXMOVE
 	wires = WIRE_PULSE
 
@@ -14,13 +14,6 @@
 	var/time = 10
 
 	var/range = 2
-
-/obj/item/device/assembly/prox_sensor/New()
-	. = ..()
-	ADD_SAVED_VAR(scanning)
-	ADD_SAVED_VAR(timing)
-	ADD_SAVED_VAR(time)
-	ADD_SAVED_VAR(range)
 
 /obj/item/device/assembly/prox_sensor/proc/toggle_scan()
 /obj/item/device/assembly/prox_sensor/proc/sense()
@@ -132,14 +125,14 @@
 	dat += "<BR><A href='?src=\ref[src];scanning=1'>[scanning?"Armed":"Unarmed"]</A> (Movement sensor active when armed!)"
 	dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
 	dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
-	user << browse(dat, "window=prox")
+	show_browser(user, dat, "window=prox")
 	onclose(user, "prox")
 	return
 
 
 /obj/item/device/assembly/prox_sensor/Topic(href, href_list, state = GLOB.physical_state)
 	if((. = ..()))
-		usr << browse(null, "window=prox")
+		close_browser(usr, "window=prox")
 		onclose(usr, "prox")
 		return
 
@@ -161,7 +154,7 @@
 		range = min(max(range, 1), 5)
 
 	if(href_list["close"])
-		usr << browse(null, "window=prox")
+		close_browser(usr, "window=prox")
 		return
 
 	if(usr)

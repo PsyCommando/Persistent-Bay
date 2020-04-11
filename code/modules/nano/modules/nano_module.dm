@@ -32,7 +32,7 @@
 		if(I)
 			. |= I.access
 
-/datum/nano_module/proc/check_access(var/mob/user, var/access, var/faction_uid)
+/datum/nano_module/proc/check_access(var/mob/user, var/access)
 	if(!access)
 		return 1
 	if(!islist(access))
@@ -41,36 +41,18 @@
 		return 1 //This is faster, and often enough.
 	return has_access(access, get_access(user)) //Also checks the mob's ID.
 
-	if(!istype(user))
-		return 0
-	
-	var/obj/item/weapon/card/id/I = user.GetIdCard()
-	if(!I)
-		return 0
-	var/list/access_list = I.GetAccess(faction_uid)
-	if(access in access_list)
-		return 1
-
-	return 0
-
 /datum/nano_module/Topic(href, href_list)
 	if(topic_manager && topic_manager.Topic(href, href_list))
 		return TRUE
 	. = ..()
 
 /datum/nano_module/proc/get_host_z()
-	var/atom/host = nano_host()
-	return istype(host) ? get_z(host) : 0
+	return get_z(nano_host())
 
 /datum/nano_module/proc/print_text(var/text, var/mob/user)
-	var/obj/item/modular_computer/MC = nano_host()
-	if(istype(MC))
-		if(!MC.nano_printer)
-			to_chat(user, "Error: No printer detected. Unable to print document.")
-			return
-
-		if(!MC.nano_printer.print_text(text))
-			to_chat(user, "Error: Printer was unable to print the document. It may be out of paper.")
+	var/datum/extension/interactive/ntos/os = get_extension(nano_host(), /datum/extension/interactive/ntos)
+	if(os)
+		os.print_paper(text)
 	else
 		to_chat(user, "Error: Unable to detect compatible printer interface. Are you running NTOSv2 compatible system?")
 

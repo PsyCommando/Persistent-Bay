@@ -1,6 +1,6 @@
 SUBSYSTEM_DEF(goals)
 	name = "Goals"
-	init_order = SS_INIT_MISC_LATE
+	init_order = SS_INIT_GOALS
 	flags = SS_NO_FIRE
 	var/list/global_personal_goals = list(
 		/datum/goal/achievement/specific_object/food,
@@ -14,8 +14,7 @@ SUBSYSTEM_DEF(goals)
 		/datum/goal/movement/walk,
 		/datum/goal/movement/walk/eva,
 		/datum/goal/clean,
-		/datum/goal/money,
-		/datum/goal/sickness
+		/datum/goal/money
 	)
 	var/list/departments = list()
 	var/list/ambitions =   list()
@@ -33,7 +32,7 @@ SUBSYSTEM_DEF(goals)
 	for(var/thing in departments)
 		var/datum/department/dept = departments[thing]
 		dept.Initialize()
-	return ..()
+	. = ..()
 
 /datum/controller/subsystem/goals/proc/update_department_goal(var/department_flag, var/goal_type, var/progress)
 	var/datum/department/dept = departments["[department_flag]"]

@@ -5,5 +5,5 @@
 	force = 0.5
 	w_class = ITEM_SIZE_SMALL
 	attack_verb = list("whipped")
-	sound_hit = 'sound/weapons/towelwhip.ogg'
+	hitsound = 'sound/weapons/towelwhip.ogg'
 	desc = "The iconic flag of the Sol Central Government, a symbol with many different meanings."

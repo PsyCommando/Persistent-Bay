@@ -43,11 +43,10 @@
 	return 1
 
 /obj/structure/table/bullet_act(obj/item/projectile/P)
-	if(!IsDamageTypePhysical(P.damtype))
+	if(!(P.damage_type == BRUTE || P.damage_type == BURN))
 		return 0
 
-	return ..(P)
-	if(take_damage(P.force/2, P.damtype, P.armor_penetration, P))
+	if(take_damage(P.damage/2))
 		//prevent tables with 1 health left from stopping bullets outright
 		return PROJECTILE_CONTINUE //the projectile destroyed the table, so it gets to keep going
 
@@ -78,24 +77,6 @@
 
 /obj/structure/table/attackby(obj/item/W, mob/user, var/click_params)
 	if (!W) return
-
-	// Handle harm intent grabbing/tabling.
-	if(istype(W, /obj/item/grab) && get_dist(src,user)<2)
-		var/obj/item/grab/G = W
-		if (istype(G.affecting, /mob/living/carbon/human))
-			var/obj/occupied = turf_is_crowded()
-			if(occupied)
-				to_chat(user, "<span class='danger'>There's \a [occupied] in the way.</span>")
-				return
-
-			if(G.force_danger())
-				G.affecting.forceMove(src.loc)
-				G.affecting.Weaken(rand(2,5))
-				visible_message("<span class='danger'>[G.assailant] puts [G.affecting] on \the [src].</span>")
-				qdel(W)
-			else
-				to_chat(user, "<span class='danger'>You need a better grip to do that!</span>")
-			return
 
 	// Handle dismantling or placing things on the table from here on.
 	if(isrobot(user))
@@ -174,6 +155,3 @@ Note: This proc can be overwritten to allow for different types of auto-alignmen
 		I.pixel_x = 1  // There's a sprite layering bug for 0/0 pixelshift, so we avoid it.
 		I.pixel_y = max(3-i*3, -3) + 1
 		I.pixel_z = 0
-
-/obj/structure/table/attack_tk() // no telehulk sorry
-	return

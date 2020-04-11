@@ -15,7 +15,6 @@
 	relative_size = 85
 	damage_reduction = 0
 	can_be_printed = FALSE
-	max_health = 200
 
 	var/can_use_mmi = TRUE
 	var/mob/living/carbon/brain/brainmob = null
@@ -23,7 +22,6 @@
 	var/damage_threshold_value
 	var/healed_threshold = 1
 	var/oxygen_reserve = 6
-	var/brainderping = 0 //This is set to 1 when the brain damage message is being displayed, so it doesn't spam..
 
 /obj/item/organ/internal/brain/robotize()
 	replace_self_with(/obj/item/organ/internal/posibrain)
@@ -41,24 +39,24 @@
 		tmp_owner.internal_organs_by_name[organ_tag] = new replace_path(tmp_owner, 1)
 		tmp_owner = null
 
-// /obj/item/organ/internal/brain/robotize()
-// 	. = ..()
-// 	icon_state = "brain-prosthetic"
+/obj/item/organ/internal/brain/robotize()
+	. = ..()
+	icon_state = "brain-prosthetic"
 
 /obj/item/organ/internal/brain/New(var/mob/living/carbon/holder)
 	..()
 	if(species)
-		set_max_health(species.total_health)
+		set_max_damage(species.total_health)
 	else
-		set_max_health(200)
+		set_max_damage(200)
 
 	spawn(5)
 		if(brainmob && brainmob.client)
 			brainmob.client.screen.len = null //clear the hud
 
-/obj/item/organ/internal/brain/set_max_health(var/nhealth)
+/obj/item/organ/internal/brain/set_max_damage(var/ndamage)
 	..()
-	damage_threshold_value = round(max_health / damage_threshold_count)
+	damage_threshold_value = round(max_damage / damage_threshold_count)
 
 /obj/item/organ/internal/brain/Destroy()
 	QDEL_NULL(brainmob)
@@ -79,8 +77,8 @@
 	to_chat(brainmob, "<span class='notice'>You feel slightly disoriented. That's normal when you're just \a [initial(src.name)].</span>")
 	callHook("debrain", list(brainmob))
 
-/obj/item/organ/internal/brain/examine(mob/user) // -- TLE
-	. = ..(user)
+/obj/item/organ/internal/brain/examine(mob/user)
+	. = ..()
 	if(brainmob && brainmob.client)//if thar be a brain inside... the brain.
 		to_chat(user, "You can feel the small spark of life still left in this one.")
 	else
@@ -121,14 +119,13 @@
 	return ~status & ORGAN_DEAD
 
 /obj/item/organ/internal/brain/proc/get_current_damage_threshold()
-	return round(get_damages() / damage_threshold_value)
+	return round(damage / damage_threshold_value)
 
 /obj/item/organ/internal/brain/proc/past_damage_threshold(var/threshold)
 	return (get_current_damage_threshold() > threshold)
 
 /obj/item/organ/internal/brain/proc/handle_severe_brain_damage()
 	set waitfor = FALSE
-	brainderping = TRUE
 	healed_threshold = 0
 	to_chat(owner, "<span class = 'notice' font size='10'><B>Where am I...?</B></span>")
 	sleep(5 SECONDS)
@@ -142,15 +139,13 @@
 	alert(owner, "You have taken massive brain damage! You will not be able to remember the events leading up to your injury.", "Brain Damaged")
 	if(owner.psi)
 		owner.psi.check_latency_trigger(20, "physical trauma")
-	spawn(20)
-		brainderping = FALSE //Don't spam plz
 
 /obj/item/organ/internal/brain/Process()
 	if(owner)
-		if(!brainderping && get_damages() > (max_health / 2) && healed_threshold)
+		if(damage > max_damage / 2 && healed_threshold)
 			handle_severe_brain_damage()
 
-		if(get_damages() < (max_health / 4))
+		if(damage < (max_damage / 4))
 			healed_threshold = 1
 
 		handle_disabilities()
@@ -168,14 +163,14 @@
 				oxygen_reserve = min(initial(oxygen_reserve), oxygen_reserve+1)
 			if(!oxygen_reserve) //(hardcrit)
 				owner.Paralyse(3)
-			var/can_heal = isdamaged() && health > 0 && (get_damages() % damage_threshold_value || owner.chem_effects[CE_BRAIN_REGEN] || (!past_damage_threshold(3) && owner.chem_effects[CE_STABLE]))
+			var/can_heal = damage && damage < max_damage && (damage % damage_threshold_value || owner.chem_effects[CE_BRAIN_REGEN] || (!past_damage_threshold(3) && owner.chem_effects[CE_STABLE]))
 			var/damprob
 			//Effects of bloodloss
 			switch(blood_volume)
 
 				if(BLOOD_VOLUME_SAFE to INFINITY)
 					if(can_heal)
-						heal_damage(1)
+						damage = max(damage-1, 0)
 				if(BLOOD_VOLUME_OKAY to BLOOD_VOLUME_SAFE)
 					if(prob(1))
 						to_chat(owner, "<span class='warning'>You feel [pick("dizzy","woozy","faint")]...</span>")
@@ -210,7 +205,7 @@
 /obj/item/organ/internal/brain/take_internal_damage(var/damage, var/silent)
 	set waitfor = 0
 	..()
-	if(get_damages() >= 10) //This probably won't be triggered by oxyloss or mercury. Probably.
+	if(damage >= 10) //This probably won't be triggered by oxyloss or mercury. Probably.
 		var/damage_secondary = damage * 0.20
 		owner.flash_eyes()
 		owner.eye_blurry += damage_secondary
@@ -221,8 +216,6 @@
 			addtimer(CALLBACK(src, .proc/brain_damage_callback, damage), rand(6, 20) SECONDS, TIMER_UNIQUE)
 
 /obj/item/organ/internal/brain/proc/brain_damage_callback(var/damage) //Confuse them as a somewhat uncommon aftershock. Side note: Only here so a spawn isn't used. Also, for the sake of a unique timer.
-	if(!owner)
-		return
 	to_chat(owner, "<span class = 'notice' font size='10'><B>I can't remember which way is forward...</B></span>")
 	owner.confused += damage
 
@@ -245,15 +238,15 @@
 /obj/item/organ/internal/brain/proc/handle_damage_effects()
 	if(owner.stat)
 		return
-	if(isdamaged() && prob(1))
+	if(damage > 0 && prob(1))
 		owner.custom_pain("Your head feels numb and painful.",10)
 	if(is_bruised() && prob(1) && owner.eye_blurry <= 0)
 		to_chat(owner, "<span class='warning'>It becomes hard to see for some reason.</span>")
 		owner.eye_blurry = 10
-	if(get_damages() >= (0.5*max_health) && prob(1) && owner.get_active_hand())
+	if(damage >= 0.5*max_damage && prob(1) && owner.get_active_hand())
 		to_chat(owner, "<span class='danger'>Your hand won't respond properly, and you drop what you are holding!</span>")
 		owner.unequip_item()
-	if(get_damages() >= (0.6*max_health))
+	if(damage >= 0.6*max_damage)
 		owner.slurring = max(owner.slurring, 2)
 	if(is_broken())
 		if(!owner.lying)
@@ -264,8 +257,11 @@
 	var/blood_volume = owner.get_blood_oxygenation()
 	if(blood_volume < BLOOD_VOLUME_SURVIVE)
 		to_chat(user, "<span class='danger'>Parts of [src] didn't survive the procedure due to lack of air supply!</span>")
-		set_max_health(Floor(max_health - 0.25*get_damages()))
-	heal_damage(get_max_health())
+		set_max_damage(Floor(max_damage - 0.25*damage))
+	heal_damage(damage)
 
 /obj/item/organ/internal/brain/get_scarring_level()
-	. = (species.total_health - max_health)/species.total_health
+	. = (species.total_health - max_damage)/species.total_health
+
+/obj/item/organ/internal/brain/get_mechanical_assisted_descriptor()
+	return "machine-interface [name]"

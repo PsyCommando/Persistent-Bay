@@ -7,6 +7,19 @@ var/global/list/saved = list()
 var/global/list/areas_to_save = list()
 var/global/list/zones_to_save = list()
 var/global/list/debug_data = list()
+
+var/global/list/saved_datums = list()
+var/global/list/saved_lists = list()
+
+//Map loading in the mapping subsystem for some reasons
+/datum/controller/subsystem/mapping/Initialize(timeofday)
+	. = ..()
+#ifdef UNIT_TEST
+	report_progress("Unit testing, so not loading saved map")
+#else
+	Load_World()
+#endif
+
 /proc/Prepare_Atmos_For_Saving()
 	for(var/datum/pipe_network/net in SSmachines.pipenets)
 		for(var/datum/pipeline/line in net.line_members)
@@ -18,76 +31,6 @@ var/global/list/debug_data = list()
 	var/list/turfs = list()
 	map_storage_saved_vars = "area_type;name;turfs;shuttle"
 	var/shuttle
-/obj/item/map_storage_debugger
-	name = "DEBUG ITEM"
-	desc = "DEBUG ITEM"
-	icon = 'icons/obj/device.dmi'
-	icon_state = "eftpos"
-	var/list/spawned = list()
-
-/obj/item/map_storage_debugger/proc/spawn_debug(var/mob/user, var/type_path)
-	if(!type_path)
-		type_path = input(user, "Enter the typepath you want spawned", "debugger","") as text|null
-	var/datum/D = new type_path()
-	if(D)
-		spawned |= D
-		return D
-	else if(user)
-		to_chat(user, "No datum of type [type_path]")
-
-/obj/item/map_storage_debugger/attack_self(mob/user)
-	return spawn_debug(user)
-
-/datum
-	var/should_save = 1
-	var/map_storage_saved_vars = ""
-	var/skip_empty = ""
-	var/skip_icon_state = 0
-	var/map_storage_loaded = 0 // this is special instructions for problematic Initialize()
-/mob
-	var/stored_ckey = ""
-
-/atom/movable/lighting_overlay
-	should_save = 0
-
-
-
-/turf/space
-	map_storage_saved_vars = "contents"
-
-
-
-/turf/space/after_load()
-	..()
-	for(var/atom/movable/lighting_overlay/overlay in contents)
-		overlay.loc = null
-		qdel(overlay)
-
-/turf
-	map_storage_saved_vars = "density;icon_state;name;pixel_x;pixel_y;contents;dir"
-	skip_empty = "contents;saved_decals;req_access;req_access_personal_list;req_one_access;req_one_access_business_list"
-
-/obj
-	map_storage_saved_vars = "density;icon_state;name;pixel_x;pixel_y;contents;dir"
-
-/obj/after_load()
-	..()
-	queue_icon_update()
-/area
-	map_storage_saved_vars = ""
-
-/datum/proc/should_save(var/datum/saver)
-	return should_save
-
-/datum/proc/after_load()
-	return
-
-/area/after_load()
-	power_change()
-
-/datum/proc/before_load()
-	return
-
 
 /datum/chunk_holder/StandardRead(var/savefile/f)
 	..()
@@ -99,25 +42,6 @@ var/global/list/debug_data = list()
 	..()
 	for(var/x in turfs)
 		to_file(f, x)
-
-
-/turf/after_load()
-	..()
-	decals = saved_decals.Copy()
-	queue_icon_update()
-	if(dynamic_lighting)
-		lighting_build_overlay()
-	else
-		lighting_clear_overlay()
-
-/atom/movable/lighting_overlay/after_load()
-	loc = null
-	qdel(src)
-
-/datum/proc/before_save()
-	return
-/datum/proc/after_save() //Sometimes we change the value of some variables for saving purpose only.. and want to change them back after
-	return
 
 /datum/proc/StandardWrite(var/savefile/f)
 	if(QDELETED(src) && !istype(src, /datum/money_account))	// If we are deleted, we shouldn't be saving
@@ -305,37 +229,39 @@ var/global/list/debug_data = list()
 	to_file(f,holder)
 
 /proc/Save_Records(var/backup_dir)
-	to_world("<font size=3 color='green'>Saving crew records..</font>")
-	for(var/datum/computer_file/report/crew_record/L in GLOB.all_crew_records)
-		var/key = L.get_name()
-		fcopy("record_saves/[key].sav", "backups/[backup_dir]/records/[key].sav")
-		fdel("record_saves/[key].sav")
-		var/savefile/f = new("record_saves/[key].sav")
-		to_file(f, L)
-		if(!L.linked_account)
-			message_admins("RECORD [key] HAS NO LINKED ACCOUNT!!! GENERATING ONE")
-			L.linked_account = create_account(L.get_name(), 0, null)
-			L.linked_account.remote_access_pin = rand(1111,9999)
-			L.linked_account = L.linked_account.after_load()
-			L.linked_account.money = 1000
-		to_file(f, L.linked_account)
-		f = null
-		var/key3 = L.get_fingerprint()
-		fdel("record_saves/[key3].sav")
-		var/savefile/fe = new("record_saves/[key3].sav")
-		to_file(fe, L)
-		to_file(fe, L.linked_account)
-		fe = null
-	to_world("<font size=3 color='green'>Saving faction records..</font>")
-	for(var/datum/world_faction/faction in GLOB.all_world_factions)
-		var/list/records = faction.get_records()
-		for(var/datum/computer_file/report/crew_record/L in records)
-			var/key = L.get_name()
-			fcopy("record_saves/[faction.uid]/[key].sav", "backups/[backup_dir]/records/[faction.uid]/[key].sav")
-			fdel("record_saves/[faction.uid]/[key].sav")
-			var/savefile/f = new("record_saves/[faction.uid]/[key].sav")
-			to_file(f, L)
-			f = null
+	
+	// to_world("<font size=3 color='green'>Saving crew records..</font>")
+	// for(var/datum/computer_file/report/crew_record/L in GLOB.all_crew_records)
+	// 	var/key = L.get_name()
+	// 	fcopy("record_saves/[key].sav", "backups/[backup_dir]/records/[key].sav")
+	// 	fdel("record_saves/[key].sav")
+	// 	var/savefile/f = new("record_saves/[key].sav")
+	// 	to_file(f, L)
+	// 	if(!L.linked_account)
+	// 		message_admins("RECORD [key] HAS NO LINKED ACCOUNT!!! GENERATING ONE")
+	// 		L.linked_account = create_account(L.get_name(), 0, null)
+	// 		L.linked_account.remote_access_pin = rand(1111,9999)
+	// 		L.linked_account = L.linked_account.after_load()
+	// 		L.linked_account.money = 1000
+	// 	to_file(f, L.linked_account)
+	// 	f = null
+	// 	var/key3 = L.get_fingerprint()
+	// 	fdel("record_saves/[key3].sav")
+	// 	var/savefile/fe = new("record_saves/[key3].sav")
+	// 	to_file(fe, L)
+	// 	to_file(fe, L.linked_account)
+	// 	fe = null
+	// to_world("<font size=3 color='green'>Saving faction records..</font>")
+	// for(var/datum/world_faction/faction in GLOB.all_world_factions)
+	// 	var/list/records = faction.get_records()
+	// 	for(var/datum/computer_file/report/crew_record/L in records)
+	// 		var/key = L.get_name()
+	// 		fcopy("record_saves/[faction.uid]/[key].sav", "backups/[backup_dir]/records/[faction.uid]/[key].sav")
+	// 		fdel("record_saves/[faction.uid]/[key].sav")
+	// 		var/savefile/f = new("record_saves/[faction.uid]/[key].sav")
+	// 		to_file(f, L)
+	// 		f = null
+
 /proc/Save_World()
 	to_world("<font size=4 color='green'>The world is saving! Characters are frozen and you won't be able to join at this time.</font>")
 	sleep(20)
@@ -356,7 +282,7 @@ var/global/list/debug_data = list()
 			backup = 1
 	found_vars = list()
 	to_world("<font size=3 color='green'>Saving chunks..</font>")
-	for(var/z in 1 to SAVED_ZLEVELS)
+	for(var/z in 1 to world.maxz)
 		fcopy("map_saves/z[z].sav", "backups/[dir]/z[z].sav")
 		fdel("map_saves/z[z].sav")
 		var/savefile/f = new("map_saves/z[z].sav")
@@ -375,7 +301,7 @@ var/global/list/debug_data = list()
 		holder.area_type = A.type
 		holder.name = A.name
 		holder.turfs = A.get_turf_coords()
-		holder.shuttle = A.shuttle
+		//holder.shuttle = A.shuttle
 		formatted_areas += holder
 	var/list/zones = list()
 	to_world("<font size=3 color='green'>Saving zones..</font>")
@@ -389,13 +315,17 @@ var/global/list/debug_data = list()
 	to_world("<font size=3 color='green'>Saving factions..</font>")
 	to_file(f["factions"],GLOB.all_world_factions)
 	to_world("<font size=3 color='green'>Saving marketplace..</font>")
-	to_file(f["material_marketplace"],GLOB.material_marketplace)
+	// to_file(f["material_marketplace"],GLOB.material_marketplace)
 	to_file(f["contract_database"],GLOB.contract_database)
 	to_file(f["zones"],zones)
 	to_file(f["areas"],formatted_areas)
 	to_world("<font size=3 color='green'>Saving designer system..</font>")
 	to_file(f["designer_system"],GLOB.designer_system)
 	Save_Records(dir)
+	
+	GLOB.FactionNetManager.before_save()
+	to_file(f["faction_networks"], GLOB.FactionNetManager)
+	GLOB.FactionNetManager.after_save()
 
 	to_file(f["next_account_number"],next_account_number)
 	if(reallow) config.enter_allowed = 1
@@ -412,69 +342,71 @@ var/global/list/debug_data = list()
 
 
 /proc/Send_Email(var/key, var/sender = "Unknown", var/subject, var/body)
-	var/datum/computer_file/report/crew_record/record = Retrieve_Record(key)
-	if(record && record.email)
-		var/datum/computer_file/data/email_message/message = new()
-		message.title = subject
-		message.stored_data = body
-		message.source = sender
-		var/datum/computer_file/data/email_account/recipient = record.email
-		if(!istype(recipient))
-			return 0
-		if(!recipient.receive_mail(message))
-			return
-		return 1
+	var/datum/computer_file/report/crew_record/CR = GetGlobalCrewRecord(key)
+	if(!CR)
+		return FALSE
+	var/datum/computer_file/data/email_account/recipient
+	for(var/datum/computer_file/data/email_account/A in ntnet_global.email_accounts)
+		if(deep_string_equals(A.login, CR.get_email_login()))
+			recipient = A
+	
+	var/datum/computer_file/data/email_message/message = new(null, sender, subject, body)
+	if(!istype(recipient))
+		return 0
+	if(!recipient.receive_mail(message))
+		return
+	return 1
 
 
-/proc/Get_Email_Account(var/key) // 2 = ATM account
-	var/datum/computer_file/report/crew_record/record = Retrieve_Record(key)
-	if(record && record.email)
-		return record.email
+///proc/Get_Email_Account(var/key) // 2 = ATM account
+	// var/datum/computer_file/report/crew_record/record = Retrieve_Record(key)
+	// if(record && record.email)
+	// 	return record.email
 
-/proc/Retrieve_Record(var/key, var/func = 1) // 2 = ATM account
-	for(var/datum/computer_file/report/crew_record/record2 in GLOB.all_crew_records)
-		if(record2.get_name() == key)
-			return record2
-	if(!fexists("record_saves/[key].sav")) return
-	var/savefile/f = new("record_saves/[key].sav")
-	var/datum/computer_file/report/crew_record/v
-	from_file(f, v)
-	var/datum/money_account/account
-	from_file(f, account)
-	if(!v)
-		message_admins("fucked up record [key]")
-		if(func == 1)
-			v = new()
-			v.set_name(key)
-		else
-			return
-	if(!account)
-		message_admins("broken account for [key]")
-		v.linked_account = create_account(v.get_name(), 0, null)
-		v.linked_account.remote_access_pin = rand(1111,9999)
-		v.linked_account = v.linked_account.after_load()
-		v.linked_account.money = 1000
-	else
-		v.linked_account = account
-	if(v.linked_account)
-		v.linked_account = v.linked_account.after_load()
-		v.linked_account.owner_name = v.get_name()
-	GLOB.all_crew_records |= v
-	return v
+// /proc/Retrieve_Record(var/key, var/func = 1) // 2 = ATM account
+// 	for(var/datum/computer_file/report/crew_record/record2 in GLOB.all_crew_records)
+// 		if(record2.get_name() == key)
+// 			return record2
+// 	if(!fexists("record_saves/[key].sav")) return
+// 	var/savefile/f = new("record_saves/[key].sav")
+// 	var/datum/computer_file/report/crew_record/v
+// 	from_file(f, v)
+// 	var/datum/money_account/account
+// 	from_file(f, account)
+// 	if(!v)
+// 		message_admins("fucked up record [key]")
+// 		if(func == 1)
+// 			v = new()
+// 			v.set_name(key)
+// 		else
+// 			return
+// 	if(!account)
+// 		message_admins("broken account for [key]")
+// 		v.linked_account = create_account(v.get_name(), 0, null)
+// 		v.linked_account.remote_access_pin = rand(1111,9999)
+// 		v.linked_account = v.linked_account.after_load()
+// 		v.linked_account.money = 1000
+// 	else
+// 		v.linked_account = account
+// 	if(v.linked_account)
+// 		v.linked_account = v.linked_account.after_load()
+// 		v.linked_account.owner_name = v.get_name()
+// 	GLOB.all_crew_records |= v
+// 	return v
 
 
-/proc/Retrieve_Record_Faction(var/key, var/datum/world_faction/faction)
-	if(!faction) return
-	for(var/datum/computer_file/report/crew_record/record2 in faction.records.faction_records)
-		if(record2.get_name() == key)
-			return record2
-	if(!fexists("record_saves/[faction.uid]/[key].sav")) return
-	var/savefile/f = new("record_saves/[faction.uid]/[key].sav")
-	var/v
-	from_file(f, v)
-	var/list/records = faction.get_records()
-	records |= v
-	return v
+// /proc/Retrieve_Record_Faction(var/key, var/datum/world_faction/faction)
+// 	if(!faction) return
+// 	for(var/datum/computer_file/report/crew_record/record2 in faction.records.faction_records)
+// 		if(record2.get_name() == key)
+// 			return record2
+// 	if(!fexists("record_saves/[faction.uid]/[key].sav")) return
+// 	var/savefile/f = new("record_saves/[faction.uid]/[key].sav")
+// 	var/v
+// 	from_file(f, v)
+// 	var/list/records = faction.get_records()
+// 	records |= v
+// 	return v
 
 
 /proc/Load_World()
@@ -485,7 +417,7 @@ var/global/list/debug_data = list()
 	found_vars = list()
 	debug_data = list()
 	var/turf/ve = null
-	for(var/z in 1 to SAVED_ZLEVELS)
+	for(var/z in 1 to world.maxz)
 		var/starttime2 = REALTIMEOFDAY
 		f = new("map_saves/z[z].sav")
 		while(!f.eof)
@@ -497,10 +429,10 @@ var/global/list/debug_data = list()
 	from_file(f["records"],GLOB.all_crew_records)
 	LAZYINITLIST(GLOB.all_crew_records)
 	from_file(f["factions"],GLOB.all_world_factions)
-	from_file(f["material_marketplace"],GLOB.material_marketplace)
+	// from_file(f["material_marketplace"],GLOB.material_marketplace)
 	from_file(f["designer_system"],GLOB.designer_system)
-	if(!GLOB.material_marketplace)
-		GLOB.material_marketplace = new()
+	// if(!GLOB.material_marketplace)
+		// GLOB.material_marketplace = new()
 	if(!GLOB.designer_system)
 		log_and_message_admins("Couldn't find save for designer_system. Initializing a new one.")
 		GLOB.designer_system = new()
@@ -515,7 +447,7 @@ var/global/list/debug_data = list()
 		try
 			var/area/A = new holder.area_type
 			A.name = holder.name
-			A.shuttle = holder.shuttle
+			//A.shuttle = holder.shuttle
 			var/list/turfs = list()
 			for(var/ind in 1 to holder.turfs.len)
 				var/list/coords = holder.turfs[ind]
@@ -541,6 +473,10 @@ var/global/list/debug_data = list()
 
 	for(var/zone/Z in zones)
 		Z.rebuild()
+
+	GLOB.FactionNetManager.before_load()
+	from_file(f["faction_networks"], GLOB.FactionNetManager)
+	GLOB.FactionNetManager.after_load()
 
 	for(var/ind in 1 to all_loaded.len)
 		var/datum/dat = all_loaded[ind]

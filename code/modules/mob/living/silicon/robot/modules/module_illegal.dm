@@ -10,11 +10,16 @@
 		/obj/item/device/flash,
 		/obj/item/weapon/melee/energy/sword,
 		/obj/item/weapon/gun/energy/pulse_rifle/destroyer,
-		/obj/item/weapon/tool/crowbar,
+		/obj/item/weapon/crowbar,
 		/obj/item/weapon/card/emag,
 		/obj/item/weapon/tank/jetpack/carbondioxide
 	)
 	var/id
+
+/obj/item/weapon/robot_module/syndicate/Initialize()
+	for(var/decl/hierarchy/skill/skill in GLOB.skills)
+		skills[skill.type] = SKILL_EXPERT
+	. = ..()
 
 /obj/item/weapon/robot_module/syndicate/build_equipment(var/mob/living/silicon/robot/R)
 	. = ..()

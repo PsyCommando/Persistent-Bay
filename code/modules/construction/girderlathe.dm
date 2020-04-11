@@ -13,7 +13,6 @@
 
 	clicksound = "keyboard"
 	clickvol = 30
-	circuit_type = /obj/item/weapon/circuitboard/girderlathe
 
 	var/stored_materials = list()
 	var/input = 0
@@ -121,19 +120,12 @@
 			stored_materials[M.material.type] += amount
 	if(processing)
 		to_chat(user, "You can't do that while it is running.")
-	if(default_deconstruction_screwdriver(user, W))
-		updateUsrDialog()
-		return
-	if(default_deconstruction_crowbar(user, W))
-		return
-	if(default_part_replacement(user, W))
-		return
 
 	if(stat)
 		return
 
 
-/obj/item/weapon/circuitboard/girderlathe
+/obj/item/weapon/stock_parts/circuitboard/girderlathe
 	name = T_BOARD("girderlathe")
 	build_path = /obj/machinery/girderlathe
 	board_type = "machine"
@@ -143,9 +135,9 @@
 							/obj/item/weapon/stock_parts/manipulator = 1,
 							/obj/item/weapon/stock_parts/console_screen = 1)
 
-/datum/design/circuit/girderlathe
-	name = "girder lathe board"
-	id = "girderlathe"
-	req_tech = list(TECH_ENGINEERING = 3)
-	build_path = /obj/item/weapon/circuitboard/girderlathe
-	sort_string = "HABAF"
+// /datum/design/circuit/girderlathe
+// 	name = "girder lathe board"
+// 	id = "girderlathe"
+// 	req_tech = list(TECH_ENGINEERING = 3)
+// 	build_path = /obj/item/weapon/stock_parts/circuitboard/girderlathe
+// 	sort_string = "HABAF"

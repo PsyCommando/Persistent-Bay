@@ -56,11 +56,6 @@
 			continue
 		if(isliving(A))
 			M = A
-		if(istype(A,/obj/mecha))
-			var/obj/mecha/mecha = A
-			if(!mecha.occupant)
-				continue
-			M = mecha.occupant
 		if(M && M.stat)
 			continue
 		if(mode == "specific")
@@ -90,7 +85,7 @@
 		if(findtext(text,command))
 			switch(command)
 				if("stay")
-					if(stay_command(speaker,text)) //find a valid command? Stop. Dont try and find more.
+					if(stay_command(speaker,text)) //find a valid command? Stop. Don't try and find more.
 						break
 				if("stop")
 					if(stop_command(speaker,text))

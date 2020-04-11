@@ -43,7 +43,6 @@ GLOBAL_LIST_INIT(rustle_sound,list('sound/effects/rustle1.ogg','sound/effects/ru
 GLOBAL_LIST_INIT(punch_sound,list('sound/weapons/punch1.ogg','sound/weapons/punch2.ogg','sound/weapons/punch3.ogg','sound/weapons/punch4.ogg'))
 GLOBAL_LIST_INIT(clown_sound,list('sound/effects/clownstep1.ogg','sound/effects/clownstep2.ogg'))
 GLOBAL_LIST_INIT(swing_hit_sound,list('sound/weapons/genhit1.ogg', 'sound/weapons/genhit2.ogg', 'sound/weapons/genhit3.ogg'))
-GLOBAL_LIST_INIT(swing_miss_sound,list('sound/weapons/swing_miss1.ogg', 'sound/weapons/swing_miss2.ogg', 'sound/weapons/swing_miss3.ogg'))
 GLOBAL_LIST_INIT(hiss_sound,list('sound/voice/hiss1.ogg','sound/voice/hiss2.ogg','sound/voice/hiss3.ogg','sound/voice/hiss4.ogg'))
 GLOBAL_LIST_INIT(page_sound,list('sound/effects/pageturn1.ogg', 'sound/effects/pageturn2.ogg','sound/effects/pageturn3.ogg'))
 GLOBAL_LIST_INIT(fracture_sound,list('sound/effects/bonebreak1.ogg','sound/effects/bonebreak2.ogg','sound/effects/bonebreak3.ogg','sound/effects/bonebreak4.ogg'))
@@ -53,6 +52,8 @@ GLOBAL_LIST_INIT(keystroke_sound,list('sound/machines/keyboard/keystroke1.ogg','
 GLOBAL_LIST_INIT(switch_sound,list('sound/machines/switch1.ogg','sound/machines/switch2.ogg','sound/machines/switch3.ogg','sound/machines/switch4.ogg'))
 GLOBAL_LIST_INIT(button_sound,list('sound/machines/button1.ogg','sound/machines/button2.ogg','sound/machines/button3.ogg','sound/machines/button4.ogg'))
 GLOBAL_LIST_INIT(chop_sound,list('sound/weapons/chop1.ogg','sound/weapons/chop2.ogg','sound/weapons/chop3.ogg'))
+GLOBAL_LIST_INIT(glasscrack_sound,list('sound/effects/glass_crack1.ogg','sound/effects/glass_crack2.ogg','sound/effects/glass_crack3.ogg','sound/effects/glass_crack4.ogg'))
+GLOBAL_LIST_INIT(swing_miss_sound,list('sound/weapons/swing_miss1.ogg', 'sound/weapons/swing_miss2.ogg', 'sound/weapons/swing_miss3.ogg'))
 
 /proc/playsound(var/atom/source, soundin, vol as num, vary, extrarange as num, falloff, var/is_global, var/frequency, var/is_ambiance = 0)
 
@@ -93,11 +94,12 @@ var/const/FALLOFF_SOUNDS = 0.5
 
 	//sound volume falloff with pressure
 	var/pressure_factor = 1.0
+	
+	S.volume *= get_sound_volume_multiplier()
 
+	var/turf/T = get_turf(src)
+	// 3D sounds, the technology is here!
 	if(isturf(turf_source))
-		// 3D sounds, the technology is here!
-		var/turf/T = get_turf(src)
-
 		//sound volume falloff with distance
 		var/distance = get_dist(T, turf_source)
 
@@ -144,6 +146,8 @@ var/const/FALLOFF_SOUNDS = 0.5
 				S.environment = DIZZY
 			else if (M.stat == UNCONSCIOUS)
 				S.environment = UNDERWATER
+			else if (T?.is_flooded(M.lying))
+				S.environment = UNDERWATER
 			else if (pressure_factor < 0.5)
 				S.environment = SPACE
 			else
@@ -160,7 +164,7 @@ var/const/FALLOFF_SOUNDS = 0.5
 
 /client/proc/playtitlemusic()
 	if(get_preference_value(/datum/client_preference/play_lobby_music) == GLOB.PREF_YES)
-		GLOB.using_map.lobby_music.play_to(src)
+		GLOB.using_map.lobby_track.play_to(src)
 
 /proc/get_rand_frequency()
 	return rand(32000, 55000) //Frequency stuff only works with 45kbps oggs.
@@ -173,10 +177,8 @@ var/const/FALLOFF_SOUNDS = 0.5
 			if ("sparks") soundin = pick(GLOB.spark_sound)
 			if ("rustle") soundin = pick(GLOB.rustle_sound)
 			if ("punch") soundin = pick(GLOB.punch_sound)
-			if ("punch_miss") soundin = 'sound/weapons/punchmiss.ogg'
 			if ("clownstep") soundin = pick(GLOB.clown_sound)
 			if ("swing_hit") soundin = pick(GLOB.swing_hit_sound)
-			if ("swing_miss") soundin = pick(GLOB.swing_miss_sound)
 			if ("hiss") soundin = pick(GLOB.hiss_sound)
 			if ("pageturn") soundin = pick(GLOB.page_sound)
 			if ("fracture") soundin = pick(GLOB.fracture_sound)
@@ -186,4 +188,7 @@ var/const/FALLOFF_SOUNDS = 0.5
 			if ("switch") soundin = pick(GLOB.switch_sound)
 			if ("button") soundin = pick(GLOB.button_sound)
 			if ("chop") soundin = pick(GLOB.chop_sound)
+			if ("glasscrack") soundin = pick(GLOB.glasscrack_sound)
+			if ("punch_miss") soundin = 'sound/weapons/punchmiss.ogg'
+			if ("swing_miss") soundin = pick(GLOB.swing_miss_sound)
 	return soundin

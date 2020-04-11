@@ -13,6 +13,13 @@
 		. = SKILL_MAX
 	. = max(min, .)
 
+/datum/preferences/proc/get_total_skill_value(datum/job/job, decl/hierarchy/skill/req_skill)
+	if(!(job in skills_allocated))
+		return get_min_skill(job, req_skill)
+	var/allocated = skills_allocated[job]
+	if(req_skill in allocated)
+		return allocated[req_skill] + get_min_skill(job, req_skill)
+
 /datum/preferences/proc/get_min_skill(datum/job/job, decl/hierarchy/skill/S)
 	if(job && job.min_skill)
 		. = job.min_skill[S.type]
@@ -57,77 +64,59 @@
 		decls_repository.get_decl(/decl/hierarchy/skill)
 
 	pref.skills_allocated = list()
-	var/S = pref.skills_saved
-	var/L = list()
-	for(var/decl/hierarchy/skill/skill in GLOB.skills)
-		if("[skill.type]" in S)
-			L[skill] = S["[skill.type]"]
-	if(length(L))
-		pref.skills_allocated = L
-
-	// for(var/job_type in SSjobs.types_to_datums)
-	// 	var/datum/job/job = SSjobs.get_by_path(job_type)
-	// 	if("[job.type]" in pref.skills_saved)
-	// 		var/S = pref.skills_saved["[job.type]"]
-	// 		var/L = list()
-	// 		for(var/decl/hierarchy/skill/skill in GLOB.skills)
-	// 			if("[skill.type]" in S)
-	// 				L[skill] = S["[skill.type]"]
-	// 		if(length(L))
-	// 			pref.skills_allocated[job] = L
+	for(var/job_type in SSjobs.types_to_datums)
+		var/datum/job/job = SSjobs.get_by_path(job_type)
+		if("[job.type]" in pref.skills_saved)
+			var/S = pref.skills_saved["[job.type]"]
+			var/L = list()
+			for(var/decl/hierarchy/skill/skill in GLOB.skills)
+				if("[skill.type]" in S)
+					L[skill] = S["[skill.type]"]
+			if(length(L))
+				pref.skills_allocated[job] = L
 
 /datum/category_item/player_setup_item/occupation/proc/save_skills()
 	pref.skills_saved = list()
-	var/S = pref.skills_allocated
-	var/L = list()
-	for(var/decl/hierarchy/skill/skill in S)
-		L["[skill.type]"] = S[skill]
-	if(length(L))
-		pref.skills_saved = L
-
-	// pref.skills_saved = list()
-	// for(var/datum/job/job in pref.skills_allocated)
-	// 	var/S = pref.skills_allocated[job]
-	// 	var/L = list()
-	// 	for(var/decl/hierarchy/skill/skill in S)
-	// 		L["[skill.type]"] = S[skill]
-	// 	if(length(L))
-	// 		pref.skills_saved["[job.type]"] = L
+	for(var/datum/job/job in pref.skills_allocated)
+		var/S = pref.skills_allocated[job]
+		var/L = list()
+		for(var/decl/hierarchy/skill/skill in S)
+			L["[skill.type]"] = S[skill]
+		if(length(L))
+			pref.skills_saved["[job.type]"] = L
 
 //Sets up skills_allocated
 /datum/preferences/proc/sanitize_skills(var/list/input)
-	. = input
-//TODO: setup some kind of sanitization here to catch potential exploits
-	//. = list()
-	// var/datum/species/S = all_species[species]
-	// for(var/job_name in SSjobs.titles_to_datums)
-	// 	var/datum/job/job = SSjobs.get_by_title(job_name)
-	// 	var/input_skills = list()
-	// 	if((job in input) && istype(input[job], /list))
-	// 		input_skills = input[job]
+	. = list()
+	var/datum/species/S = all_species[species]
+	for(var/job_name in SSjobs.titles_to_datums)
+		var/datum/job/job = SSjobs.get_by_title(job_name)
+		var/input_skills = list()
+		if((job in input) && istype(input[job], /list))
+			input_skills = input[job]
 
-	// 	var/L = list()
-	// 	var/sum = 0
+		var/L = list()
+		var/sum = 0
 
-	// 	for(var/decl/hierarchy/skill/skill in GLOB.skills)
-	// 		if(skill in input_skills)
-	// 			var/min = get_min_skill(job, skill)
-	// 			var/max = get_max_skill(job, skill)
-	// 			var/level = sanitize_integer(input_skills[skill], 0, max - min, 0)
-	// 			var/spent = get_level_cost(job, skill, min + level)
-	// 			if(spent)						//Only include entries with nonzero spent points
-	// 				L[skill] = level
-	// 				sum += spent
+		for(var/decl/hierarchy/skill/skill in GLOB.skills)
+			if(skill in input_skills)
+				var/min = get_min_skill(job, skill)
+				var/max = get_max_skill(job, skill)
+				var/level = sanitize_integer(input_skills[skill], 0, max - min, 0)
+				var/spent = get_level_cost(job, skill, min + level)
+				if(spent)						//Only include entries with nonzero spent points
+					L[skill] = level
+					sum += spent
 
-	// 	points_by_job[job] = job.skill_points							//We compute how many points we had.
-	// 	if(!job.no_skill_buffs)
-	// 		points_by_job[job] += S.skills_from_age(age)				//Applies the species-appropriate age modifier.
-	// 		points_by_job[job] += S.job_skill_buffs[job.type]			//Applies the per-job species modifier, if any.
+		points_by_job[job] = job.skill_points							//We compute how many points we had.
+		if(!job.no_skill_buffs)
+			points_by_job[job] += S.skills_from_age(age)				//Applies the species-appropriate age modifier.
+			points_by_job[job] += S.job_skill_buffs[job.type]			//Applies the per-job species modifier, if any.
 
-	// 	if((points_by_job[job] >= sum) && sum)				//we didn't overspend, so use sanitized imported data
-	// 		.[job] = L
-	// 		points_by_job[job] -= sum						//if we overspent, or did no spending, default to not including the job at all
-	// 	purge_skills_missing_prerequisites(job)
+		if((points_by_job[job] >= sum) && sum)				//we didn't overspend, so use sanitized imported data
+			.[job] = L
+			points_by_job[job] -= sum						//if we overspent, or did no spending, default to not including the job at all
+		purge_skills_missing_prerequisites(job)
 
 /datum/preferences/proc/check_skill_prerequisites(datum/job/job, decl/hierarchy/skill/S)
 	if(!S.prerequisites)

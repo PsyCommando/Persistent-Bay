@@ -23,22 +23,27 @@
 	var/material_descriptor = ""
 	if(prob(40))
 		material_descriptor = pick("rusted","dusty","archaic","fragile")
-	source_material = pick("cordite","quadrinium",MATERIAL_STEEL,MATERIAL_TITANIUM,"aluminium","ferritic-alloy",MATERIAL_PLASTEEL,"duranium")
+	if(istype(I, /obj/item/weapon/material))
+		var/obj/item/weapon/material/M = I
+		M.set_material(MATERIAL_ALIENALLOY)
+		source_material = "alien alloy"
+	else
+		source_material = pick("cordite","quadrinium","steel","titanium","aluminium","ferritic-alloy","plasteel","duranium")
 
 	var/decorations = ""
 	if(apply_material_decorations)
-		source_material = pick("cordite","quadrinium",MATERIAL_STEEL,MATERIAL_TITANIUM,"aluminium","ferritic-alloy",MATERIAL_PLASTEEL,"duranium")
+		source_material = pick("cordite","quadrinium","steel","titanium","aluminium","ferritic-alloy","plasteel","duranium")
 		desc = "A [material_descriptor ? "[material_descriptor] " : ""][item_type] made of [source_material], all craftsmanship is of [pick("the lowest","low","average","high","the highest")] quality."
 
 		var/list/descriptors = list()
 		if(prob(30))
 			descriptors.Add("is encrusted with [pick("","synthetic ","multi-faceted ","uncut ","sparkling ") + pick("rubies","emeralds","diamonds","opals","lapiz lazuli")]")
 		if(prob(30))
-			descriptors.Add("is studded with [pick(MATERIAL_GOLD,MATERIAL_SILVER,"aluminium",MATERIAL_TITANIUM)]")
+			descriptors.Add("is studded with [pick("gold","silver","aluminium","titanium")]")
 		if(prob(30))
-			descriptors.Add("is encircled with bands of [pick("quadrinium","cordite","ferritic-alloy",MATERIAL_PLASTEEL,"duranium")]")
+			descriptors.Add("is encircled with bands of [pick("quadrinium","cordite","ferritic-alloy","plasteel","duranium")]")
 		if(prob(30))
-			descriptors.Add("menaces with spikes of [pick("solid phoron",MATERIAL_URANIUM,"white pearl","black steel")]")
+			descriptors.Add("menaces with spikes of [pick("solid phoron","uranium","white pearl","black steel")]")
 		if(descriptors.len > 0)
 			decorations = "It "
 			for(var/index=1, index <= descriptors.len, index++)
@@ -54,7 +59,7 @@
 
 	var/engravings = ""
 	if(apply_image_decorations)
-		var/obj/effect/overmap/sector/exoplanet/E = map_sectors["[z]"]
+		var/obj/effect/overmap/visitable/sector/exoplanet/E = map_sectors["[z]"]
 		engravings = "[pick("Engraved","Carved","Etched")] on the item is [pick("an image of","a frieze of","a depiction of")] "
 		if(istype(E))
 			engravings += E.get_engravings()
@@ -231,7 +236,7 @@
 	var/obj/item/weapon/storage/box/new_box = new(loc)
 	new_box.icon = 'icons/obj/xenoarchaeology.dmi'
 	new_box.max_w_class = pick(ITEM_SIZE_TINY,2;ITEM_SIZE_SMALL,3;ITEM_SIZE_NORMAL,4;ITEM_SIZE_LARGE)
-	var/storage_amount = base_storage_cost(new_box.max_w_class)
+	var/storage_amount = BASE_STORAGE_COST(new_box.max_w_class)
 	new_box.max_storage_space = rand(storage_amount, storage_amount * 10)
 	new_box.icon_state = "box"
 	if(prob(30))
@@ -257,11 +262,11 @@
 /obj/item/weapon/archaeological_find/tool/spawn_item()
 	var/obj/item/weapon/new_item
 	if(prob(25))
-		new_item = new /obj/item/weapon/tool/wrench(loc)
+		new_item = new /obj/item/weapon/wrench(loc)
 	else if(prob(25))
-		new_item = new /obj/item/weapon/tool/crowbar(loc)
+		new_item = new /obj/item/weapon/crowbar(loc)
 	else
-		new_item = new /obj/item/weapon/tool/screwdriver(loc)
+		new_item = new /obj/item/weapon/screwdriver(loc)
 	new_item.icon = 'icons/obj/xenoarchaeology.dmi'
 	new_item.icon_state = "unknown[rand(1,4)]"
 	additional_desc = "[pick("It doesn't look safe.",\
@@ -271,28 +276,24 @@
 
 /obj/item/weapon/archaeological_find/material
 	item_type = "material lump"
+	desc = "Salvaged lump of usable material."
 	find_type = ARCHAEO_METAL
 	apply_material_decorations = 0
+	var/list/possible_materials = list(MATERIAL_STEEL, MATERIAL_PLASTEEL, MATERIAL_TITANIUM, MATERIAL_GLASS)
 
 /obj/item/weapon/archaeological_find/material/spawn_item()
-	var/list/possible_spawns = list()
-	possible_spawns += /obj/item/stack/material/steel
-	possible_spawns += /obj/item/stack/material/plasteel
-	possible_spawns += /obj/item/stack/material/glass
-	possible_spawns += /obj/item/stack/material/glass/reinforced
-	possible_spawns += /obj/item/stack/material/phoron
-	possible_spawns += /obj/item/stack/material/gold
-	possible_spawns += /obj/item/stack/material/silver
-	possible_spawns += /obj/item/stack/material/uranium
-	possible_spawns += /obj/item/stack/material/sandstone
-	possible_spawns += /obj/item/stack/material/silver
-	var/new_type = pick(possible_spawns)
-	var/obj/item/stack/material/new_item = new new_type(loc)
+	var/mat_to_spawn = pickweight(possible_materials)
+	var/material/M = SSmaterials.materials_by_name[mat_to_spawn]
+	var/obj/item/stack/material/new_item = new M.stack_type(loc)
 	new_item.amount = rand(5,45)
 	return new_item
 
+/obj/item/weapon/archaeological_find/material/exotic
+	item_type = "rare material lump"
+	possible_materials = list(MATERIAL_ALIENALLOY, MATERIAL_PHORON, MATERIAL_HYDROGEN, MATERIAL_PHORON_GLASS)
+
 /obj/item/weapon/archaeological_find/crystal
-	item_type = MATERIAL_CRYSTAL
+	item_type = "crystal"
 	icon_state = "Green lump"
 	find_type = ARCHAEO_CRYSTAL
 	apply_prefix = 0
@@ -375,7 +376,7 @@
 	possible_spawns -= /obj/item/weapon/stock_parts/subspace
 	var/new_type = pick(possible_spawns)
 	return new new_type(loc)
-/*
+
 /obj/item/weapon/archaeological_find/laser
 	item_type = "gun"
 	icon_state = "egun1"
@@ -406,7 +407,7 @@
 	additional_desc = "This is an antique energy weapon, you're not sure if it will fire or not."
 
 	return new_gun
-*/
+
 /obj/item/weapon/archaeological_find/gun
 	item_type = "gun"
 	icon_state = "gun1"

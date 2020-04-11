@@ -15,36 +15,29 @@
 	if(planttype)
 		plantname = planttype
 	..()
-	ADD_SAVED_VAR(plantname)
-	ADD_SAVED_VAR(seed)
-	ADD_SAVED_VAR(potency)
-
-/obj/item/weapon/reagent_containers/food/snacks/grown/SetupReagents()
-	. = ..()
 	fill_reagents()
 
 /obj/item/weapon/reagent_containers/food/snacks/grown/Initialize()
-	if(!map_storage_loaded)
-		//Only get plant type from SSPlant if we're newly created. Otherwise keep our stored properties
-		if(!SSplants)
-			log_error("<span class='danger'>Plant controller does not exist and [src] requires it. Aborting.</span>")
-			return INITIALIZE_HINT_QDEL
-		seed = SSplants.seeds[plantname]
-	if(!seed)
-		log_error("[src]\ref[src] at loc [loc]([x], [y], [z]) didn't have a seed when initialized!")
+	. = ..()
+	if(!SSplants)
+		log_error("<span class='danger'>Plant controller does not exist and [src] requires it. Aborting.</span>")
 		return INITIALIZE_HINT_QDEL
-	. = ..() //SetupReagents is called in the base class, and it calls fill_reagents, which needs the seed to be setup!
+
+	seed = SSplants.seeds[plantname]
+
+	if(!seed)
+		return INITIALIZE_HINT_QDEL
+
 	SetName("[seed.seed_name]")
 	trash = seed.get_trash_type()
 	if(!dried_type)
 		dried_type = type
 
-	queue_icon_update()
+	update_icon()
 
 
 /obj/item/weapon/reagent_containers/food/snacks/grown/proc/fill_reagents()
 	if(!seed)
-		log_error("[src]\ref[src] had no seed when reagents were intialized!")
 		return
 
 	if(!seed.chems)
@@ -188,7 +181,7 @@
 				pocell.charge = pocell.maxcharge
 				qdel(src)
 				return
-		else if(W.sharpness)
+		else if(W.sharp)
 			if(seed.kitchen_tag == "pumpkin") // Ugggh these checks are awful.
 				user.show_message("<span class='notice'>You carve a face into [src]!</span>", 1)
 				new /obj/item/clothing/head/pumpkinhead (user.loc)
@@ -224,7 +217,7 @@
 					to_chat(user, "You slice up \the [src].")
 					var/slices = rand(3,5)
 					var/reagents_to_transfer = round(reagents.total_volume/slices)
-					for(var/i=i;i<=slices;i++)
+					for(var/i in 1 to slices)
 						var/obj/item/weapon/reagent_containers/food/snacks/fruit_slice/F = new(get_turf(src),seed)
 						if(reagents_to_transfer) reagents.trans_to_obj(F,reagents_to_transfer)
 					qdel(src)
@@ -245,7 +238,6 @@
 		if(prob(35))
 			if(user)
 				to_chat(user, "<span class='danger'>\The [src] has fallen to bits.</span>")
-				user.drop_from_inventory(src)
 			qdel(src)
 
 /obj/item/weapon/reagent_containers/food/snacks/grown/attack_self(mob/user as mob)

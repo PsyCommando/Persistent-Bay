@@ -10,13 +10,7 @@
 	throwforce = 3
 	force = 3
 	w_class = ITEM_SIZE_TINY
-	mass = 0.1
 	var/obj/item/weapon/reagent_containers/syringe/syringe
-
-/obj/item/weapon/syringe_cartridge/New()
-	..()
-	ADD_SAVED_VAR(syringe)
-	ADD_SKIP_EMPTY(syringe)
 
 /obj/item/weapon/syringe_cartridge/on_update_icon()
 	underlays.Cut()
@@ -28,7 +22,7 @@
 	if(istype(I, /obj/item/weapon/reagent_containers/syringe) && user.unEquip(I, src))
 		syringe = I
 		to_chat(user, "<span class='notice'>You carefully insert [syringe] into [src].</span>")
-		sharpness = 1
+		sharp = 1
 		name = "syringe dart"
 		update_icon()
 
@@ -37,7 +31,7 @@
 		to_chat(user, "<span class='notice'>You remove [syringe] from [src].</span>")
 		user.put_in_hands(syringe)
 		syringe = null
-		sharpness = initial(sharpness)
+		sharp = initial(sharp)
 		SetName(initial(name))
 		update_icon()
 
@@ -46,18 +40,18 @@
 	icon_state = icon_flight
 	underlays.Cut()
 
-/obj/item/weapon/syringe_cartridge/throw_impact(atom/hit_atom, var/speed)
+/obj/item/weapon/syringe_cartridge/throw_impact(atom/hit_atom, var/datum/thrownthing/TT)
 	..() //handles embedding for us. Should have a decent chance if thrown fast enough
 	if(syringe)
 		//check speed to see if we hit hard enough to trigger the rapid injection
 		//incidentally, this means syringe_cartridges can be used with the pneumatic launcher
-		if(speed >= 10 && isliving(hit_atom))
+		if(TT.speed >= 10 && isliving(hit_atom))
 			var/mob/living/L = hit_atom
 			//unfortuately we don't know where the dart will actually hit, since that's done by the parent.
-			if(L.can_inject(null, ran_zone()) && syringe.reagents)
+			if(L.can_inject(null, ran_zone(TT.target_zone, 30)) == CAN_INJECT && syringe.reagents)
 				var/reagent_log = syringe.reagents.get_reagents()
 				syringe.reagents.trans_to_mob(L, 15, CHEM_BLOOD)
-				admin_inject_log(thrower, L, src, reagent_log, 15, violent=1)
+				admin_inject_log(TT.thrower? TT.thrower : null, L, src, reagent_log, 15, violent=1)
 
 		syringe.break_syringe(iscarbon(hit_atom)? hit_atom : null)
 		syringe.update_icon()
@@ -81,19 +75,10 @@
 	screen_shake = 0
 	release_force = 10
 	throw_distance = 10
-	mass = 1.8
 
 	var/list/darts = list()
 	var/max_darts = 1
 	var/obj/item/weapon/syringe_cartridge/next
-
-/obj/item/weapon/gun/launcher/syringe/New()
-	..()
-	ADD_SAVED_VAR(next)
-	ADD_SAVED_VAR(darts)
-
-	ADD_SKIP_EMPTY(next)
-	ADD_SKIP_EMPTY(darts)
 
 /obj/item/weapon/gun/launcher/syringe/consume_next_projectile()
 	if(next)
@@ -150,7 +135,6 @@
 	icon_state = "rapidsyringegun"
 	item_state = "rapidsyringegun"
 	max_darts = 5
-	mass = 2.3
 
 /obj/item/weapon/gun/launcher/syringe/disguised
 	name = "deluxe electronic cigarette"
@@ -161,8 +145,9 @@
 	w_class = ITEM_SIZE_SMALL
 	force = 3
 	throw_distance = 7
-	release_force = 7
+	release_force = 10
 
-/obj/item/weapon/gun/launcher/syringe/disguised/examine(mob/user)
-	if(( . = ..(user, 0)))
+/obj/item/weapon/gun/launcher/syringe/disguised/examine(mob/user, distance)
+	. = ..()
+	if(distance <= 1)
 		to_chat(user, "The button is a little stiff.")

@@ -12,17 +12,21 @@
 	speak_chance = 1
 	turns_per_move = 5
 	see_in_dark = 6
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/goat
-	meat_amount = 4
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
 	faction = "goat"
 	attacktext = "kicked"
-	maxHealth = 150
-	health = 150
+	health = 40
 	melee_damage_lower = 1
 	melee_damage_upper = 5
+
+	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/goat
+	meat_amount = 4
+	bone_amount = 8
+	skin_material = MATERIAL_SKIN_GOATHIDE
+	skin_amount = 8
+
 	var/datum/reagents/udder = null
 
 /mob/living/simple_animal/hostile/retaliate/goat/New()
@@ -100,15 +104,18 @@
 	speak_chance = 1
 	turns_per_move = 5
 	see_in_dark = 6
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/beef
-	meat_amount = 10
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
 	attacktext = "kicked"
-	maxHealth = 200
-	health = 200
-	mass = 680.4 //1,500 lbs
+	health = 50
+
+	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/beef
+	meat_amount = 6
+	bone_amount = 10
+	skin_material = MATERIAL_SKIN_COWHIDE
+	skin_amount = 10
+
 	var/datum/reagents/udder = null
 
 /mob/living/simple_animal/cow/New()
@@ -163,18 +170,21 @@
 	emote_see = list("pecks at the ground","flaps its tiny wings")
 	speak_chance = 2
 	turns_per_move = 2
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
-	meat_amount = 1
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
 	attacktext = "kicked"
-	health = 20
-	maxHealth = 20
-	density = 0
-	var/amount_grown = 0
+	health = 1
 	pass_flags = PASS_FLAG_TABLE | PASS_FLAG_GRILLE
 	mob_size = MOB_MINISCULE
+
+	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
+	meat_amount = 1
+	bone_amount = 3
+	skin_amount = 3
+	skin_material = MATERIAL_SKIN_FEATHERS
+
+	var/amount_grown = 0
 
 /mob/living/simple_animal/chick/New()
 	..()
@@ -205,19 +215,20 @@ var/global/chicken_count = 0
 	emote_see = list("pecks at the ground","flaps its wings viciously")
 	speak_chance = 2
 	turns_per_move = 3
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
-	meat_amount = 2
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
 	attacktext = "kicked"
-	health = 80
-	maxHealth = 80
-	density = 0
-	var/eggsleft = 0
-	var/body_color
+	health = 10
 	pass_flags = PASS_FLAG_TABLE
 	mob_size = MOB_SMALL
+
+	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/chicken
+	meat_amount = 2
+	skin_material = MATERIAL_SKIN_FEATHERS
+
+	var/eggsleft = 0
+	var/body_color
 
 /mob/living/simple_animal/chicken/New()
 	..()
@@ -240,10 +251,8 @@ var/global/chicken_count = 0
 		if(G.seed && G.seed.kitchen_tag == "wheat")
 			if(!stat && eggsleft < 8)
 				user.visible_message("<span class='notice'>[user] feeds [O] to [name]! It clucks happily.</span>","<span class='notice'>You feed [O] to [name]! It clucks happily.</span>")
-				user.drop_item()
 				qdel(O)
-				if(prob(25))
-					eggsleft++
+				eggsleft += rand(1, 4)
 			else
 				to_chat(user, "<span class='notice'>[name] doesn't seem hungry!</span>")
 		else
@@ -255,7 +264,7 @@ var/global/chicken_count = 0
 	. = ..()
 	if(!.)
 		return FALSE
-	if(prob(1) && eggsleft > 0)
+	if(prob(3) && eggsleft > 0)
 		visible_message("[src] [pick("lays an egg.","squats down and croons.","begins making a huge racket.","begins clucking raucously.")]")
 		eggsleft--
 		var/obj/item/weapon/reagent_containers/food/snacks/egg/E = new(get_turf(src))

@@ -6,7 +6,7 @@
 	if(health >= 0 && . > 0 && disrupts_psionics())
 		health -= .
 		. = max(0, -(health))
-		kill()
+		check_health(consumed = TRUE)
 
 /obj/item/weapon/material/shard/nullglass/New(var/newloc)
 	..(newloc, MATERIAL_NULLGLASS)

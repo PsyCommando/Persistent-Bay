@@ -4,22 +4,11 @@
 	var/obj/item/master_item
 
 /obj/item/weapon/storage/internal/New(obj/item/MI)
-	if(MI)
-		master_item = MI
-		loc = master_item
-		name = master_item.name
-		verbs -= /obj/item/verb/verb_pickup	//make sure this is never picked up.
-		..()
-	ADD_SAVED_VAR(master_item)
-	
-/obj/item/weapon/storage/internal/after_load()
-	// storage_ui = new storage_ui(src)
-	// prepare_ui()
-	if(master_item)
-		loc = master_item
-		name = master_item.name
-		verbs -= /obj/item/verb/verb_pickup	//make sure this is never picked up.
-		..()
+	master_item = MI
+	name = master_item.name
+	verbs -= /obj/item/verb/verb_pickup	//make sure this is never picked up.
+	..()
+
 /obj/item/weapon/storage/internal/Destroy()
 	master_item = null
 	. = ..()
@@ -41,9 +30,6 @@
 //doing it without the ability to call another proc's parent, really.
 /obj/item/weapon/storage/internal/proc/handle_mousedrop(mob/user as mob, obj/over_object as obj)
 	if (ishuman(user) || issmall(user)) //so monkeys can take off their backpacks -- Urist
-
-		if (istype(user.loc,/obj/mecha)) // stops inventory actions in a mech
-			return 0
 
 		if(over_object == user && Adjacent(user)) // this must come before the screen objects only block
 			src.open(user)
@@ -104,19 +90,7 @@
 	storage_slots = slots
 	max_w_class = slot_size
 	..()
-/obj/item/weapon/storage/internal/pockets/after_load()
-	if(master_item)
-		loc = master_item
-		name = master_item.name
-		if(istype(loc, /obj/item/clothing/suit/storage))
-			var/obj/item/clothing/suit/storage/coat = loc
-			if(coat)
-				coat.pockets = src
-		if(istype(loc, /obj/item/clothing/accessory/storage))
-			var/obj/item/clothing/accessory/storage/web = loc
-			if(web)
-				web.hold = src
-		..()
+
 /obj/item/weapon/storage/internal/pouch/New(var/newloc, var/storage_space)
 	max_storage_space = storage_space
 	..()

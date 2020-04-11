@@ -9,6 +9,7 @@
 	anchored = 1.0
 	var/obj/machinery/atmospherics/pipe/simple/target = null
 	var/open = 1
+
 	var/datum/pipe_network/network_node1
 	var/datum/pipe_network/network_node2
 
@@ -17,18 +18,11 @@
 	if(istype(to_attach))
 		target = to_attach
 	else
-		target = locate(/obj/machinery/atmospherics/pipe/simple) in get_turf(src)
+		target = locate(/obj/machinery/atmospherics/pipe/simple) in loc
 	if(target)
 		update_networks()
 		dir = target.dir
-	ADD_SAVED_VAR(open)
-
-/obj/machinery/clamp/LateInitialize()
-	. = ..()
-	if(open)
-		open()
-	else
-		close()
+	return 1
 
 /obj/machinery/clamp/proc/update_networks()
 	if(!target)
@@ -43,14 +37,15 @@
 			var/datum/pipeline/P2 = node2.parent
 			network_node2 = P2.network
 
-/obj/machinery/clamp/attack_hand(var/mob/user)
-	if(!target || !user)
-		return
+/obj/machinery/clamp/physical_attack_hand(var/mob/user)
+	if(!target)
+		return FALSE
 	if(!open)
 		open()
 	else
 		close()
 	to_chat(user, "<span class='notice'>You turn [open ? "off" : "on"] \the [src]</span>")
+	return TRUE
 
 /obj/machinery/clamp/Destroy()
 	if(!open)
@@ -142,7 +137,7 @@
 	desc = "A magnetic clamp which can halt the flow of gas in a pipe, via a localised stasis field."
 	icon = 'icons/atmos/clamp.dmi'
 	icon_state = "pclamp0"
-	matter = list(MATERIAL_STEEL = 300, MATERIAL_GLASS = 500)
+	origin_tech = list(TECH_ENGINEERING = 4, TECH_MAGNET = 4)
 
 /obj/item/clamp/afterattack(var/atom/A, mob/user as mob, proximity)
 	if(!proximity)

@@ -5,14 +5,12 @@
 	icon_state = "extinguisher_closed"
 	anchored = 1
 	density = 0
-	max_health = 150
 	var/obj/item/weapon/extinguisher/has_extinguisher
 	var/opened = 0
 
 /obj/structure/extinguisher_cabinet/New()
-	. = ..()
-	ADD_SAVED_VAR(opened)
-	ADD_SAVED_VAR(has_extinguisher)
+	..()
+	has_extinguisher = new/obj/item/weapon/extinguisher(src)
 
 /obj/structure/extinguisher_cabinet/attackby(obj/item/O, mob/user)
 	if(isrobot(user))
@@ -50,29 +48,7 @@
 		opened = !opened
 	update_icon()
 
-/obj/structure/extinguisher_cabinet/attack_tk(mob/user)
-	if(has_extinguisher)
-		has_extinguisher.dropInto(loc)
-		to_chat(user, "<span class='notice'>You telekinetically remove [has_extinguisher] from [src].</span>")
-		has_extinguisher = null
-		opened = 1
-	else
-		opened = !opened
-	update_icon()
-
 /obj/structure/extinguisher_cabinet/on_update_icon()
-	pixel_x = 0
-	pixel_y = 0
-	switch(dir)
-		if(NORTH)
-			pixel_y = 24
-		if(SOUTH)
-			pixel_y = -24
-		if(EAST)
-			pixel_x = 24
-		if(WEST)
-			pixel_x = -24
-
 	if(!opened)
 		icon_state = "extinguisher_closed"
 		return
@@ -89,6 +65,12 @@
 		opened = !opened
 		update_icon()
 
-/obj/structure/extinguisher_cabinet/filled/New()
-	..()
-	has_extinguisher = new/obj/item/weapon/extinguisher(src)
+/obj/structure/extinguisher_cabinet/do_simple_ranged_interaction(var/mob/user)
+	if(has_extinguisher)
+		has_extinguisher.dropInto(loc)
+		has_extinguisher = null
+		opened = 1
+	else
+		opened = !opened
+	update_icon()
+	return TRUE

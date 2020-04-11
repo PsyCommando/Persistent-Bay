@@ -4,12 +4,12 @@
 #define TURF_REMOVE_WRENCH      8
 #define TURF_CAN_BREAK          16
 #define TURF_CAN_BURN           32
-#define TURF_HAS_EDGES          64
-#define TURF_HAS_CORNERS        128
-#define TURF_IS_FRAGILE         256
-#define TURF_ACID_IMMUNE        512
-#define TURF_IS_WET             1024
-#define TURF_HAS_INNER_CORNERS	2048
+#define TURF_HAS_EDGES  		64
+#define TURF_HAS_CORNERS		128
+#define TURF_HAS_INNER_CORNERS	256
+#define TURF_IS_FRAGILE         512
+#define TURF_ACID_IMMUNE        1024
+#define TURF_IS_WET             2048
 #define TURF_HAS_RANDOM_BORDER	4096
 
 //Used for floor/wall smoothing
