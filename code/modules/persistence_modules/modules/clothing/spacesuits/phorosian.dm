@@ -1,3 +1,5 @@
+//#TODO: Armor values
+
 //Phorosian suits
 /obj/item/clothing/suit/space/phorosian
 	name = "Phorosian containment suit"
@@ -5,8 +7,6 @@
 	icon_state = "phorosiansuit"
 	item_state = "phorosiansuit"
 	item_flags =  ITEM_FLAG_THICKMATERIAL | ITEM_FLAG_PHORONGUARD
-	max_pressure_protection = VOIDSUIT_MAX_PRESSURE
-	min_pressure_protection = 0
 	allowed = list(/obj/item/weapon/tank)
 	desc = "A special containment suit designed to protect a phorosians volatile body from outside exposure."
 	species_restricted = list(SPECIES_PHOROSIAN)
@@ -16,7 +16,6 @@
 	breach_threshold = 6
 	can_breach = 1
 	resilience = 0.1
-	armor  = list(DAM_BIO = 100, DAM_RADS = 20)
 
 
 /obj/item/clothing/head/helmet/space/phorosian
@@ -27,14 +26,11 @@
 	item_state = "phorosian_helmet0"
 	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|BLOCKHAIR
 	item_flags = ITEM_FLAG_THICKMATERIAL | ITEM_FLAG_AIRTIGHT | ITEM_FLAG_PHORONGUARD
-	max_pressure_protection = VOIDSUIT_MAX_PRESSURE
-	min_pressure_protection = 0
 	species_restricted = list(SPECIES_PHOROSIAN)
 	light_overlay = "helmet_light"
 	sprite_sheets = list(
 		SPECIES_PHOROSIAN = 'icons/mob/species/phorosian/onmob_head_phorosian.dmi'
 		)
-	armor  = list(DAM_BIO = 100, DAM_RADS = 20)
 
 
 /obj/item/clothing/suit/space/phorosian/assistant
@@ -51,112 +47,37 @@
 	icon_state = "phorosianAtmos_suit"
 	item_state = "phorosianAtmos_suit"
 	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
 
 /obj/item/clothing/head/helmet/space/phorosian/atmostech
 	name = "Phorosian atmospheric helmet"
 	icon_state = "phorosianAtmos_helmet0"
 	item_state = "phorosianAtmos_helmet0"
 	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
 
 /obj/item/clothing/suit/space/phorosian/engineer
 	name = "Phorosian engineer suit"
 	icon_state = "phorosianEngineer_suit"
 	item_state = "phorosianEngineer_suit"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 80,
-		DAM_STUN 	= 0)
 
 /obj/item/clothing/head/helmet/space/phorosian/engineer
 	name = "Phorosian engineer helmet"
 	icon_state = "phorosianEngineer_helmet0"
 	item_state = "phorosianEngineer_helmet0"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 80,
-		DAM_STUN 	= 0)
+
 
 /obj/item/clothing/suit/space/phorosian/engineer/ce
 	name = "Phorosian chief engineer suit"
 	icon_state = "phorosianCE"
 	item_state = "phorosianCE"
 	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 20,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 90,
-		DAM_STUN 	= 0)
+
 
 /obj/item/clothing/head/helmet/space/phorosian/engineer/ce
 	name = "Phorosian chief engineer helmet"
 	icon_state = "phorosianCE_helmet0"
 	item_state = "phorosianCE_helmet0"
 	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 20,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 15,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 90,
-		DAM_STUN 	= 0)
+
 
 //SERVICE
 
@@ -237,38 +158,14 @@
 	name = "Phorosian miner suit"
 	icon_state = "phorosianMiner_suit"
 	item_state = "phorosianMiner_suit"
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 2)
+
 
 
 /obj/item/clothing/head/helmet/space/phorosian/miner
 	name = "Phorosian miner helmet"
 	icon_state = "phorosianMiner_helmet0"
 	item_state = "phorosianMiner_helmet0"
-	armor  = list(
-		DAM_BLUNT 	= 50,
-		DAM_PIERCE 	= 40,
-		DAM_CUT 	= 50,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 55,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 30,
-		DAM_STUN 	= 2)
+
 
 /obj/item/clothing/suit/space/phorosian/miner/alt
 	icon_state = "phorosianMiner_suit_alt"
@@ -284,37 +181,13 @@
 	name = "Phorosian medical suit"
 	icon_state = "phorosianMedical_suit"
 	item_state = "phorosianMedical_suit"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+
 
 /obj/item/clothing/head/helmet/space/phorosian/medical
 	name = "Phorosian medical helmet"
 	icon_state = "phorosianMedical_helmet0"
 	item_state = "phorosianMedical_helmet0"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 5,
-		DAM_LASER 	= 20,
-		DAM_ENERGY 	= 5,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 50,
-		DAM_STUN 	= 0)
+
 
 /obj/item/clothing/suit/space/phorosian/medical/paramedic
 	name = "Phorosian paramedic suit"
@@ -383,37 +256,13 @@
 	name = "Phorosian security suit"
 	icon_state = "phorosianSecurity_suit"
 	item_state = "phorosianSecurity_suit"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 45,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 5)
+
 
 /obj/item/clothing/head/helmet/space/phorosian/security
 	name = "Phorosian security helmet"
 	icon_state = "phorosianSecurity_helmet0"
 	item_state = "phorosianSecurity_helmet0"
-	armor  = list(
-		DAM_BLUNT 	= 40,
-		DAM_PIERCE 	= 30,
-		DAM_CUT 	= 40,
-		DAM_BULLET 	= 10,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 45,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 5)
+
 
 /obj/item/clothing/suit/space/phorosian/security/hos
 	name = "Phorosian head of security suit"
@@ -429,37 +278,13 @@
 	name = "Phorosian head of personnel suit"
 	icon_state = "phorosianHoP"
 	item_state = "phorosianHoP"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 0)
+
 
 /obj/item/clothing/head/helmet/space/phorosian/hop
 	name = "Phorosian head of personnel helmet"
 	icon_state = "phorosianHoP_helmet0"
 	item_state = "phorosianHoP_helmet0"
-	armor  = list(
-		DAM_BLUNT 	= 30,
-		DAM_PIERCE 	= 20,
-		DAM_CUT 	= 30,
-		DAM_BULLET 	= 15,
-		DAM_LASER 	= 40,
-		DAM_ENERGY 	= 10,
-		DAM_BURN 	= 10,
-		DAM_BOMB 	= 25,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 0)
+
 
 
 /obj/item/clothing/suit/space/phorosian/security/captain
@@ -477,38 +302,14 @@
 /obj/item/clothing/suit/space/phorosian/nuclear
 	name = "blood red Phorosian suit"
 	icon_state = "phorosianNukeops"
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 0)
+
 
 
 /obj/item/clothing/head/helmet/space/phorosian/nuclear
 	name = "blood red Phorosian helmet"
 	icon_state = "phorosianNukeops_helmet0"
 	item_state = "phorosianNukeops_helmet0"
-	armor  = list(
-		DAM_BLUNT 	= 60,
-		DAM_PIERCE 	= 50,
-		DAM_CUT 	= 60,
-		DAM_BULLET 	= 50,
-		DAM_LASER 	= 30,
-		DAM_ENERGY 	= 15,
-		DAM_BURN 	= 20,
-		DAM_BOMB 	= 35,
-		DAM_EMP 	= 5,
-		DAM_BIO 	= 100,
-		DAM_RADS 	= 10,
-		DAM_STUN 	= 0)
+
 
 
 /obj/item/device/phorosiansuit_changer //Can be used to change the type of plasmaman suit.

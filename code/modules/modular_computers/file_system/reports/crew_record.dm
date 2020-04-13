@@ -16,22 +16,6 @@ GLOBAL_LIST_INIT(work_status, list(WORK_STATUS_ON_DUTY, WORK_STATUS_OFF_DUTY))
 	var/icon/photo_side = null
 	//More variables below.
 
-	//var/list/promote_votes = list() //Store in the faction data!!!!
-	//var/list/demote_votes = list() //Store in the faction data!!!!
-	//var/rank = 0  //There's already a rank value
-
-	//var/assignment_data = list() // format = list(assignment_uid = rank) //Store in faction data, not crew records
-	//var/validate_time = 0 //Store in faction data, not crew records
-	//var/worked = 0 //Store in faction data, not crew records
-
-	
-	//var/ckey //The CKEY shouldn't be stored in here..
-
-
-	//var/network_level = 1 //Should be network level stuff
-	//var/notifications = 1 // whether or not to be notified when a new email is sent //Should be machine-level stuff
-	
-
 /datum/computer_file/report/crew_record/New()
 	..()
 	load_from_mob(null)

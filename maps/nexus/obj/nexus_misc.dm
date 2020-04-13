@@ -2,7 +2,6 @@
 	title = "Guide to Nexus City"
 	name = "Guide to Nexus City"
 	author = "NEX"
-	author_real = "premade"
 	icon_state = "anomaly"
 
 /obj/item/weapon/book/multipage/nexus_guide/New()

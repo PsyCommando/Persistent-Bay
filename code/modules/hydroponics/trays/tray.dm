@@ -34,7 +34,7 @@
 	var/tray_light = 5         // Supplied lighting.
 
 	// Mechanical concerns.
-	var/plant_health = 0             // Plant health.
+	var/plant_health = 0       // Plant health.
 	var/lastproduce = 0        // Last time tray was harvested
 	var/lastcycle = 0          // Cycle timing/tracking var.
 	var/cycledelay = 150       // Delay per cycle.
@@ -165,8 +165,7 @@
 /obj/machinery/portable_atmospherics/hydroponics/Destroy()
 	STOP_PROCESSING(SSplants, src)
 	QDEL_NULL(temp_chem_holder)
-	if(seed)
-		QDEL_NULL(seed)
+	QDEL_NULL(seed)
 	. = ..()
 
 /obj/machinery/portable_atmospherics/hydroponics/LateInitialize()

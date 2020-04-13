@@ -77,37 +77,13 @@
 /obj/item/clothing/suit/wizrobe/magusblue/fake
 	gas_transfer_coefficient = 1
 	permeability_coefficient = 1
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor  = list()
 	siemens_coefficient = 1.0
 
 /obj/item/clothing/suit/wizrobe/magusred/fake
 	gas_transfer_coefficient = 1
 	permeability_coefficient = 1
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor  = list()
 	siemens_coefficient = 1.0
 
 /obj/item/clothing/head/wizard/amp/fake
@@ -116,19 +92,7 @@
 /obj/item/clothing/suit/wizrobe/psypurple/fake
 	gas_transfer_coefficient = 1
 	permeability_coefficient = 1
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor  = list()
 	siemens_coefficient = 1.0
 
 /obj/item/clothing/head/wizard/cap/fake
@@ -137,19 +101,7 @@
 /obj/item/clothing/suit/wizrobe/gentlecoat/fake
 	gas_transfer_coefficient = 1
 	permeability_coefficient = 1
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor  = list()
 	siemens_coefficient = 1.0
 
 /obj/item/clothing/head/wizard/red/fake
@@ -158,19 +110,7 @@
 /obj/item/clothing/suit/wizrobe/red/fake
 	gas_transfer_coefficient = 1
 	permeability_coefficient = 1
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor  = list()
 	siemens_coefficient = 1.0
 
 //Cosmetic wizard wear below
@@ -184,17 +124,5 @@
 	item_state = "wizrobe"
 	gas_transfer_coefficient = 1
 	permeability_coefficient = 1
-	armor  = list(
-		DAM_BLUNT 	= 0,
-		DAM_PIERCE 	= 0,
-		DAM_CUT 	= 2,
-		DAM_BULLET 	= 0,
-		DAM_LASER 	= 0,
-		DAM_ENERGY 	= 0,
-		DAM_BURN 	= 2,
-		DAM_BOMB 	= 0,
-		DAM_EMP 	= 0,
-		DAM_BIO 	= 0,
-		DAM_RADS 	= 0,
-		DAM_STUN 	= 0)
+	armor  = list()
 	siemens_coefficient = 1.0

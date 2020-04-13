@@ -2,20 +2,20 @@
 	// Networks that will show up as options in the camera monitor program
 	station_networks = list(
 		NETWORK_PUBLIC,
-		NETWORK_NEXUS,
-		NETWORK_NEXUS_SECURITY,
-		NETWORK_REFUGEE,
+		"nexus",
+		"nexussec",
+		"refuge",
 	)
 
 // Networks
 /obj/machinery/camera/network/nexus
-	network = list(NETWORK_NEXUS)
+	network = list("nexus")
 
 /obj/machinery/camera/network/nexus_security
-	network = list(NETWORK_NEXUS_SECURITY)
+	network = list("nexussec")
 
 /obj/machinery/camera/network/refugee
-	network = list(NETWORK_REFUGEE)
+	network = list("refuge")
 
 /obj/effect/landmark/map_data/nexus
 	height = 3
