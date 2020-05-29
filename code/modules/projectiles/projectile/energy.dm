@@ -64,7 +64,7 @@
 	fire_sound = 'sound/weapons/Taser.ogg'
 	agony = 50
 	damage = 2
-	damage_type = PAIN //Damage will be handled on the MOB side, to prevent window shattering.
+	damage_type = BURN
 	eyeblur = 1//Some feedback that you've been hit
 	step_delay = 0.7
 
@@ -74,7 +74,6 @@
 /obj/item/projectile/energy/electrode/stunshot
 	agony = 80
 	damage = 3
-	damage_type = STUN
 
 /obj/item/projectile/energy/declone
 	name = "decloner beam"

@@ -46,16 +46,13 @@
 	{{/if}}
 {{/if}}
 <div class="item">
-	{{:helper.link('Browse available imports', 'cart', {'set_screen' : 1}, data.screen == 1 ? 'selected' : null)}}
+	{{:helper.link('Browse Goods', 'cart', {'set_screen' : 1}, data.screen == 1 ? 'selected' : null)}}
 	{{:helper.link('View Statistics', 'calculator', {'set_screen' : 2}, data.screen == 2 ? 'selected' : null)}}
-	{{:helper.link('Browse Import Requests', 'check', {'set_screen' : 4}, data.screen == 4 ? 'selected' : null)}}
-	{{:helper.link('Recieve Imports', 'bullet', {'set_screen' : 3}, data.screen == 3 ? 'selected' : null)}}
-	{{:helper.link('View Export Orders', 'cart', {'set_screen' : 5}, data.screen == 5 ? 'selected' : null)}}
-	{{:helper.link('Send Exports', 'bullet', {'set_screen' : 6}, data.screen == 6 ? 'selected' : null)}}
-	{{:helper.link('Admin', 'bullet', {'set_screen' : 7}, data.screen == 7 ? 'selected' : null)}}
+	{{:helper.link('Controls', 'bullet', {'set_screen' : 3}, data.screen == 3 ? 'selected' : null)}}
+	{{:helper.link('Browse Orders', 'check', {'set_screen' : 4}, data.screen == 4 ? 'selected' : null)}}
 </div>
 <hr>
-<span>Current Account: {{:data.faction_name}}<br>Current balance: {{:data.credits}} {{:data.currency}}</span>
+<span>Current balance: {{:data.credits}} {{:data.currency}}</span>
 <hr>
 {{if data.screen == 1}}
 	{{for data.categories}}
@@ -107,21 +104,26 @@
 {{else data.screen == 3}}
 	<div class="item">
 		<div class="itemLabel">
-			Import Telepad Selection:
+			Current {{:data.shuttle_name}} location:
 		</div>
 		<div class="itemContent">
-			{{for data.telepads}}
-				{{:helper.link(value.name, '', {'toggle_telepad' : value.ref},null, value.selected ? 'selected' : null )}}
-			{{/for}}
+			{{:data.shuttle_location}}
 		</div>
 	</div>
-	<hr>
 	<div class="item">
 		<div class="itemLabel">
-			Receive all confirmed orders:
+			Current {{:data.shuttle_name}} status:
 		</div>
 		<div class="itemContent">
-			{{:helper.link('Initiate Telepads', 'check', {'launch_order' : 1})}}
+			{{:data.shuttle_status}}
+		</div>
+	</div>
+	<div class="item">
+		<div class="itemLabel">
+			Commands:
+		</div>
+		<div class="itemContent">
+			{{:helper.link('Launch', 'check', {'launch_shuttle' : 1}, data.is_admin ? (data.shuttle_can_control ? null : 'disabled') : 'disabled')}}
 		</div>
 	</div>
 {{else data.screen == 4}}
@@ -161,49 +163,6 @@
 				{{/for}}
 			</table>
 		</div>
-	{{else}}
-		<h3>Access denied: Missing identificaton or insufficient permissions.</h3>
-	{{/if}}
-{{else data.screen == 5}}
-	<h2>Current Export Orders</h2>
-	<h3>Attach an export manifest in any crate or closet along with some amount of <b>only the items requested</b>. The cost for containers and energy are at your own expense.</h3>
-	<br>
-	{{for data.exports}}
-		<hr>
-		<h2>{{:value.name}}</h2>
-		<h3>{{:value.supplied}} / {{:value.required}} Supplied</h3>
-		<br><br>
-		{{:helper.link('Print Export Manifest', 'print', {'print_export' : value.id}, data.can_print ? null : 'disabled')}}{{:helper.link('Print Business Export Manifest', 'print', {'print_export2' : value.id}, data.can_print ? null : 'disabled')}}
-		{{if !data.can_print}}
-			No printer detected! Install a printer.
-		{{/if}}
-		<br><br>
-		<hr>
-	{{/for}}
-		
-{{else data.screen == 6}}
-	<div class="item">
-		<div class="itemLabel">
-			Export Telepad Selection:
-		</div>
-		<div class="itemContent">
-			{{for data.telepads}}
-				{{:helper.link(value.name, '', {'toggle_telepad_export' : value.ref},null, value.selected ? 'selected' : null )}}
-			{{/for}}
-		</div>
-	</div>
-	<hr>
-	<div class="item">
-		<div class="itemLabel">
-			Send Valid Exports:
-		</div>
-		<div class="itemContent">
-			{{:helper.link('Initiate Telepads', 'check', {'launch_export' : 1})}}
-		</div>
-	</div>
-
-{{else data.screen == 7}}
-	{{if data.is_superadmin}}
 		<div class="item">
 			<center><h3>Filled orders</h3></span>
 			<table style="width:100%">
@@ -216,15 +175,6 @@
 				{{/for}}
 			</table>
 		</div>
-		<hr>
-		<div class="item">
-			<div class="itemLabel">
-				Actions Available:
-			</div>
-			<div class="itemContent">
-				{{:helper.link('Revoke Telepads', 'check', {'revoke_pad' : 1})}}
-			</div>
-		</div>	
 	{{else}}
 		<h3>Access denied: Missing identification or insufficient permissions.</h3>
 	{{/if}}

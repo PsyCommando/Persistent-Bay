@@ -10,6 +10,7 @@ var/datum/admin_secrets/admin_secrets = new()
 	items = list()
 	var/list/category_assoc = list()
 	for(var/datum/admin_secret_category/category in categories)
+		log_debug("Adding admin secret category: '[category]' with type '[category.type]'!")
 		category_assoc[category.type] = category
 
 	for(var/item_type in (typesof(/datum/admin_secret_item) - /datum/admin_secret_item))

@@ -323,8 +323,6 @@
 
 /stat_rig_module/deactivate/New(var/obj/item/rig_module/module)
 	..()
-	if(!module)
-		return
 	name = module.deactivate_string
 	// Show cost despite being 0, if it means changing from an active cost.
 	if(module.active_power_cost || module.passive_power_cost)
@@ -337,8 +335,6 @@
 
 /stat_rig_module/engage/New(var/obj/item/rig_module/module)
 	..()
-	if(!module)
-		return
 	name = module.engage_string
 	if(module.use_power_cost)
 		name += " ([module.use_power_cost*10]E)"
