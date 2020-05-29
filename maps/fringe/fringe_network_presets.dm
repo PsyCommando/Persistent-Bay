@@ -1,7 +1,7 @@
 /obj/machinery/camera/network/public
-	network = list(NETWORK_PUBLIC)
+	network = list("Public")
 
 /obj/machinery/camera/network/nanotrasen
-	network = list(NETWORK_NT)
+	network = list("NTNet")
 
 

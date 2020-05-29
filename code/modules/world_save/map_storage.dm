@@ -12,13 +12,13 @@ var/global/list/saved_datums = list()
 var/global/list/saved_lists = list()
 
 //Map loading in the mapping subsystem for some reasons
-/datum/controller/subsystem/mapping/Initialize(timeofday)
-	. = ..()
-#ifdef UNIT_TEST
-	report_progress("Unit testing, so not loading saved map")
-#else
-	Load_World()
-#endif
+// /datum/controller/subsystem/mapping/Initialize(timeofday)
+// 	. = ..()
+// #ifdef UNIT_TEST
+// 	report_progress("Unit testing, so not loading saved map")
+// #else
+// 	Load_World()
+// #endif
 
 /proc/Prepare_Atmos_For_Saving()
 	for(var/datum/pipe_network/net in SSmachines.pipenets)

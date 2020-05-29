@@ -49,10 +49,12 @@ var/global/datum/controller/save_controller/SaveController = new()
 
 // 	return TRUE
 /datum/map
-	var/list/initial_map_files = list()
+	var/list/initial_map_files = list() //file paths for all the initial z-levels of the map in order
 
 /datum/map/proc/load_base_map()
-	for(var/M in initial_map_files)
+	for(var/map_template_name in (SSmapping.map_templates))
+		var/datum/map_template/base_map/map_template = SSmapping.map_templates[map_template_name]
+	var/datum/map_template/base_map = new(initial_map_files, "base")
 
 
 

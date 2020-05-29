@@ -14,7 +14,7 @@
 	matter = list(MATERIAL_STEEL = 35)
 	sharp = 2
 	w_class = 2
-	item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_tools.dmi', slot_r_hand_str = 'icons/mob/items/righthand_tools.dmi')
+	//item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_tools.dmi', slot_r_hand_str = 'icons/mob/items/righthand_tools.dmi')
 	attack_verb = list("slices", "cuts", "stabs", "jabs")
 	mass = 0.200
 	var/childpart = /obj/item/weapon/improvised/scissorknife //This is so any thing made is specified. It's helpful for things
@@ -108,7 +108,7 @@
 	force = 3
 	sharp = 1
 	w_class = 2
-	item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_tools.dmi', slot_r_hand_str = 'icons/mob/items/righthand_tools.dmi')
+	//item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_tools.dmi', slot_r_hand_str = 'icons/mob/items/righthand_tools.dmi')
 	attack_verb = list("slices", "cuts", "stabs", "jabs")
 	var/parentscissor = /obj/item/weapon/tool/scissors
 
@@ -156,7 +156,7 @@
 	attack_verb = list("sliced", "cut", "stabbed", "jabbed")
 	sharp = 1
 	w_class = 2
-	item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_tools.dmi', slot_r_hand_str = 'icons/mob/items/righthand_tools.dmi')
+	//item_icons = list(slot_l_hand_str = 'icons/mob/items/lefthand_tools.dmi', slot_r_hand_str = 'icons/mob/items/righthand_tools.dmi')
 	mass = 0.100
 	var/parentassembly = /obj/item/weapon/improvised/scissorsassembly
 

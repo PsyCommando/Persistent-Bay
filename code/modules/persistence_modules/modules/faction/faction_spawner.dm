@@ -1,5 +1,7 @@
 /obj/faction_spawner
 	name = "Name to start faction with"
+	icon = 'code/modules/persistence_modules/icons/misc/map_helpers.dmi'
+	icon_state = "faction"
 	var/name_short = "Faction Abbreviation"
 	var/name_tag = "Faction Tag"
 	var/uid = "faction_uid"
