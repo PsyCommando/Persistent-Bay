@@ -42,7 +42,7 @@
 		game_log("ADMIN", text)
 
 /proc/log_debug(text)
-	if (config.log_debug)
+	if (!config || (config && config.log_debug))
 		game_log("DEBUG", text)
 	to_debug_listeners(text)
 

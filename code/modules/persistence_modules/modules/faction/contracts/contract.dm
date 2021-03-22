@@ -161,7 +161,7 @@ var/const/CONTRACT_TYPE_CLONING = "cloning"
 		return
 	return ..()
 
-/obj/item/weapon/paper/contract/proc/cancel()
+/obj/item/weapon/paper/contract/proc/cancel(var/send_event = TRUE)
 	if(is_closed())
 		update_icon()
 		return
@@ -174,6 +174,8 @@ var/const/CONTRACT_TYPE_CLONING = "cloning"
 		return
 	commit_to_db()
 	update_icon()
+	if(send_event)
+		GLOB.contract_cancelled_event.raise_event(src, uuid)
 
 /obj/item/weapon/paper/contract/proc/contract_id()
 	return uuid

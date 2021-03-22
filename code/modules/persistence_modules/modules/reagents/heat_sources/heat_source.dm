@@ -1,8 +1,8 @@
-/obj/machinery/reagent_temperature
-	max_temperature =      300 CELSIUS
-	min_temperature =      20  CELSIUS
-	heating_power =        100 // K
-	min_temperature = -100 CELSIUS
+// /obj/machinery/reagent_temperature
+// 	max_temperature =      300 CELSIUS
+// 	min_temperature =      20  CELSIUS
+// 	heating_power =        100 // K
+// 	min_temperature = -100 CELSIUS
 
 /obj/machinery/reagent_temperature/New()
 	. = ..()

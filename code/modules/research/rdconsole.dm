@@ -86,6 +86,8 @@ won't update every console in existence) but it's more of a hassle to do. Also, 
 			return_name = "Uranium"
 		if(MATERIAL_DIAMOND)
 			return_name = "Diamond"
+		if(MATERIAL_PLASTEEL)
+			. = "Plasteel"
 	return return_name
 
 /obj/machinery/computer/rdconsole/proc/CallReagentName(var/reagent_type)

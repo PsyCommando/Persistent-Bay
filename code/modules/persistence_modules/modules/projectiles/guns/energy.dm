@@ -19,8 +19,6 @@
 	ADD_SAVED_VAR(power_supply)
 	ADD_SKIP_EMPTY(power_supply)
 
-
-
 /obj/item/weapon/gun/energy/proc/load_ammo(var/obj/item/A, mob/user)
 	if(istype(A, /obj/item/weapon/cell))
 		if(power_supply)

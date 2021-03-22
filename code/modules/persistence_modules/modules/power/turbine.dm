@@ -19,7 +19,7 @@
 	ADD_SAVED_VAR(rpmtarget)
 
 /obj/machinery/compressor/Initialize()
-	var/oldgas = gas_contained
+	// var/oldgas = gas_contained
 
 	. = ..()
 	return INITIALIZE_HINT_LATELOAD

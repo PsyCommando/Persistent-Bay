@@ -366,6 +366,7 @@
 			set_light(0)
 
 /obj/machinery/power/apc/proc/check_updates()
+	if(!area) return
 	if(!update_overlay_chan)
 		update_overlay_chan = new/list()
 	var/last_update_state = update_state
@@ -784,6 +785,7 @@
 	return "[area.name] : [equipment]/[lighting]/[environ] ([lastused_equip+lastused_light+lastused_environ]) : [cell? cell.percent() : "N/C"] ([charging])"
 
 /obj/machinery/power/apc/proc/update()
+	if(!area) return
 	if(operating && !shorted && !failure_timer)
 
 		//prevent unnecessary updates to emergency lighting
@@ -911,7 +913,7 @@
 		. += area.usage(EQUIP)
 
 /obj/machinery/power/apc/Process()
-	if(!area.requires_power)
+	if(!area || !area.requires_power)
 		return PROCESS_KILL
 
 	if(stat & (BROKEN|MAINT))
@@ -979,6 +981,8 @@
 		queue_icon_update()
 
 /obj/machinery/power/apc/proc/update_channels(suppress_alarms = FALSE)
+	if(!area)
+		return
 	// Allow the APC to operate as normal if the cell can charge
 	if(charging && longtermpower < 10)
 		longtermpower += 1
@@ -1095,6 +1099,8 @@ obj/machinery/power/apc/proc/autoset(var/cur_state, var/on)
 	return TRUE
 
 /obj/machinery/power/apc/proc/reboot()
+	if(!area)
+		return
 	//reset various counters so that process() will start fresh
 	charging = initial(charging)
 	autoflag = initial(autoflag)

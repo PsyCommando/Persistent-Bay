@@ -105,7 +105,7 @@
 			var/promote_button = 0
 			var/demote_button = 0
 			// var/max_rank = assignment.accesses.len + 1
-			var/obj/item/weapon/card/id/user_id_card = user.GetIdCard()
+			//var/obj/item/weapon/card/id/user_id_card = user.GetIdCard()
 			// if(user_id_card)
 			// 	for(var/name in record.promote_votes)
 			// 		if(name == user_id_card.registered_name)

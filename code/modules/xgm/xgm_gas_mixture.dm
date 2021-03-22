@@ -132,14 +132,15 @@
 
 	return 1
 
-
 //Returns the heat capacity of the gas mix based on the specific heat of the gases.
 /datum/gas_mixture/proc/heat_capacity()
+	if(isnull(gas_data))
+		log_debug("gas_mixture.heat_capacity() : gas_data is null! We tried to get gas data before the list was generated!")
+		return 0
 	. = 0
 	for(var/g in gas)
 		. += gas_data.specific_heat[g] * gas[g]
 	. *= group_multiplier
-
 
 //Adds or removes thermal energy. Returns the actual thermal energy change, as in the case of removing energy we can't go below TCMB.
 /datum/gas_mixture/proc/add_thermal_energy(var/thermal_energy)
@@ -511,3 +512,10 @@
 	var/M = get_total_moles()
 	if(M)
 		return get_mass()/M
+
+/datum/gas_mixture/after_load()
+	for(var/x in gas)
+		var/val = gas[x]
+		if(val < 0.01) //Clear gases that have a reaaally low mole count, so we're not stuck with all that useless clutter
+			gas -= x
+	..()

@@ -20,6 +20,8 @@ var/datum/admin_secrets/admin_secrets = new()
 
 		var/datum/admin_secret_item/item = new item_type()
 		var/datum/admin_secret_category/category = category_assoc[item.category]
+		if(!category)
+			log_debug("NO CATEGORY [item.category] lol")
 		dd_insertObjectList(category.items, item)
 		items += item
 

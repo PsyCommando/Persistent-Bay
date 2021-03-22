@@ -283,7 +283,7 @@
 /datum/nano_module/program/business_core/Topic(href, href_list)
 	if(..())
 		return 1
-	var/datum/world_faction/business/connected_faction = program?.get_network_faction()
+//	var/datum/world_faction/business/connected_faction = program?.get_network_faction()
 	if(!program.can_run(usr)) return 1
 	switch (href_list["action"])
 

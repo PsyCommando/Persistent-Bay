@@ -51,7 +51,10 @@
 	var/nut_removed = removed
 	var/hyd_removed = removed
 	if(alien == IS_UNATHI)
-		removed *= 0.1 // Unathi get most of their nutrition from meat.
+		nut_removed *= 0.1 // Unathi get most of their nutrition from meat.
+	if(alien == IS_RESOMI)
+		nut_removed *= 0.8
+		hyd_removed *= 0.8
 	if(nutriment_factor)
 		M.adjust_nutrition(nutriment_factor * nut_removed) // For hunger and fatness
 	if(hydration_factor)
@@ -79,6 +82,7 @@
 /datum/reagent/nutriment/protein/adjust_nutrition(var/mob/living/carbon/M, var/alien, var/removed)
 	switch(alien)
 		if(IS_UNATHI) removed *= 2.25
+		if(IS_RESOMI) removed *= 1.25
 	M.adjust_nutrition(nutriment_factor * removed)
 
 /datum/reagent/nutriment/protein/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)

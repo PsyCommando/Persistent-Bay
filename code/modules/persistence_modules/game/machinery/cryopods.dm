@@ -332,7 +332,7 @@
 			req_access_faction = ""
 	if(href_list["connect_net"])
 		if(allowed(user))
-			var/datum/world_faction/F = src.get_faction()
+			//var/datum/world_faction/F = src.get_faction()
 			var/choice = input(usr,"Enter CryoNet Filter to use.","Choose CryoNet filter",null) as null|text
 			if(choice)
 				network = choice

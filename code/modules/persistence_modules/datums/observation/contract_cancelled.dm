@@ -27,11 +27,11 @@ GLOBAL_DATUM_INIT(contract_cancelled_event, /decl/observ/contract_cancelled, new
 	GLOB.contract_cancelled_event.unregister(src, src, /obj/item/weapon/paper/contract/proc/on_remote_cancel)
 	return ..()
 	
-/obj/item/weapon/paper/contract/cancel(var/send_event = TRUE)
-	if(!(. = ..()))
-		return .
-	if(send_event)
-		GLOB.contract_cancelled_event.raise_event(src, uuid)
+// /obj/item/weapon/paper/contract/cancel(var/send_event = TRUE)
+// 	if(!(. = ..()))
+// 		return .
+// 	if(send_event)
+// 		GLOB.contract_cancelled_event.raise_event(src, uuid)
 
 /obj/item/weapon/paper/contract/proc/on_remote_cancel(var/atom/sender, var/contract_id)
 	//Called when we receive the cancel event

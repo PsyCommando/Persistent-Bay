@@ -1,8 +1,8 @@
-/obj/machinery/computer/rdconsole/CallMaterialName(var/ID)
-	. = ..()
-	switch(ID)
-		if(MATERIAL_PLASTEEL)
-			. = "Plasteel"
+// /obj/machinery/computer/rdconsole/CallMaterialName(var/ID)
+// 	. = ..()
+// 	switch(ID)
+// 		if(MATERIAL_PLASTEEL)
+// 			. = "Plasteel"
 
 /obj/machinery/computer/rdconsole/proc/griefProtection() //Have it automatically push research to the centcomm server so wild griffins can't fuck up R&D's work
 	for(var/obj/machinery/r_n_d/server/centcom/C in SSmachines.machinery)

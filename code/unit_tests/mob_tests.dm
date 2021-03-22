@@ -293,41 +293,6 @@ datum/unit_test/mob_damage/halloss
 	name = "MOB: Unathi Halloss Damage Check"
 	damagetype = PAIN
 
-//=================================================================
-// Resomi
-//=================================================================
-
-datum/unit_test/mob_damage/resomi
-	name = "MOB: Resomi damage check template"
-	template = /datum/unit_test/mob_damage/resomi
-	mob_type = /mob/living/carbon/human/resomi
-
-datum/unit_test/mob_damage/resomi/brute
-	name = "MOB: Resomi Brute Damage Check"
-	damagetype = BRUTE
-	expected_vulnerability = EXTRA_VULNERABLE
-
-datum/unit_test/mob_damage/resomi/fire
-	name = "MOB: Resomi Fire Damage Check"
-	damagetype = BURN
-	expected_vulnerability = EXTRA_VULNERABLE
-
-datum/unit_test/mob_damage/resomi/tox
-	name = "MOB: Resomi Toxin damage check"
-	damagetype = TOX
-
-datum/unit_test/mob_damage/resomi/oxy
-	name = "MOB: Resomi Oxygen damage check"
-	damagetype = OXY
-
-datum/unit_test/mob_damage/resomi/clone
-	name = "MOB: REsomi Clone damage check"
-	damagetype = CLONE
-
-datum/unit_test/mob_damage/resomi/halloss
-	name = "MOB: Resomi Halloss damage check"
-	damagetype = PAIN
-
 // =================================================================
 // Skrell
 // =================================================================
@@ -505,43 +470,6 @@ datum/unit_test/mob_damage/resomi/halloss
 
 /datum/unit_test/mob_damage/machine/halloss
 	name = "MOB: IPC Halloss Damage Check"
-	damagetype = PAIN
-	expected_vulnerability = IMMUNE
-
-// =================================================================
-// Phorosians
-// =================================================================
-
-datum/unit_test/mob_damage/phorosian
-	name = "MOB: Phorosian damage check template"
-	template = /datum/unit_test/mob_damage/phorosian
-	mob_type = /mob/living/carbon/human/machine
-
-datum/unit_test/mob_damage/phorosian/brute
-	name = "MOB: Phorosian Brute Damage Check"
-	damagetype = BRUTE
-
-datum/unit_test/mob_damage/phorosian/fire
-	name = "MOB: Phorosian Fire Damage Check"
-	damagetype = BURN
-
-datum/unit_test/mob_damage/phorosian/tox
-	name = "MOB: Phorosian Toxins Damage Check"
-	damagetype = TOX
-	expected_vulnerability = IMMUNE
-
-datum/unit_test/mob_damage/phorosian/oxy
-	name = "MOB: Phorosian Oxygen Damage Check"
-	damagetype = OXY
-	expected_vulnerability = IMMUNE
-
-datum/unit_test/mob_damage/phorosian/clone
-	name = "MOB: Phorosian Clone Damage Check"
-	damagetype = CLONE
-	expected_vulnerability = IMMUNE
-
-datum/unit_test/mob_damage/phorosian/halloss
-	name = "MOB: Phorosian Halloss Damage Check"
 	damagetype = PAIN
 	expected_vulnerability = IMMUNE
 

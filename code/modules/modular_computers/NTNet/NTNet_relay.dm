@@ -120,16 +120,3 @@
 	else if(user.unEquip(P,src))
 		install_component(P)
 		to_chat(user, "You install \the [P] into \the [src]")
-
-//Code ran at creation to register the relay
-/obj/machinery/ntnet_relay/register_relay()
-	if(ntnet_global)
-		ntnet_global.relays.Add(src)
-		NTNet = ntnet_global
-		ntnet_global.add_log("New quantum relay activated. Current amount of linked relays: [NTNet.relays.len]")
-
-//Code ran at destruction to unregister the relay
-/obj/machinery/ntnet_relay/unregister_relay()
-	if(ntnet_global)
-		ntnet_global.relays.Remove(src)
-		ntnet_global.add_log("Quantum relay connection severed. Current amount of linked relays: [NTNet.relays.len]")

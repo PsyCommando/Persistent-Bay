@@ -89,7 +89,7 @@
 		return 1
 
 	if(href_list["search"])
-		var/field_name = href_list["search"]
+		//var/field_name = href_list["search"]
 		var/search = sanitize(input("Enter the value for search for.") as null|text)
 		if(!search)
 			return
