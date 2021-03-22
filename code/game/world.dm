@@ -67,6 +67,7 @@
 #define RECOMMENDED_VERSION 512
 /world/New()
 
+	extools_initialize()
 	enable_debugger()
 	//set window title
 	name = "[server_name] - [GLOB.using_map.full_name]"
